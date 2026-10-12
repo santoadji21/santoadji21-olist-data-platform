@@ -1,6 +1,6 @@
 # Profil Dataset Olist (T0)
 
-Dibangkitkan otomatis oleh `python pipeline.py profile` — 2026-10-12 17:57:09.
+Dibangkitkan otomatis oleh `python pipeline.py profile` — 2026-10-12 19:09:35.
 Semua kolom dibaca sebagai teks (`dtype=str`); angka di bawah adalah temuan, bukan konversi.
 
 ## 1. Ringkasan tabel
@@ -129,8 +129,8 @@ Semua kolom dibaca sebagai teks (`dtype=str`); angka di bawah adalah temuan, buk
 | 7 | orders | Order tanpa item dan order tanpa pembayaran | order tanpa item=775 (status: {'unavailable': 603, 'canceled': 164, 'created': 5, 'invoiced': 2, 'shipped': 1}); order tanpa pembayaran=1 | silent-wrong |
 | 8 | order_payments | Pembayaran bernilai 0, `payment_type='not_defined'`, dan cicilan 0 | payment_value=0: 9; payment_type not_defined: 3; payment_installments=0: 2 | keep-and-flag |
 | 9 | orders | Status `delivered` tanpa tanggal terkirim; tanggal terkirim lebih awal dari tanggal diserahkan ke kurir | delivered tanpa order_delivered_customer_date=8; delivered tanpa order_delivered_carrier_date=2; delivered_customer < delivered_carrier=23; approved_at < purchase=0 | quarantine |
-| 10 | order_items vs order_payments | Σ(price+freight) item ≠ Σ(payment_value) — penyebabnya lebih dari satu | order dgn item & bayar=98,665; selisih >0,01=378; selisih >1,00=249; dari yang >0,01: dibayar LEBIH dari nilai item=290 (kartu kredit cicilan >1 di 258 di antaranya), dibayar KURANG=88, memakai voucher=10; total selisih absolut=3,271.95 BRL | keep-and-flag |
-| 11 | orders | Bulan pertama dan terakhir dataset hanya berisi segelintir order | rentang purchase=2016-09-04 21:15:19 … 2018-10-17 17:30:18; bulan pertama 2016-09=4; kedua 2016-10=324; bulan terakhir 2018-10=4; median per bulan=4,285; bulan <5% median={'2016-09': 4, '2016-12': 1, '2018-09': 16, '2018-10': 4} | keep-and-flag |
+| 10 | order_items vs order_payments | Σ(price+freight) item ≠ Σ(payment_value) — penyebabnya lebih dari satu | order dgn item & bayar=98,665; selisih >0,01=303; selisih >1,00=249; dari yang >0,01: dibayar LEBIH dari nilai item=264 (kartu kredit cicilan >1 di 249 di antaranya), dibayar KURANG=39, memakai voucher=7; total selisih absolut=3,271.95 BRL | keep-and-flag |
+| 11 | orders | Bulan pertama dan terakhir dataset hanya berisi segelintir order | rentang purchase=2016-09-04 21:15:19 … 2018-10-17 17:30:18; bulan pertama 2016-09=4; kedua 2016-10=324; bulan terakhir 2018-10=4; median per bulan=4,285; bulan <10% median={'2016-09': 4, '2016-10': 324, '2016-12': 1, '2018-09': 16, '2018-10': 4} | keep-and-flag |
 | 12 | products | Produk tanpa kategori, kategori tanpa terjemahan, dan typo nama kolom (`lenght`) | kategori null=610; produk dgn kategori tak terjemahkan=13 (kategori: ['pc_gamer', 'portateis_cozinha_e_preparadores_de_alimentos']); dimensi null=2; kolom typo: product_name_lenght, product_description_lenght | keep-and-flag |
 | 13 | semua | Integritas referensial antar tabel (yatim/orphan) | order_items.order_id→orders=0; order_items.product_id→products=0; order_items.seller_id→sellers=0; order_payments.order_id→orders=0; order_reviews.order_id→orders=0; orders.customer_id→customers=0 | hard-rule |
 | 14 | customers, sellers → geolocation | Kode pos pelanggan/seller yang tidak ada di tabel geolocation | customers=278 baris; sellers=7 baris (setelah lpad 5 digit) | keep-and-flag |

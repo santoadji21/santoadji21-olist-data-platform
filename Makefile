@@ -5,7 +5,7 @@ COMPOSE ?= docker compose
 SVC     ?=
 
 .DEFAULT_GOAL := help
-.PHONY: help init up build down reset ps logs restart shell-pg check profile contract contract-doc bronze silver load test minio-ls minio-cat stream stream-small stream-report
+.PHONY: help init up build down reset ps logs restart shell-pg check profile contract contract-doc bronze silver load test minio-ls minio-cat stream stream-small stream-report model
 
 help: ## tampilkan daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -83,3 +83,6 @@ stream-small: ## replay 5.000 order (cepat, untuk uji)
 
 stream-report: ## laporan producer vs consumer dari kondisi sekarang
 	$(PY) pipeline.py stream report
+
+model: ## raw.* -> star schema dw.* (rebuild penuh, satu transaksi)
+	$(PY) pipeline.py model

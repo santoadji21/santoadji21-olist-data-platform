@@ -45,7 +45,7 @@ python pipeline.py contract-doc   # DATA_CONTRACT.md
 1. **Dua id pelanggan (temuan #1, Q4).** `customer_id` dibuat per order, `customer_unique_id` per orang: 99.441 vs 96.096, selisih 3.345 (3,36%). Kalau `dim_customer` dan RFM memakai `customer_id`, tiap order tampak dari "pelanggan baru", jadi frekuensi selalu 1 dan pelanggan yang belanja ulang (2.997 orang) tidak terdeteksi. Tidak ada error, hanya angka belanja ulang yang terlihat jauh lebih kecil.
 2. **Order tanpa item dan tanpa pembayaran (temuan #7, Q1).** 775 order tanpa item (603 `unavailable`, 164 `canceled`), dan 1 tanpa pembayaran. Kalau pendapatan dihitung dari `payment_value` tanpa menyaring status, order yang tidak pernah terkirim ikut dihitung. Kalau memakai inner join ke item, 775 order hilang dari `fact_order` dan jumlah order ikut meleset.
 3. **`delivered` tanpa tanggal tiba (temuan #9, Q2).** 8 order `delivered` tidak punya `order_delivered_customer_date`, dan 23 order punya tanggal tiba lebih awal dari tanggal diserahkan ke kurir. Perbandingan `NULL > estimasi` bernilai false di SQL, jadi `is_late = false` dan late rate terlihat lebih bagus. Karena itu `is_late` dibuat `NULL` dan penyebut late rate hanya order dengan `is_late IS NOT NULL`.
-4. **Selisih item vs pembayaran (temuan #10, Q1).** 378 order selisih > 0,01 BRL, 249 di antaranya > 1,00, total selisih absolut 3.271,95 BRL. Penyebabnya berbeda: 290 dibayar lebih (258 di antaranya cicilan kartu kredit > 1), 88 kurang, 10 memakai voucher. Memakai `payment_value` sebagai pendapatan memasukkan bunga cicilan, memakai item mengabaikan voucher. Angka yang diambil menentukan "pendapatan" Q1, jadi selisihnya diklasifikasikan di mart rekonsiliasi.
+4. **Selisih item vs pembayaran (temuan #10, Q1).** 303 order selisih > 0,01 BRL (dihitung dalam sen; selisih tepat 0,01 ada 273 dan tidak dihitung), 249 di antaranya > 1,00, total selisih absolut 3.271,95 BRL. Penyebabnya berbeda: 264 dibayar lebih (249 di antaranya cicilan kartu kredit > 1), 39 kurang, 7 memakai voucher. Memakai `payment_value` sebagai pendapatan memasukkan bunga cicilan, memakai item mengabaikan voucher. Angka yang diambil menentukan "pendapatan" Q1, jadi selisihnya diklasifikasikan di mart rekonsiliasi.
 5. **Ulasan ganda (temuan #2, Q2).** 547 order punya lebih dari satu ulasan dan 814 baris `review_id` berulang. Join langsung order ke review menggandakan baris order, sehingga skor rata-rata dan jumlah order terlambat ikut tertimbang ganda.
 
 Keputusan penanganannya ada di DATA_CONTRACT.md §2, termasuk tahap yang menerapkannya.
@@ -165,3 +165,61 @@ Pesan ke-N sudah di Postgres (transaksi batch commit), offset belum di-commit, p
 3. Hasil akhirnya sama dengan kalau crash tidak pernah terjadi. Yang menjamin: `process_batch` di [olist/consumer.py](olist/consumer.py) (transaksi + `ON CONFLICT`), urutan commit di `run_consumer` (Postgres → topic DLQ → offset), dan `enable_auto_commit=False`.
 
 Yang tidak idempoten: **publikasi ke topic DLQ**. Kalau proses mati setelah DB commit tapi sebelum offset commit, pesan rusak yang sama dipublikasi lagi ke topic `olist.order_events.dlq`, jadi topic itu bisa berisi salinan ganda. Ini bisa diterima karena sumber kebenaran DLQ adalah tabel `stream.dlq` (idempoten lewat offset sumber), sedangkan topic DLQ hanya sarana pemberitahuan dan konsumennya wajib toleran terhadap duplikat. Producer dua kali juga menambah baris DLQ baru (offset berbeda), dan itu memang dua kejadian rusak yang berbeda.
+
+
+---
+
+## T4 — Star schema `dw`
+
+```bash
+make model        # raw.* → dw.* (±8 detik) → outputs/dw_report.md
+```
+
+SQL ada di [sql/dw/](sql/dw/) (dijalankan urut nama file) dan pemeriksaan integritas di [sql/checks/dw_integrity.sql](sql/checks/dw_integrity.sql); pelari Python hanya [olist/model.py](olist/model.py). Test: [tests/test_dw.py](tests/test_dw.py) (Postgres). Hasil: [outputs/dw_report.md](outputs/dw_report.md), `outputs/dw.json`.
+
+**Tabel dan grain.**
+
+| Tabel | Baris | Grain |
+|---|---:|---|
+| `dim_customer` | 96.096 | satu baris per orang (`customer_unique_id`) |
+| `dim_geo` | 18.677 | satu baris per zip prefix + baris `unknown` |
+| `dim_product` | 32.951 | satu baris per produk |
+| `dim_seller` | 3.095 | satu baris per seller |
+| `dim_date` | 800 | satu baris per tanggal kalender |
+| `fact_order` | 99.441 | satu baris per order (header), termasuk tanpa item/pembayaran |
+| `fact_order_item` | 112.650 | satu baris per unit barang, PK `(order_id, order_item_id)` |
+| `fact_payment` | 103.886 | satu baris per pembayaran, PK `(order_id, payment_sequential)` |
+| `fact_review` | 98.673 | satu baris per order yang punya ulasan |
+
+PK dan FK dipasang sebagai constraint: `CREATE TABLE … AS SELECT` lalu `ADD PRIMARY KEY` (gagal bila grain salah), dan `ADD FOREIGN KEY` di [sql/dw/90_foreign_keys.sql](sql/dw/90_foreign_keys.sql) (gagal bila ada baris yatim). Pemeriksaan integritas 28 dari 28 mengembalikan 0 baris bermasalah (tabel lengkap di laporan).
+
+**Keputusan desain.**
+
+| Keputusan | Alternatif yang ditolak | Alasan |
+|---|---|---|
+| Rebuild penuh dalam satu transaksi (`DROP SCHEMA dw` → CTAS → PK → FK → cek) | Update inkremental | `dw` murni turunan `raw` (±8 detik); tanpa logika inkremental yang bisa melenceng. Gagal di tengah → rollback, `dw` lama utuh (dibuktikan test). |
+| `dim_customer` per orang, atribut terbaru (SCD tipe 1) | per `customer_id`; SCD tipe 2 | `customer_id` menghitung 99.441 "pelanggan" padahal orangnya 96.096. Yang hilang pada SCD 1: riwayat pindah alamat. |
+| `dim_geo` rata-rata koordinat + `mode()` kota; titik luar Brasil dikecualikan; baris `unknown` | membuang pelanggan tanpa prefix | 1.357 pelanggan dan 14 seller tidak punya prefix di geolocation; mereka menunjuk ke `unknown` sehingga FK tetap valid. `geo_key` bertipe `text` (bukan `char(5)`) supaya `'unknown'` muat. |
+| `is_late` NULL untuk order yang tidak/belum terkirim, dibandingkan per **tanggal** | `false` untuk yang belum sampai; timestamp vs tanggal | `false` membuat late rate terlihat lebih bagus; estimasi hanya punya tanggal, jadi tiba pukul 10.00 pada hari estimasi tidak terlambat. |
+| `dim_date.is_complete_month` = false bila order bulan itu < 10 % median bulanan | ambang 5 %; membuang bulan sparse | Ambang 5 % meloloskan 2016-10 (324 order). Dengan 10 %, bulan lengkap tepat Jan-2017 … Agu-2018 (20 bulan). Bulan sparse tidak dibuang, hanya diberi flag. |
+| `dim_product` memperbaiki typo `lenght`; kategori: terjemahan → Portugis → `unknown` | menjatuhkan produk tanpa kategori | 610 produk tanpa kategori (`unknown`) dan 2.058 produk dengan kategori yang tidak punya terjemahan (nama Portugis dipakai). |
+| Denormalisasi secukupnya ke fact (status, tanggal, negara bagian) | fact lebar 60 kolom | mart tidak perlu join 4 tabel; `fact_order` 23 kolom. |
+
+**Angka kunci** (dari `dw_report.md`): late rate 6,77 % (6.534 dari 96.470 delivered dengan tanggal tiba; ada 8 delivered tanpa tanggal, `is_late` NULL), 547 order dengan > 1 ulasan, 775 order tanpa item, 1 order tanpa pembayaran.
+
+### Pertanyaan README: kebijakan dedup `fact_review`
+
+**Kebijakan.** Satu baris per order. Untuk order dengan lebih dari satu ulasan (547 order) dipilih ulasan dengan `review_answer_timestamp` **terbaru**; seri → `review_creation_date` terbaru → `review_id` terkecil. Jumlah ulasan asli disimpan di `review_count`, dan semua ulasan tetap ada di `raw.order_reviews`.
+
+**Alternatif yang ditolak: rata-rata skor semua ulasan per order.** Skor tidak lagi bilangan bulat 1–5, dan perubahan pendapat pelanggan (ulasan pertama 1, ulasan berikutnya 5) hilang. Ulasan terbaru mewakili pendapat akhir.
+
+**Efeknya ke Q2 (diukur, rata-rata skor tepat waktu vs terlambat):**
+
+| Kebijakan | Tepat waktu | Terlambat | Observasi (tepat waktu / terlambat) |
+|---|---:|---:|---:|
+| Dipilih: answer terbaru | 4,290 | 2,270 | 89.443 / 6.381 |
+| Ditolak: rata-rata semua ulasan | 4,291 | 2,272 | 89.443 / 6.381 |
+| Ditolak: ulasan pertama | 4,291 | 2,273 | 89.443 / 6.381 |
+| Ditolak: join langsung ke baris ulasan | 4,290 | 2,271 | 89.944 / 6.409 |
+
+Jadi pilihan kebijakan hampir tidak mengubah **rata-rata** Q2 (selisih ≤ 0,003). Kesimpulan "terlambat menurunkan skor dari ±4,3 ke ±2,3" kuat terhadap pilihan ini. Yang berbeda adalah **jumlah observasi**: join langsung tanpa dedup menggandakan order dengan banyak ulasan (+501 tepat waktu, +28 terlambat), sehingga hitungan order, bobot rata-rata, dan jumlah order terlambat yang dilaporkan ikut meleset walaupun rata-ratanya tidak.

@@ -24,10 +24,11 @@ MODELING = """\
   `review_answer_timestamp` terbaru (seri → `review_creation_date` terbaru → `review_id` terkecil); jumlah review asli disimpan di
   `review_count`. `review_id` duplikat (temuan #2) dideduplikasi lebih dulu dengan aturan yang sama. Tidak ada review yang dibuang diam-diam:
   semuanya tetap di silver; yang tidak terpilih ada di tabel karantina `reviews_superseded`.
-- **`is_late`** = `order_delivered_customer_date > order_estimated_delivery_date` hanya bila status `delivered` **dan** tanggal tiba terisi;
+- **`is_late`** = `order_delivered_customer_date::date > order_estimated_delivery_date::date` (dibandingkan per TANGGAL, karena estimasi hanya punya tanggal) hanya bila status `delivered` **dan** tanggal tiba terisi;
   selain itu **NULL** (bukan false) — order tak terkirim tidak boleh dihitung "tepat waktu" (temuan #9, #17).
-- **Bulan lengkap**: `dim_date.is_complete_month = false` untuk bulan dengan jumlah order < 5% median bulanan
-  (2016-09, 2016-12, 2018-09, 2018-10 pada data ini; temuan #11). Mart tren wajib menyaring / menandai bulan ini.
+- **Bulan lengkap**: `dim_date.is_complete_month = false` untuk bulan dengan jumlah order < 10% median bulanan
+  (2016-09, 2016-10, 2016-12, 2018-09, 2018-10 pada data ini; temuan #11; ambang 5% meloloskan 2016-10 yang hanya 324 order, jadi dipakai 10%,
+  dan bulan lengkap = Jan-2017 … Agu-2018, 20 bulan). Mart tren wajib menyaring / menandai bulan ini.
 - **Kunci geografis = zip prefix teks 5 digit**; `dim_geo` satu baris per prefix + baris `unknown` (temuan #3, #4, #14).
 - **Order tanpa item/pembayaran** tetap di `fact_order` dengan `has_items` / `has_payment` (temuan #7).
 - **Rekonsiliasi**: mart menampilkan dua angka, nilai order (Σ price+freight) dan nilai dibayar (Σ payment_value), plus selisihnya (temuan #10).

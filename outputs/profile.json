@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-10-12 17:57:09",
+    "generated_at": "2026-10-12 19:09:35",
     "raw_dir": "data/raw"
   },
   "tables": [
@@ -806,7 +806,7 @@
       "id": 10,
       "table": "order_items vs order_payments",
       "finding": "Σ(price+freight) item ≠ Σ(payment_value) — penyebabnya lebih dari satu",
-      "numbers": "order dgn item & bayar=98,665; selisih >0,01=378; selisih >1,00=249; dari yang >0,01: dibayar LEBIH dari nilai item=290 (kartu kredit cicilan >1 di 258 di antaranya), dibayar KURANG=88, memakai voucher=10; total selisih absolut=3,271.95 BRL",
+      "numbers": "order dgn item & bayar=98,665; selisih >0,01=303; selisih >1,00=249; dari yang >0,01: dibayar LEBIH dari nilai item=264 (kartu kredit cicilan >1 di 249 di antaranya), dibayar KURANG=39, memakai voucher=7; total selisih absolut=3,271.95 BRL",
       "decision": "Jangan dipaksa sama: mart pendapatan menampilkan dua angka (nilai pesanan vs terbayar) + tabel rekonsiliasi yang menjelaskan selisih per sebab",
       "applied_in": "T5 mart rekonsiliasi",
       "severity": "keep-and-flag"
@@ -815,7 +815,7 @@
       "id": 11,
       "table": "orders",
       "finding": "Bulan pertama dan terakhir dataset hanya berisi segelintir order",
-      "numbers": "rentang purchase=2016-09-04 21:15:19 … 2018-10-17 17:30:18; bulan pertama 2016-09=4; kedua 2016-10=324; bulan terakhir 2018-10=4; median per bulan=4,285; bulan <5% median={'2016-09': 4, '2016-12': 1, '2018-09': 16, '2018-10': 4}",
+      "numbers": "rentang purchase=2016-09-04 21:15:19 … 2018-10-17 17:30:18; bulan pertama 2016-09=4; kedua 2016-10=324; bulan terakhir 2018-10=4; median per bulan=4,285; bulan <10% median={'2016-09': 4, '2016-10': 324, '2016-12': 1, '2018-09': 16, '2018-10': 4}",
       "decision": "Jangan dibuang; `dim_date.is_complete_month` = false untuk bulan tak lengkap agar mart/dashboard bisa memilih",
       "applied_in": "T4 `dim_date`, T5 dashboard",
       "severity": "keep-and-flag"

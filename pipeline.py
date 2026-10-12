@@ -214,6 +214,23 @@ def cmd_stream(a):
         sys.exit(0 if all(r["checks"].values()) else 1)
 
 
+def cmd_model(a):
+    from olist.model import IntegrityError, run_model, write_outputs
+    import psycopg
+    env = read_env()
+    try:
+        with _pg(env) as conn:
+            run = run_model(conn, ROOT)
+    except IntegrityError as e:
+        sys.exit(f"model GAGAL, dw lama tidak berubah: {e}")
+    except psycopg.Error as e:
+        sys.exit(f"model GAGAL (rollback, dw lama tidak berubah): {str(e).splitlines()[0]}")
+    md = write_outputs(ROOT, run)
+    for t, n in run["rows"].items():
+        print(f"  dw.{t:18s} {n:>9,}")
+    print(f"selesai {run['seconds']} s, {sum(c['bad_rows'] == 0 for c in run['checks'])}/{len(run['checks'])} pemeriksaan 0 → {md.relative_to(ROOT)}")
+
+
 def cmd_contract(a):
     from olist.contract import link_data, write
     raw = read_env().get("RAW_DIR", "data/raw")
@@ -257,8 +274,8 @@ p.add_argument("--start-grace", type=float, default=90.0, help="consumer menungg
 p.add_argument("--crash-at-batch", type=int, help="[uji] consumer mati paksa setelah DB commit batch ke-N, sebelum commit offset")
 p.add_argument("--no-reset", action="store_true", help="run: jangan reset topic/tabel dulu")
 p.set_defaults(func=cmd_stream)
+p = SUB.add_parser("model", help="raw.* → star schema dw.* (SQL di sql/dw, satu transaksi)"); p.set_defaults(func=cmd_model)
 for name, stage, target in [
-    ("model", "T4", "star schema dw.* dengan PK/FK terpasang → outputs/dw_report.md"),
     ("marts", "T5", "mart.* + rekonsiliasi + ekspor gold → outputs/marts_report.md"),
     ("inject", "T6", "≥ 5 failure injection yang pulih sendiri → outputs/failure_tests.md"),
     ("report", "T6", "EVALUATION_EVIDENCE.md dari outputs/*.json"),

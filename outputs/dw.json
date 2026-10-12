@@ -1,0 +1,195 @@
+{
+  "stage": "model",
+  "ran_at": "2026-10-12T12:09:02+00:00",
+  "seconds": 7.62,
+  "files": [
+    {
+      "file": "00_reset.sql",
+      "seconds": 0.0
+    },
+    {
+      "file": "05_dim_date.sql",
+      "seconds": 0.11
+    },
+    {
+      "file": "10_dim_geo.sql",
+      "seconds": 1.12
+    },
+    {
+      "file": "20_dim_customer.sql",
+      "seconds": 0.35
+    },
+    {
+      "file": "21_dim_seller.sql",
+      "seconds": 0.01
+    },
+    {
+      "file": "22_dim_product.sql",
+      "seconds": 0.08
+    },
+    {
+      "file": "30_fact_order.sql",
+      "seconds": 0.66
+    },
+    {
+      "file": "31_fact_order_item.sql",
+      "seconds": 0.27
+    },
+    {
+      "file": "32_fact_payment.sql",
+      "seconds": 0.23
+    },
+    {
+      "file": "33_fact_review.sql",
+      "seconds": 0.35
+    },
+    {
+      "file": "90_foreign_keys.sql",
+      "seconds": 0.3
+    }
+  ],
+  "rows": {
+    "dim_date": 800,
+    "dim_geo": 18677,
+    "dim_customer": 96096,
+    "dim_product": 32951,
+    "dim_seller": 3095,
+    "fact_order": 99441,
+    "fact_order_item": 112650,
+    "fact_payment": 103886,
+    "fact_review": 98673
+  },
+  "checks": [
+    {
+      "check": "fk_dim_customer_geo",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_dim_seller_geo",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_fact_order_customer",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_fact_order_purchase_date",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_fact_order_delivered_date",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_fact_order_estimated_date",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_item_order",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_item_product",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_item_seller",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_payment_order",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_review_order",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_dim_customer_vs_unique_people",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_fact_order_vs_raw_orders",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_fact_order_item_vs_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_fact_payment_vs_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_fact_review_vs_orders_with_review",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_dim_geo_vs_distinct_zip",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_dim_product_vs_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "sum_item_price_matches_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "sum_payment_matches_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "fact_order_item_count_matches_header",
+      "bad_rows": 0
+    },
+    {
+      "check": "is_late_not_null_for_non_delivered",
+      "bad_rows": 0
+    },
+    {
+      "check": "is_late_null_for_delivered_with_date",
+      "bad_rows": 0
+    },
+    {
+      "check": "has_items_flag_consistent",
+      "bad_rows": 0
+    },
+    {
+      "check": "review_count_ge_1",
+      "bad_rows": 0
+    },
+    {
+      "check": "dim_product_no_null_category_en",
+      "bad_rows": 0
+    },
+    {
+      "check": "dim_geo_no_point_outside_brazil",
+      "bad_rows": 0
+    },
+    {
+      "check": "dim_geo_single_unknown_row",
+      "bad_rows": 0
+    }
+  ],
+  "key_numbers": {
+    "unique_people": 96096,
+    "orders": 99441,
+    "order_items": 112650,
+    "orders_without_items": 775,
+    "orders_without_payment": 1,
+    "orders_with_review": 98673,
+    "orders_with_multiple_reviews": 547,
+    "delivered": 96478,
+    "delivered_with_date": 96470,
+    "late_orders": 6534,
+    "complete_months": 20,
+    "customers_geo_unknown": 1357,
+    "sellers_geo_unknown": 14,
+    "products_category_fallback_pt": 2058,
+    "products_category_unknown": 610,
+    "late_rate_pct": 6.77,
+    "complete_months_list": "2017-01, 2017-02, 2017-03, 2017-04, 2017-05, 2017-06, 2017-07, 2017-08, 2017-09, 2017-10, 2017-11, 2017-12, 2018-01, 2018-02, 2018-03, 2018-04, 2018-05, 2018-06, 2018-07, 2018-08"
+  }
+}

@@ -204,7 +204,8 @@ def compute_findings(d: dict[str, pd.DataFrame], raw: Path) -> list[dict]:
     items_sum = it2.groupby("order_id").v.sum()
     pay_sum = pay.assign(v=pv).groupby("order_id").v.sum()
     both = pd.concat([items_sum.rename("items"), pay_sum.rename("pay")], axis=1, join="inner")
-    diff = (both["items"] - both["pay"]).abs()
+    both = both.round(2)  # uang dalam sen: float mentah membuat selisih 0,01 tampak > 0,01 (derau pecahan)
+    diff = (both["items"] - both["pay"]).abs().round(2)
     voucher_orders = set(pay.loc[pay.payment_type == "voucher", "order_id"])
     mism = diff[diff > 0.01]
     signed = (both["pay"] - both["items"])[diff > 0.01]
@@ -222,13 +223,13 @@ def compute_findings(d: dict[str, pd.DataFrame], raw: Path) -> list[dict]:
 
     # 11. kelengkapan bulan
     m = pu.dt.to_period("M").value_counts().sort_index()
-    sparse = {str(k): int(v) for k, v in m.items() if v < 0.05 * m.median()}
+    sparse = {str(k): int(v) for k, v in m.items() if v < 0.10 * m.median()}
     add("orders",
         "Bulan pertama dan terakhir dataset hanya berisi segelintir order",
         f"rentang purchase={pu.min()} … {pu.max()}; "
         f"bulan pertama {m.index[0]}={int(m.iloc[0]):,}; kedua {m.index[1]}={int(m.iloc[1]):,}; "
         f"bulan terakhir {m.index[-1]}={int(m.iloc[-1]):,}; median per bulan={int(m.median()):,}; "
-        f"bulan <5% median={sparse}",
+        f"bulan <10% median={sparse}",
         "Jangan dibuang; `dim_date.is_complete_month` = false untuk bulan tak lengkap agar mart/dashboard bisa memilih",
         "T4 `dim_date`, T5 dashboard", "keep-and-flag")
 
