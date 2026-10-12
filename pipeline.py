@@ -13,6 +13,7 @@ Tiap sub-perintah di bawah hanya menjelaskan targetnya lalu berhenti — ganti b
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import socket
 import subprocess
@@ -231,6 +232,31 @@ def cmd_model(a):
     print(f"selesai {run['seconds']} s, {sum(c['bad_rows'] == 0 for c in run['checks'])}/{len(run['checks'])} pemeriksaan 0 → {md.relative_to(ROOT)}")
 
 
+def cmd_marts(a):
+    os.environ.setdefault("MPLBACKEND", "Agg")
+    import psycopg
+    from olist import dashboard, marts
+    from olist.bronze import make_s3
+    env = read_env()
+    try:
+        with _pg(env) as conn:
+            run = marts.run_marts(conn, ROOT)
+            exported = None if a.no_export else marts.export_gold(make_s3(env), conn)
+            f = marts.frames(conn)
+            ins = marts.insights(f)
+            md = marts.write_outputs(ROOT, run, f, ins, exported)
+            pngs = [] if a.no_dashboard else dashboard.save_all(conn, ROOT / "outputs" / "dashboard")
+    except marts.MartCheckError as e:
+        sys.exit(f"marts GAGAL, mart lama tidak berubah: {e}")
+    except psycopg.Error as e:
+        sys.exit(f"marts GAGAL (rollback): {str(e).splitlines()[0]}")
+    for t, n in run["rows"].items():
+        print(f"  mart.{t:26s} {n:>9,}")
+    print(f"{sum(c['bad_rows'] == 0 for c in run['checks'])}/{len(run['checks'])} pemeriksaan 0; gold: "
+          f"{'dilewati' if exported is None else str(len(exported)) + ' mart (Parquet+CSV)'}; {len(pngs)} grafik")
+    print(f"selesai {run['seconds']} s → {md.relative_to(ROOT)}")
+
+
 def cmd_contract(a):
     from olist.contract import link_data, write
     raw = read_env().get("RAW_DIR", "data/raw")
@@ -275,8 +301,11 @@ p.add_argument("--crash-at-batch", type=int, help="[uji] consumer mati paksa set
 p.add_argument("--no-reset", action="store_true", help="run: jangan reset topic/tabel dulu")
 p.set_defaults(func=cmd_stream)
 p = SUB.add_parser("model", help="raw.* → star schema dw.* (SQL di sql/dw, satu transaksi)"); p.set_defaults(func=cmd_model)
+p = SUB.add_parser("marts", help="dw/stream → mart.* + ekspor gold + laporan + grafik dashboard")
+p.add_argument("--no-export", action="store_true", help="jangan ekspor ke bucket gold")
+p.add_argument("--no-dashboard", action="store_true", help="jangan render PNG dashboard")
+p.set_defaults(func=cmd_marts)
 for name, stage, target in [
-    ("marts", "T5", "mart.* + rekonsiliasi + ekspor gold → outputs/marts_report.md"),
     ("inject", "T6", "≥ 5 failure injection yang pulih sendiri → outputs/failure_tests.md"),
     ("report", "T6", "EVALUATION_EVIDENCE.md dari outputs/*.json"),
 ]:

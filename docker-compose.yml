@@ -142,6 +142,7 @@ services:
     volumes:
       - ./notebooks:/home/jovyan/work
       - ./outputs:/home/jovyan/outputs
+      - ./olist:/home/jovyan/olist:ro        # notebook memakai olist.dashboard (read-only)
     depends_on:
       postgres: { condition: service_healthy }
       kafka: { condition: service_healthy }

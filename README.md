@@ -223,3 +223,65 @@ PK dan FK dipasang sebagai constraint: `CREATE TABLE … AS SELECT` lalu `ADD PR
 | Ditolak: join langsung ke baris ulasan | 4,290 | 2,271 | 89.944 / 6.409 |
 
 Jadi pilihan kebijakan hampir tidak mengubah **rata-rata** Q2 (selisih ≤ 0,003). Kesimpulan "terlambat menurunkan skor dari ±4,3 ke ±2,3" kuat terhadap pilihan ini. Yang berbeda adalah **jumlah observasi**: join langsung tanpa dedup menggandakan order dengan banyak ulasan (+501 tepat waktu, +28 terlambat), sehingga hitungan order, bobot rata-rata, dan jumlah order terlambat yang dilaporkan ikut meleset walaupun rata-ratanya tidak.
+
+
+---
+
+## T5 — Mart & dashboard
+
+```bash
+make marts        # dw/stream → mart.* → ekspor gold (Parquet + CSV) → marts_report.md → 5 grafik PNG   (±2 detik)
+```
+
+Dashboard: notebook [notebooks/dashboard.ipynb](notebooks/dashboard.ipynb) di JupyterLab (`http://localhost:8888`, token di `.env`), membaca `mart.*` langsung dari Postgres; PNG-nya ada di `outputs/dashboard/`. Kode: [olist/marts.py](olist/marts.py), [olist/dashboard.py](olist/dashboard.py), SQL di [sql/mart/](sql/mart/), pemeriksaan di [sql/checks/mart_checks.sql](sql/checks/mart_checks.sql). Test: [tests/test_marts.py](tests/test_marts.py). Hasil: [outputs/marts_report.md](outputs/marts_report.md) (Q1–Q4 dalam tabel, dibangkitkan oleh query yang sama dengan grafik), `outputs/marts.json`.
+
+**Mart** (semua dibangun dalam satu transaksi bersama 17 pemeriksaan yang harus 0; gagal → rollback, mart lama utuh):
+
+| Mart | Grain | Menjawab |
+|---|---|---|
+| `sales_monthly` | bulan × kategori × negara bagian | Q1 |
+| `revenue_vs_paid_monthly` | bulan | Q1 (cocok dengan uang dibayar?) |
+| `delivery_monthly` | bulan × negara bagian | Q2 |
+| `seller_scorecard` | seller | Q3 |
+| `customer_rfm` | orang (`customer_unique_id`) | Q4 |
+| `reconciliation` | order | rekonsiliasi nilai pesanan vs dibayar |
+| `stream_freshness` / `stream_freshness_batch` | menit / batch consumer | freshness stream |
+
+Semua mart juga diekspor ke bucket `gold` (`olist/mart/<mart>.parquet` dan `.csv`); lihat dengan `make minio-ls`.
+
+**Definisi yang dipilih (dan alasannya).**
+
+| Hal | Keputusan | Alasan |
+|---|---|---|
+| Pendapatan | Σ `price` item pada order berstatus bukan `canceled`/`unavailable`; ongkir terpisah | `payment_value` ikut menghitung bunga cicilan, voucher, dan order tanpa item (162.591,95 BRL dibayar di 775 order tanpa item) |
+| Bulan | hanya bulan lengkap (Jan-2017 … Agu-2018) di dashboard; bulan sparse tetap ada di mart dengan flag | notebook punya saklar `COMPLETE_ONLY` |
+| Late rate | terlambat ÷ order dengan `is_late IS NOT NULL` | order yang belum sampai tidak dihitung "tepat waktu" |
+| Seller dinilai | minimal 30 order (634 dari 3.095 seller, mencakup 83 % pasangan seller-order) | seller dengan 2 order dan 1 terlambat bukan "50 % terlambat" yang bermakna |
+| Seller perlu ditindak | late rate ≥ 15 % (≈ 2,2× rata-rata 6,7 %), batal ≥ 5 %, atau skor ≤ 3,5 | ambang tertulis di SQL; seller tak dinilai tidak pernah ditandai |
+| RFM | acuan recency = tanggal beli terakhir di data; R dan M kuintil; **F pita tetap 1, 2, 3, 4, ≥ 5** | 92.102 dari 94.983 orang (97 %) hanya belanja sekali: `ntile(5)` atas F memecah ribuan nilai yang sama (F = 1) ke lima skor secara acak |
+| Rekonsiliasi | toleransi 0,01 BRL; kelas berurutan: tanpa_item → tanpa_pembayaran → cocok → voucher → cicilan → tidak_dijelaskan | tiap order tepat satu kelas, tidak ada yang disembunyikan |
+
+**Jawaban (dari `outputs/marts_report.md`; tiap kalimat dihitung dari data, bukan diketik).**
+- **Q1.** Pendapatan Jan-2017 s.d. Agu-2018 13.449.530 BRL dari 111.752 item. Uang terbayar 15.686.469 BRL vs nilai pesanan 15.683.707 BRL (+0,02 %) pada order yang punya item dan pembayaran, jadi angkanya cocok. Kategori terbesar `health_beauty` (9,3 %).
+- **Q2.** Late rate 6,79 % dari 96.203 order terkirim. Tertinggi AL (21,5 %, n=396) dan, di antara negara bagian ≥ 500 order, MA (17,5 %, n=713). Skor review 4,29 (tepat waktu) vs 2,27 (terlambat).
+- **Q3.** 54 dari 634 seller yang dinilai perlu ditindak: 38 karena late rate, 4 karena batal, 25 karena skor (bisa lebih dari satu alasan).
+- **Q4.** 2.887 dari 94.983 orang (3,0 %) belanja ulang (angka ini dari order bernilai saja, jadi sedikit di bawah 2.997 di profil T0 yang menghitung semua order). 14.010 orang bernilai tinggi sudah lama tidak kembali (rata-rata 444 hari, total 3.895.230 BRL).
+- **Freshness.** Lihat bagian T3: p50 batch awal 219 ms menjadi 1.461 ms di batch akhir (lag tumbuh selama replay).
+
+**Rekonsiliasi:** 98,91 % order cocok (≥ 98 % dipenuhi). Sisanya: 775 tanpa item, 1 tanpa pembayaran, 246 cicilan, 7 voucher, 50 tidak terjelaskan.
+
+**Penelusuran satu angka.** Contoh: pendapatan Q1 = `sum(mart.sales_monthly.revenue)` = `sum(dw.fact_order_item.price)` untuk order bukan `canceled`/`unavailable`; pemeriksaan `sales_revenue_equals_fact_items` bernilai 0 di tiap build. Tabel mart → SQL → fakta ada di akhir `marts_report.md`.
+
+### Pertanyaan README: selisih uang yang tidak bisa dijelaskan, dan pertanyaan ke finance
+
+**Yang tidak terjelaskan oleh aturan apa pun:** 50 order, 201,44 BRL selisih absolut (netto −196,72 BRL: 39 order dibayar kurang total 199,08 BRL, hingga 51,62 BRL per order; 11 order dibayar lebih total 2,36 BRL). Semuanya berstatus `delivered`, tanpa voucher, dan 30 di antaranya bukan cicilan.
+
+Dua angka lain bukan "tidak terjelaskan" tetapi sudah terklasifikasi dan lebih besar, jadi tetap perlu jawaban:
+- **775 order tanpa item tetap punya pembayaran 162.591,95 BRL** (603 `unavailable` 124.339,02; 164 `canceled` 37.337,87; sisanya `created`/`invoiced`/`shipped`).
+- **1 order `delivered` tanpa pembayaran** senilai 143,46 BRL.
+
+**Yang saya tanyakan ke finance Olist:**
+1. Apakah 162.591,95 BRL di order tanpa item sudah direfund? Kalau tidak ada tabel refund, apakah itu uang yang masih tertahan?
+2. Untuk 39 order yang dibayar kurang (maks 51,62 BRL): apakah ada diskon, kupon, atau pengembalian parsial yang tidak tercatat di data pembayaran? Mengapa 30 di antaranya bukan cicilan?
+3. Bagaimana order `delivered` senilai 143,46 BRL bisa tidak punya baris pembayaran (dibayar di luar sistem, atau baris hilang saat ekstrak)?
+4. Apakah bunga cicilan (246 order, 3.050,30 BRL lebih dari nilai pesanan) memang pendapatan Olist atau pendapatan pihak pembayaran?

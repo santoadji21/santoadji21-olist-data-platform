@@ -1,0 +1,165 @@
+{
+  "stage": "marts",
+  "ran_at": "2026-10-12T13:15:04+00:00",
+  "seconds": 1.96,
+  "files": [
+    {
+      "file": "00_reset.sql",
+      "seconds": 0.01
+    },
+    {
+      "file": "10_sales_monthly.sql",
+      "seconds": 0.5
+    },
+    {
+      "file": "20_delivery_monthly.sql",
+      "seconds": 0.11
+    },
+    {
+      "file": "30_seller_scorecard.sql",
+      "seconds": 0.22
+    },
+    {
+      "file": "40_customer_rfm.sql",
+      "seconds": 0.44
+    },
+    {
+      "file": "50_reconciliation.sql",
+      "seconds": 0.31
+    },
+    {
+      "file": "60_stream_freshness.sql",
+      "seconds": 0.03
+    }
+  ],
+  "rows": {
+    "sales_monthly": 11805,
+    "revenue_vs_paid_monthly": 24,
+    "delivery_monthly": 556,
+    "seller_scorecard": 3095,
+    "customer_rfm": 94983,
+    "reconciliation": 99441,
+    "stream_freshness": 2,
+    "stream_freshness_batch": 217
+  },
+  "checks": [
+    {
+      "check": "sales_revenue_equals_fact_items",
+      "bad_rows": 0
+    },
+    {
+      "check": "sales_items_equals_fact_items",
+      "bad_rows": 0
+    },
+    {
+      "check": "revenue_vs_paid_paid_equals_fact",
+      "bad_rows": 0
+    },
+    {
+      "check": "delivery_denominator_equals_fact_not_null",
+      "bad_rows": 0
+    },
+    {
+      "check": "delivery_late_equals_fact_late",
+      "bad_rows": 0
+    },
+    {
+      "check": "delivery_no_rate_above_100",
+      "bad_rows": 0
+    },
+    {
+      "check": "seller_count_equals_sellers_with_items",
+      "bad_rows": 0
+    },
+    {
+      "check": "seller_unrated_never_flagged",
+      "bad_rows": 0
+    },
+    {
+      "check": "rfm_customers_equals_people_with_valid_orders",
+      "bad_rows": 0
+    },
+    {
+      "check": "rfm_frequency_sums_to_valid_orders",
+      "bad_rows": 0
+    },
+    {
+      "check": "rfm_scores_in_1_5",
+      "bad_rows": 0
+    },
+    {
+      "check": "rfm_every_customer_has_a_segment",
+      "bad_rows": 0
+    },
+    {
+      "check": "reconciliation_one_row_per_order",
+      "bad_rows": 0
+    },
+    {
+      "check": "reconciliation_every_order_has_a_class",
+      "bad_rows": 0
+    },
+    {
+      "check": "reconciliation_matched_share_at_least_98pct",
+      "bad_rows": 0
+    },
+    {
+      "check": "reconciliation_paid_equals_fact",
+      "bad_rows": 0
+    },
+    {
+      "check": "stream_freshness_batches_equal_source",
+      "bad_rows": 0
+    }
+  ],
+  "insights": {
+    "q1": "Pendapatan 2017-01 s.d. 2018-08 (bulan lengkap) 13,449,530 BRL dari 111,752 item; uang terbayar 15,686,469 BRL vs nilai pesanan 15,683,707 BRL (+0.02%); kategori terbesar health_beauty (9.3% pendapatan).",
+    "q2": "Late rate 6.79% dari 96,203 order terkirim; tertinggi di AL (21.5%, n=396) dan, di antara negara bagian dengan ≥ 500 order, MA (17.5%, n=713); skor review turun dari 4.29 (tepat waktu) menjadi 2.27 (terlambat).",
+    "q3": "54 dari 634 seller yang dinilai (≥ 30 order, mencakup 83% order) perlu ditindak: 38 karena late rate ≥ 15%, 4 karena batal ≥ 5%, 25 karena skor ≤ 3,5 (seller bisa terkena lebih dari satu).",
+    "q4": "2,887 dari 94,983 orang (3.0%) belanja ulang; 14,010 orang bernilai tinggi sudah lama tidak kembali (rata-rata 444 hari, total 3,895,230 BRL).",
+    "fresh": "Dari 217 batch (maks p95 2,514 ms), p50 batch awal 219 ms → batch akhir 1,461 ms: lag tumbuh selama replay.",
+    "recon": "98.91% order cocok (toleransi 0,01 BRL); selisih tidak terjelaskan 50 order = 201.44 BRL."
+  },
+  "gold_export": [
+    {
+      "table": "sales_monthly",
+      "rows": 11805,
+      "parquet_bytes": 173690
+    },
+    {
+      "table": "revenue_vs_paid_monthly",
+      "rows": 24,
+      "parquet_bytes": 4835
+    },
+    {
+      "table": "delivery_monthly",
+      "rows": 556,
+      "parquet_bytes": 24771
+    },
+    {
+      "table": "seller_scorecard",
+      "rows": 3095,
+      "parquet_bytes": 170153
+    },
+    {
+      "table": "customer_rfm",
+      "rows": 94983,
+      "parquet_bytes": 3441490
+    },
+    {
+      "table": "reconciliation",
+      "rows": 99441,
+      "parquet_bytes": 3952952
+    },
+    {
+      "table": "stream_freshness",
+      "rows": 2,
+      "parquet_bytes": 6042
+    },
+    {
+      "table": "stream_freshness_batch",
+      "rows": 217,
+      "parquet_bytes": 12645
+    }
+  ]
+}
