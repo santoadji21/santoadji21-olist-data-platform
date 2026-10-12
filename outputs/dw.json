@@ -1,23 +1,23 @@
 {
   "stage": "model",
-  "ran_at": "2026-10-12T12:09:02+00:00",
-  "seconds": 7.62,
+  "ran_at": "2026-10-12T13:44:52+00:00",
+  "seconds": 11.63,
   "files": [
     {
       "file": "00_reset.sql",
-      "seconds": 0.0
+      "seconds": 0.01
     },
     {
       "file": "05_dim_date.sql",
-      "seconds": 0.11
+      "seconds": 0.09
     },
     {
       "file": "10_dim_geo.sql",
-      "seconds": 1.12
+      "seconds": 1.36
     },
     {
       "file": "20_dim_customer.sql",
-      "seconds": 0.35
+      "seconds": 0.38
     },
     {
       "file": "21_dim_seller.sql",
@@ -25,23 +25,23 @@
     },
     {
       "file": "22_dim_product.sql",
-      "seconds": 0.08
+      "seconds": 0.06
     },
     {
       "file": "30_fact_order.sql",
-      "seconds": 0.66
+      "seconds": 0.71
     },
     {
       "file": "31_fact_order_item.sql",
-      "seconds": 0.27
+      "seconds": 0.29
     },
     {
       "file": "32_fact_payment.sql",
-      "seconds": 0.23
+      "seconds": 0.22
     },
     {
       "file": "33_fact_review.sql",
-      "seconds": 0.35
+      "seconds": 0.38
     },
     {
       "file": "90_foreign_keys.sql",

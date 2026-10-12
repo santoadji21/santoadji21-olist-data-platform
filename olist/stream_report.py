@@ -33,7 +33,9 @@ def collect(env: dict, conn, truth_path: Path) -> dict:
         "orders": max((r["orders"] for r in truth), default=0),
         "events_unique": max((r["counts"]["events_unique"] for r in truth), default=0),
         "messages_total": sum(r["counts"]["messages_total"] for r in truth),
-        "duplicates": sum(r["counts"]["duplicates"] for r in truth),
+        "duplicates": sum(r["counts"]["duplicates"] for r in truth)
+                      + sum(r["counts"]["events_unique"] for r in truth[1:]),   # run ke-2 dst. mengirim ulang event yang sama
+        "duplicates_injected": sum(r["counts"]["duplicates"] for r in truth),
         "late": sum(r["counts"]["late"] for r in truth),
         "corrupt": sum(sum(r["counts"]["corrupt"].values()) for r in truth),
         "send_failures": sum(r["send_failures"] for r in truth),

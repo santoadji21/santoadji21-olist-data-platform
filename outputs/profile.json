@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-10-12 19:09:35",
+    "generated_at": "2026-10-12 20:39:05",
     "raw_dir": "data/raw"
   },
   "tables": [
@@ -764,7 +764,7 @@
       "numbers": "titik di luar Brasil=11,687 (1.17%); lat [-36.61, 45.07]; lng [-101.47, 121.11]",
       "decision": "Soft rule: baris tetap di silver dengan flag `is_outside_brazil` (tidak menggagalkan batch, tidak dibuang); dikecualikan dari agregasi `dim_geo`",
       "applied_in": "T2 gate kualitas, T4 `dim_geo`",
-      "severity": "quarantine"
+      "severity": "keep-and-flag"
     },
     {
       "id": 6,
@@ -800,7 +800,7 @@
       "numbers": "delivered tanpa order_delivered_customer_date=8; delivered tanpa order_delivered_carrier_date=2; delivered_customer < delivered_carrier=23; approved_at < purchase=0",
       "decision": "Soft rule (simpan + flag `has_time_anomaly`, tidak dibuang; tanggal kosong maupun urutan terbalik); `is_late` = NULL (bukan false) bila tanggal terkirim kosong",
       "applied_in": "T2 gate kualitas, T4 `is_late`",
-      "severity": "quarantine"
+      "severity": "keep-and-flag"
     },
     {
       "id": 10,

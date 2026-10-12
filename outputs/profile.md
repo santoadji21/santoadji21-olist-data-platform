@@ -1,6 +1,6 @@
 # Profil Dataset Olist (T0)
 
-Dibangkitkan otomatis oleh `python pipeline.py profile` — 2026-10-12 19:09:35.
+Dibangkitkan otomatis oleh `python pipeline.py profile` — 2026-10-12 20:39:05.
 Semua kolom dibaca sebagai teks (`dtype=str`); angka di bawah adalah temuan, bukan konversi.
 
 ## 1. Ringkasan tabel
@@ -124,11 +124,11 @@ Semua kolom dibaca sebagai teks (`dtype=str`); angka di bawah adalah temuan, buk
 | 2 | order_reviews | `review_id` tidak unik dan satu `order_id` bisa punya >1 ulasan | baris dengan review_id berulang=814; review_id unik=98,410; order dengan >1 ulasan=547; order unik=98,673; pasangan (review_id, order_id) berulang=0 | silent-wrong |
 | 3 | customers, sellers, geolocation | Kode pos prefix berawalan `0` (`'01003'`) — kehilangan nol di depan bila dibaca sebagai angka | baris berawalan '0' (akan jadi 4 digit jika di-cast ke integer): customers=23,995 dari 99,441 (24.13%); sellers=1,027 dari 3,095 (33.18%); geolocation=245,733 dari 1,000,163 (24.57%); panjang string di file sumber=[5] | silent-wrong |
 | 4 | geolocation | Satu zip prefix punya banyak baris + duplikat persis (bukan kunci) | baris=1,000,163; prefix unik=19,015; maks baris/prefix=1,146; duplikat persis=261,831 (26.18%) | silent-wrong |
-| 5 | geolocation | Koordinat di luar Brasil (lat −34…+5, lng −74…−35) | titik di luar Brasil=11,687 (1.17%); lat [-36.61, 45.07]; lng [-101.47, 121.11] | quarantine |
+| 5 | geolocation | Koordinat di luar Brasil (lat −34…+5, lng −74…−35) | titik di luar Brasil=11,687 (1.17%); lat [-36.61, 45.07]; lng [-101.47, 121.11] | keep-and-flag |
 | 6 | product_category_translation | File diawali BOM UTF-8 → nama kolom pertama tak terlihat berbeda, join kategori diam-diam gagal | 3 byte pertama=efbbbf; repr kolom pertama (utf-8)='\ufeffproduct_category_name'; repr dengan utf-8-sig='product_category_name' | silent-wrong |
 | 7 | orders | Order tanpa item dan order tanpa pembayaran | order tanpa item=775 (status: {'unavailable': 603, 'canceled': 164, 'created': 5, 'invoiced': 2, 'shipped': 1}); order tanpa pembayaran=1 | silent-wrong |
 | 8 | order_payments | Pembayaran bernilai 0, `payment_type='not_defined'`, dan cicilan 0 | payment_value=0: 9; payment_type not_defined: 3; payment_installments=0: 2 | keep-and-flag |
-| 9 | orders | Status `delivered` tanpa tanggal terkirim; tanggal terkirim lebih awal dari tanggal diserahkan ke kurir | delivered tanpa order_delivered_customer_date=8; delivered tanpa order_delivered_carrier_date=2; delivered_customer < delivered_carrier=23; approved_at < purchase=0 | quarantine |
+| 9 | orders | Status `delivered` tanpa tanggal terkirim; tanggal terkirim lebih awal dari tanggal diserahkan ke kurir | delivered tanpa order_delivered_customer_date=8; delivered tanpa order_delivered_carrier_date=2; delivered_customer < delivered_carrier=23; approved_at < purchase=0 | keep-and-flag |
 | 10 | order_items vs order_payments | Σ(price+freight) item ≠ Σ(payment_value) — penyebabnya lebih dari satu | order dgn item & bayar=98,665; selisih >0,01=303; selisih >1,00=249; dari yang >0,01: dibayar LEBIH dari nilai item=264 (kartu kredit cicilan >1 di 249 di antaranya), dibayar KURANG=39, memakai voucher=7; total selisih absolut=3,271.95 BRL | keep-and-flag |
 | 11 | orders | Bulan pertama dan terakhir dataset hanya berisi segelintir order | rentang purchase=2016-09-04 21:15:19 … 2018-10-17 17:30:18; bulan pertama 2016-09=4; kedua 2016-10=324; bulan terakhir 2018-10=4; median per bulan=4,285; bulan <10% median={'2016-09': 4, '2016-10': 324, '2016-12': 1, '2018-09': 16, '2018-10': 4} | keep-and-flag |
 | 12 | products | Produk tanpa kategori, kategori tanpa terjemahan, dan typo nama kolom (`lenght`) | kategori null=610; produk dgn kategori tak terjemahkan=13 (kategori: ['pc_gamer', 'portateis_cozinha_e_preparadores_de_alimentos']); dimensi null=2; kolom typo: product_name_lenght, product_description_lenght | keep-and-flag |

@@ -1,6 +1,6 @@
 # Laporan Kualitas Data (T2 — gate silver)
 
-Dijalankan 2026-10-12T11:49:40+00:00 · 9.48 s
+Dijalankan 2026-10-12T13:45:06+00:00 · 7.31 s
 
 Verdict: `PASS` (tanpa pelanggaran hard) · `PASS+KARANTINA` (ada baris dikarantina, di bawah ambang) · `FAIL` (di atas ambang / kunci tidak unik / jumlah baris menyimpang → tabel tidak dimuat).
 

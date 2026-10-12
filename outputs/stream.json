@@ -5,10 +5,11 @@
     "events_unique": 394713,
     "messages_total": 408489,
     "duplicates": 11812,
+    "duplicates_injected": 11812,
     "late": 7988,
     "corrupt": 1964,
     "send_failures": 0,
-    "producer_seconds": 22.0
+    "producer_seconds": 22.1
   },
   "consumer": {
     "messages_on_topic": 408489,
@@ -17,15 +18,15 @@
     "dlq_rows": 1964,
     "duplicates_derived": 11812,
     "out_of_order": 6490,
-    "batches": 217,
+    "batches": 216,
     "order_current_rows": 99441,
     "status_match": 99441,
     "status_total": 99441,
     "status_mismatch_examples": [],
-    "fresh_p50_ms": 652.6,
-    "fresh_p95_ms": 1954.0,
-    "fresh_max_ms": 2540.0,
-    "end_to_end_seconds": 23.7
+    "fresh_p50_ms": 761.1,
+    "fresh_p95_ms": 1958.3,
+    "fresh_max_ms": 2423.4,
+    "end_to_end_seconds": 23.8
   },
   "checks": {
     "unique_events_equal": true,

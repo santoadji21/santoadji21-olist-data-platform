@@ -1,9 +1,9 @@
 {
   "runs": [
     {
-      "run_id": "da10eb28",
-      "started_at": "2026-10-12T12:02:43+00:00",
-      "seconds": 22.0,
+      "run_id": "671a55fc",
+      "started_at": "2026-10-12T13:45:12+00:00",
+      "seconds": 22.1,
       "seed": 42,
       "limit": null,
       "orders": 99441,
@@ -23,7 +23,8 @@
         },
         "messages_total": 408489
       },
-      "send_failures": 0
+      "send_failures": 0,
+      "unchecked": false
     }
   ]
 }

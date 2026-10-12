@@ -1,6 +1,6 @@
 # Laporan Mart (T5) — jawaban Q1–Q4
 
-Dibangun 2026-10-12T13:15:04+00:00 · 1.96 s · 17/17 pemeriksaan mart = 0. Tabel di bawah dihasilkan oleh query yang sama dengan grafik dashboard (`olist.marts.queries`); hanya **bulan lengkap** (Jan-2017 … Agu-2018) yang ditampilkan.
+Dibangun 2026-10-12T13:45:51+00:00 · 1.93 s · 17/17 pemeriksaan mart = 0. Tabel di bawah dihasilkan oleh query yang sama dengan grafik dashboard (`olist.marts.queries`); hanya **bulan lengkap** (Jan-2017 … Agu-2018) yang ditampilkan.
 
 ## Q1 — Pendapatan per bulan dan kategori
 
@@ -137,12 +137,11 @@ Distribusi frekuensi (alasan F bukan kuintil):
 
 ## Freshness stream
 
-Dari 217 batch (maks p95 2,514 ms), p50 batch awal 219 ms → batch akhir 1,461 ms: lag tumbuh selama replay.
+Dari 216 batch (maks p95 2,396 ms), p50 batch awal 237 ms → batch akhir 1,522 ms: lag tumbuh selama replay.
 
 | minute | batches | messages | new_events | duplicates | out_of_order | dlq | fresh_p50_ms | fresh_p95_ms_max |
 |---|---|---|---|---|---|---|---|---|
-| 2026-10-12 12:02:00+00:00 | 152 | 280803 | 271334 | 8122 | 3553 | 1347 | 523.3 | 1793.0 |
-| 2026-10-12 12:03:00+00:00 | 65 | 127686 | 123379 | 3690 | 2937 | 617 | 1382.7 | 2514.3 |
+| 2026-10-12 13:45:00+00:00 | 216 | 408489 | 394713 | 11812 | 6490 | 1964 | 853.7 | 2396.2 |
 
 ## Rekonsiliasi (nilai pesanan vs dibayar)
 

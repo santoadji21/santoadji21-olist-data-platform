@@ -232,8 +232,11 @@ def report_md(run: dict, f: dict, ins: dict) -> str:
 def write_outputs(root: Path, run: dict, f: dict, ins: dict, exported: list | None) -> Path:
     out = root / "outputs"
     out.mkdir(exist_ok=True)
-    (out / "marts.json").write_text(json.dumps({**run, "insights": ins, "gold_export": exported}, indent=2, ensure_ascii=False),
-                                    encoding="utf-8")
+    def rec(df):
+        return json.loads(df.to_json(orient="records"))   # Decimal → angka JSON
+    answers = {k: rec(f[k]) for k in ("recon", "q2_review", "q3_summary", "q4_segments", "q1_total", "q1_category")}
+    (out / "marts.json").write_text(json.dumps({**run, "insights": ins, "answers": answers, "gold_export": exported},
+                                               indent=2, ensure_ascii=False), encoding="utf-8")
     md = out / "marts_report.md"
     md.write_text(report_md(run, f, ins), encoding="utf-8")
     return md

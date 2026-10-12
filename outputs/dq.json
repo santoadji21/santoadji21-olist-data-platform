@@ -1,7 +1,7 @@
 {
   "stage": "silver",
-  "ran_at": "2026-10-12T11:49:40+00:00",
-  "seconds": 9.48,
+  "ran_at": "2026-10-12T13:45:06+00:00",
+  "seconds": 7.31,
   "tables": [
     {
       "table": "customers",
@@ -48,7 +48,7 @@
         }
       ],
       "source": {
-        "version": 1,
+        "version": 3,
         "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2"
       }
     },
@@ -97,7 +97,7 @@
         }
       ],
       "source": {
-        "version": 3,
+        "version": 1,
         "sha256": "1f643d2b950373b85735e7794b20986f528d7a000432e7c6f9bcbb44d0846a0e"
       }
     },

@@ -83,7 +83,8 @@ def all_events(orders: list[dict]) -> list[dict]:
 
 
 def run_producer(env: dict, conn, *, limit: int | None = None, speed: float = 0.0, seed: int = 42,
-                 disturb: Disturbance | None = None, truth_path: Path | None = None, log=print) -> dict:
+                 disturb: Disturbance | None = None, truth_path: Path | None = None, unchecked: bool = False,
+                 log=print) -> dict:
     from kafka import KafkaProducer
 
     ensure_topics(env)
@@ -105,21 +106,26 @@ def run_producer(env: dict, conn, *, limit: int | None = None, speed: float = 0.
         for i, item in enumerate(plan.items, 1):
             payload, key = render(item, datetime.now(timezone.utc).isoformat())
             fut = producer.send(topic, key=key.encode() if key else None, value=payload)
-            fut.add_errback(lambda exc: failures.append(repr(exc)))
+            if not unchecked:   # mode 'unchecked' meniru producer naif: future tak diperiksa (hanya untuk eksperimen T6)
+                fut.add_errback(lambda exc: failures.append(repr(exc)))
             if speed and i % 100 == 0:
                 lag = i / speed - (time.time() - t0)
                 if lag > 0:
                     time.sleep(lag)
             if i % 100_000 == 0:
                 log(f"[producer] {i:,}/{len(plan.items):,} pesan")
-        producer.flush(timeout=60)
+        try:
+            producer.flush(timeout=60)
+        except Exception:
+            if not unchecked:
+                raise
     finally:
         producer.close(timeout=10)
     seconds = round(time.time() - t0, 1)
     run = {"run_id": run_id, "started_at": started.isoformat(timespec="seconds"), "seconds": seconds,
            "seed": d.seed, "limit": limit, "orders": len(orders),
            "rates": {"duplicate": d.dup_rate, "late": d.late_rate, "corrupt": d.corrupt_rate},
-           "counts": plan.counts, "send_failures": len(failures)}
+           "counts": plan.counts, "send_failures": len(failures), "unchecked": unchecked}
     if truth_path:
         write_truth(truth_path, run)
     if failures:

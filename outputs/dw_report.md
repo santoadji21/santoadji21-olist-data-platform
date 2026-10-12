@@ -1,6 +1,6 @@
 # Laporan Star Schema `dw` (T4)
 
-Dibangun 2026-10-12T12:09:02+00:00 · 7.62 s · satu transaksi (DROP + CTAS + PK + FK + pemeriksaan)
+Dibangun 2026-10-12T13:44:52+00:00 · 11.63 s · satu transaksi (DROP + CTAS + PK + FK + pemeriksaan)
 
 ## Jumlah baris dan grain
 
@@ -78,14 +78,14 @@ Bulan lengkap: 2017-01, 2017-02, 2017-03, 2017-04, 2017-05, 2017-06, 2017-07, 20
 
 | File | Detik |
 |---|---:|
-| 00_reset.sql | 0.0 |
-| 05_dim_date.sql | 0.11 |
-| 10_dim_geo.sql | 1.12 |
-| 20_dim_customer.sql | 0.35 |
+| 00_reset.sql | 0.01 |
+| 05_dim_date.sql | 0.09 |
+| 10_dim_geo.sql | 1.36 |
+| 20_dim_customer.sql | 0.38 |
 | 21_dim_seller.sql | 0.01 |
-| 22_dim_product.sql | 0.08 |
-| 30_fact_order.sql | 0.66 |
-| 31_fact_order_item.sql | 0.27 |
-| 32_fact_payment.sql | 0.23 |
-| 33_fact_review.sql | 0.35 |
+| 22_dim_product.sql | 0.06 |
+| 30_fact_order.sql | 0.71 |
+| 31_fact_order_item.sql | 0.29 |
+| 32_fact_payment.sql | 0.22 |
+| 33_fact_review.sql | 0.38 |
 | 90_foreign_keys.sql | 0.3 |

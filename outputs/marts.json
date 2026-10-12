@@ -1,7 +1,7 @@
 {
   "stage": "marts",
-  "ran_at": "2026-10-12T13:15:04+00:00",
-  "seconds": 1.96,
+  "ran_at": "2026-10-12T13:45:51+00:00",
+  "seconds": 1.93,
   "files": [
     {
       "file": "00_reset.sql",
@@ -9,27 +9,27 @@
     },
     {
       "file": "10_sales_monthly.sql",
-      "seconds": 0.5
+      "seconds": 0.42
     },
     {
       "file": "20_delivery_monthly.sql",
-      "seconds": 0.11
+      "seconds": 0.09
     },
     {
       "file": "30_seller_scorecard.sql",
-      "seconds": 0.22
+      "seconds": 0.24
     },
     {
       "file": "40_customer_rfm.sql",
-      "seconds": 0.44
+      "seconds": 0.49
     },
     {
       "file": "50_reconciliation.sql",
-      "seconds": 0.31
+      "seconds": 0.35
     },
     {
       "file": "60_stream_freshness.sql",
-      "seconds": 0.03
+      "seconds": 0.02
     }
   ],
   "rows": {
@@ -39,8 +39,8 @@
     "seller_scorecard": 3095,
     "customer_rfm": 94983,
     "reconciliation": 99441,
-    "stream_freshness": 2,
-    "stream_freshness_batch": 217
+    "stream_freshness": 1,
+    "stream_freshness_batch": 216
   },
   "checks": [
     {
@@ -117,8 +117,185 @@
     "q2": "Late rate 6.79% dari 96,203 order terkirim; tertinggi di AL (21.5%, n=396) dan, di antara negara bagian dengan ≥ 500 order, MA (17.5%, n=713); skor review turun dari 4.29 (tepat waktu) menjadi 2.27 (terlambat).",
     "q3": "54 dari 634 seller yang dinilai (≥ 30 order, mencakup 83% order) perlu ditindak: 38 karena late rate ≥ 15%, 4 karena batal ≥ 5%, 25 karena skor ≤ 3,5 (seller bisa terkena lebih dari satu).",
     "q4": "2,887 dari 94,983 orang (3.0%) belanja ulang; 14,010 orang bernilai tinggi sudah lama tidak kembali (rata-rata 444 hari, total 3,895,230 BRL).",
-    "fresh": "Dari 217 batch (maks p95 2,514 ms), p50 batch awal 219 ms → batch akhir 1,461 ms: lag tumbuh selama replay.",
+    "fresh": "Dari 216 batch (maks p95 2,396 ms), p50 batch awal 237 ms → batch akhir 1,522 ms: lag tumbuh selama replay.",
     "recon": "98.91% order cocok (toleransi 0,01 BRL); selisih tidak terjelaskan 50 order = 201.44 BRL."
+  },
+  "answers": {
+    "recon": [
+      {
+        "class": "cocok",
+        "orders": 98362,
+        "pct": "98.91",
+        "abs_diff_brl": "2.73",
+        "net_diff_brl": "-0.67"
+      },
+      {
+        "class": "tanpa_item",
+        "orders": 775,
+        "pct": "0.78",
+        "abs_diff_brl": "162591.95",
+        "net_diff_brl": "162591.95"
+      },
+      {
+        "class": "cicilan",
+        "orders": 246,
+        "pct": "0.25",
+        "abs_diff_brl": "3050.30",
+        "net_diff_brl": "3050.30"
+      },
+      {
+        "class": "tidak_dijelaskan",
+        "orders": 50,
+        "pct": "0.05",
+        "abs_diff_brl": "201.44",
+        "net_diff_brl": "-196.72"
+      },
+      {
+        "class": "voucher",
+        "orders": 7,
+        "pct": "0.01",
+        "abs_diff_brl": "17.48",
+        "net_diff_brl": "17.48"
+      },
+      {
+        "class": "tanpa_pembayaran",
+        "orders": 1,
+        "pct": "0.00",
+        "abs_diff_brl": "143.46",
+        "net_diff_brl": "-143.46"
+      }
+    ],
+    "q2_review": [
+      {
+        "n_on_time": "89182",
+        "n_late": "6378",
+        "avg_on_time": "4.29",
+        "avg_late": "2.27",
+        "delivered": "96203",
+        "late": "6531",
+        "late_rate_pct": "6.79"
+      }
+    ],
+    "q3_summary": [
+      {
+        "sellers": 3095,
+        "rated": 634,
+        "needs_action": 54,
+        "flag_late": 38,
+        "flag_canceled": 4,
+        "flag_review": 25,
+        "rated_orders": "83317",
+        "seller_orders": "100010"
+      }
+    ],
+    "q4_segments": [
+      {
+        "segment": "Baru",
+        "people": 36757,
+        "pct": "38.70",
+        "monetary": "5170005.76",
+        "avg_monetary": "141",
+        "avg_recency_days": "139"
+      },
+      {
+        "segment": "Sekali beli, tidak aktif",
+        "people": 34257,
+        "pct": "36.07",
+        "monetary": "1909062.31",
+        "avg_monetary": "56",
+        "avg_recency_days": "387"
+      },
+      {
+        "segment": "Bernilai tinggi, lama tidak kembali",
+        "people": 14010,
+        "pct": "14.75",
+        "monetary": "3895230.49",
+        "avg_monetary": "278",
+        "avg_recency_days": "444"
+      },
+      {
+        "segment": "Bernilai tinggi, belum ulang",
+        "people": 7072,
+        "pct": "7.45",
+        "monetary": "1769633.75",
+        "avg_monetary": "250",
+        "avg_recency_days": "269"
+      },
+      {
+        "segment": "Pelanggan setia",
+        "people": 1858,
+        "pct": "1.96",
+        "monetary": "495536.18",
+        "avg_monetary": "267",
+        "avg_recency_days": "181"
+      },
+      {
+        "segment": "Langganan berisiko hilang",
+        "people": 1029,
+        "pct": "1.08",
+        "monetary": "254932.25",
+        "avg_monetary": "248",
+        "avg_recency_days": "432"
+      }
+    ],
+    "q1_total": [
+      {
+        "revenue": "13449529.68",
+        "items": "111752"
+      }
+    ],
+    "q1_category": [
+      {
+        "category": "health_beauty",
+        "revenue": "1251145.54",
+        "items": "9585"
+      },
+      {
+        "category": "watches_gifts",
+        "revenue": "1194824.97",
+        "items": "5965"
+      },
+      {
+        "category": "bed_bath_table",
+        "revenue": "1035485.07",
+        "items": "11089"
+      },
+      {
+        "category": "sports_leisure",
+        "revenue": "977728.77",
+        "items": "8573"
+      },
+      {
+        "category": "computers_accessories",
+        "revenue": "902922.70",
+        "items": "7760"
+      },
+      {
+        "category": "furniture_decor",
+        "revenue": "721584.27",
+        "items": "8229"
+      },
+      {
+        "category": "housewares",
+        "revenue": "625538.73",
+        "items": "6903"
+      },
+      {
+        "category": "cool_stuff",
+        "revenue": "619724.39",
+        "items": "3772"
+      },
+      {
+        "category": "auto",
+        "revenue": "585177.48",
+        "items": "4195"
+      },
+      {
+        "category": "garden_tools",
+        "revenue": "479650.06",
+        "items": "4323"
+      }
+    ]
   },
   "gold_export": [
     {
@@ -129,12 +306,12 @@
     {
       "table": "revenue_vs_paid_monthly",
       "rows": 24,
-      "parquet_bytes": 4835
+      "parquet_bytes": 4819
     },
     {
       "table": "delivery_monthly",
       "rows": 556,
-      "parquet_bytes": 24771
+      "parquet_bytes": 24786
     },
     {
       "table": "seller_scorecard",
@@ -153,13 +330,13 @@
     },
     {
       "table": "stream_freshness",
-      "rows": 2,
-      "parquet_bytes": 6042
+      "rows": 1,
+      "parquet_bytes": 5971
     },
     {
       "table": "stream_freshness_batch",
-      "rows": 217,
-      "parquet_bytes": 12645
+      "rows": 216,
+      "parquet_bytes": 12524
     }
   ]
 }

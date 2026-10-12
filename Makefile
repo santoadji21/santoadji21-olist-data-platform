@@ -5,7 +5,7 @@ COMPOSE ?= docker compose
 SVC     ?=
 
 .DEFAULT_GOAL := help
-.PHONY: help init up build down reset ps logs restart shell-pg check profile contract contract-doc bronze silver load test minio-ls minio-cat stream stream-small stream-report model marts
+.PHONY: help init up build down reset ps logs restart shell-pg check profile contract contract-doc bronze silver load test minio-ls minio-cat stream stream-small stream-report model marts all smoke inject report
 
 help: ## tampilkan daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -14,12 +14,7 @@ init: ## buat .env dari .env.example, cek port & data mentah
 	$(PY) pipeline.py init
 
 up: ## nyalakan stack lalu tunggu healthy (build image jupyter otomatis bila belum ada)
-	@if docker image inspect olist/jupyter:local >/dev/null 2>&1; then \
-		$(PY) pipeline.py up; \
-	else \
-		echo "image olist/jupyter:local belum ada -> build dulu (pertama kali, beberapa menit)"; \
-		$(PY) pipeline.py up --build; \
-	fi
+	$(PY) pipeline.py up
 
 build: ## nyalakan stack dengan build image (jupyter)
 	$(PY) pipeline.py up --build
@@ -89,3 +84,15 @@ model: ## raw.* -> star schema dw.* (rebuild penuh, satu transaksi)
 
 marts: ## dw/stream -> mart.* + ekspor gold + laporan + grafik (outputs/dashboard/*.png)
 	$(PY) pipeline.py marts
+
+all: ## seluruh jalur dari .env sampai dashboard (durasi -> outputs/run_all.json)
+	$(PY) pipeline.py all
+
+smoke: ## pemeriksaan kesehatan seluruh lapisan
+	$(PY) pipeline.py smoke
+
+inject: ## failure injection otomatis (±6 menit) -> outputs/failure_tests.md
+	$(PY) pipeline.py inject
+
+report: ## EVALUATION_EVIDENCE.md dari outputs/*.json
+	$(PY) pipeline.py report

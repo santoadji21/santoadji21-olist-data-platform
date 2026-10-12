@@ -1,29 +1,69 @@
-# Starter — Tugas Besar Olist Data Platform
+# Olist Data Platform — Tugas Besar
 
-Isi starter ini **sengaja sedikit**: stack yang sama dengan Local Big Data Lab, pemeriksa dataset, kerangka `pipeline.py`,
-dan tiga template dokumen. Sisanya kamu bangun mengikuti `TUGAS_BESAR.md`.
+Platform data lengkap di atas stack lokal (PostgreSQL, Kafka, MinIO, Jupyter): dari 9 CSV mentah Olist (99.441 order, ±1,5 juta baris) sampai
+mart, dashboard, dan bukti bahwa semuanya benar, bisa diulang, dan tahan gangguan.
 
-```
-docker-compose.yml   .env.example   jupyter/Dockerfile      # stack (postgres, kafka, kafka-ui, minio, jupyter) — project name "olist"
-pipeline.py                                                 # init/up/down sudah jadi; tahap lain = TODO kamu
-scripts/check_dataset.py                                    # cek 9 file CSV Kaggle di data/raw
-sql/00_schemas.sql                                          # hanya CREATE SCHEMA; tabel kamu yang rancang
-tests/conftest.py                                           # fixture koneksi Postgres untuk test (skip kalau stack mati)
-docs/DATA_CONTRACT_TEMPLATE.md  RUNBOOK_TEMPLATE.md  EVALUATION_EVIDENCE_TEMPLATE.md
-```
+| Dokumen | Isi |
+|---|---|
+| [DATA_CONTRACT.md](DATA_CONTRACT.md) | tabel, tipe, kunci, 18 temuan kotor beserta angka dan keputusannya (T0) |
+| [EVALUATION_EVIDENCE.md](EVALUATION_EVIDENCE.md) | durasi, baris per lapisan, hasil gate/stream/dw/failure test (dibangkitkan dari `outputs/*.json`) |
+| [RUNBOOK.md](RUNBOOK.md) | menyalakan dari nol, memeriksa tiap lapisan, symptom → perbaikan, reset |
+| [outputs/](outputs/) | laporan tiap tahap: `profile`, `bronze_report`, `dq_report`, `load_report`, `stream_report`, `dw_report`, `marts_report`, `failure_tests`, `dashboard/*.png` |
 
-Langkah pertama:
+## Arsitektur
 
 ```
-pip install -r requirements.txt
-python pipeline.py init
-python pipeline.py up --build        # pertama kali: build image jupyter (±2–3 menit)
-# unduh dataset Kaggle → data/raw/
-python scripts/check_dataset.py
+ data/raw/*.csv (9 file, Kaggle)
+        │  T1 bronze: sha256 + manifest append-only
+        ▼
+ MinIO  bronze ──T2 silver (tipe + gate hard/soft + karantina, Parquet)──▶ silver ──T2 load (TRUNCATE+COPY, 1 transaksi)──┐
+                                                                                                                         ▼
+                                    PostgreSQL  raw.* ──T4 model (SQL, PK/FK, 28 cek)──▶ dw.* ──T5 marts (17 cek)──▶ mart.* ──▶ gold (Parquet+CSV)
+                                                  │                                                                      │
+                                                  │ T3 producer (replay + gangguan) ──▶ Kafka ──▶ consumer ──▶ stream.* ─┘ (freshness)
+                                                  ▼                                                                      ▼
+                                             raw.orders                                                       dashboard (notebook) + marts_report.md
 ```
 
-Lalu buka `TUGAS_BESAR.md` → Tahap 0.
+| Lapisan | Tempat | Sifat |
+|---|---|---|
+| bronze | MinIO | file sumber apa adanya + manifest per tabel; bisa diaudit |
+| silver | MinIO (Parquet) | bertipe, lolos gate kualitas, baris bermasalah di `_quarantine/` |
+| raw | PostgreSQL | salinan silver; dimuat idempoten dan atomik |
+| stream | PostgreSQL | log event unik + status terkini per order + DLQ + metrik batch |
+| dw | PostgreSQL | star schema, grain tegas, PK/FK terpasang |
+| mart / gold | PostgreSQL + MinIO | tabel siap dashboard + rekonsiliasi; diekspor Parquet/CSV |
 
+## Cara menjalankan (≤ 10 perintah dari nol)
+
+```bash
+python -m venv .venv && .venv/bin/pip install -r requirements.txt    # 1. sekali saja
+python scripts/get_dataset.py                                         # 2. 9 CSV → data/raw (Kaggle; cadangan mirror)
+make reset                                                            # 3. docker compose down -v (lewati bila belum pernah jalan)
+make all                                                              # 4. init → up → check → profile → bronze → silver → load → stream → model → marts
+make smoke                                                            # 5. semua [ok]
+make inject                                                           # 6. failure injection → outputs/failure_tests.md (±8 menit)
+make report                                                           # 7. EVALUATION_EVIDENCE.md
+.venv/bin/python -m pytest -q                                         # 8. test (yang butuh Docker di-skip bila stack mati)
+```
+
+`make all` menjalankan sepuluh tahap sebagai satu perintah; durasi tiap tahap dicatat di `outputs/run_all.json`. Satu tahap saja: `make bronze|silver|load|stream|model|marts`.
+Semua perintah memakai satu pintu `python pipeline.py <tahap>`; `make help` mencantumkan targetnya.
+
+## Struktur repository
+
+```
+pipeline.py              satu pintu (init/up/down, check/profile/contract, bronze/silver/load, stream, model/marts, smoke/inject/report, all)
+olist/                   schema.py (kontrak terpusat) · contract*.py · bronze · gate · silver · load · stream · producer · consumer ·
+                         model · marts · dashboard · failures · smoke · evidence
+sql/                     00_schemas · 10_stream · dw/ · mart/ · checks/  (SQL di file, bukan string Python)
+tests/                   tanpa Docker: contract, gate, bronze, stream · dengan Docker: load, consumer, dw, marts
+notebooks/dashboard.ipynb   dashboard (membaca mart.* dari Postgres)
+contracts/               kontrak ODCS (dibangkitkan dari olist/schema.py)
+outputs/                 laporan dan angka tiap tahap (dihasilkan kode)
+```
+
+Rincian tiap tahap, keputusan desain, dan jawaban pertanyaan README ada di bagian berikut (T0 sampai T6).
 
 ---
 
@@ -68,7 +108,7 @@ Hasil: [outputs/bronze_report.md](outputs/bronze_report.md) (tabel per file) dan
 **Idempotensi.** sha256 isi dibandingkan dengan versi terakhir di manifest. Sama → `unchanged`, tanpa upload. Beda → `new_version`. Ukuran byte tidak pernah dipakai sebagai pembanding. Manifest ditulis setelah objek, sehingga kalau proses mati di antaranya, run berikutnya hanya menulis manifest (objeknya sudah ada).
 
 **Bukti (dijalankan di MinIO lokal).**
-- Ingest pertama 9 file (±126 MB): 1,9 detik (batas tugas 2 menit). Semua `uploaded`.
+- Ingest pertama 9 file (±126 MB) pada run bersih: 2,1 detik untuk seluruh perintah `bronze`, batas tugas 2 menit (`outputs/run_all.json`). Semua `uploaded`.
 - Ingest kedua tanpa perubahan: 9/9 `unchanged`, tidak ada upload.
 - Satu byte diubah di `sellers` (huruf pertama `campinas` jadi `Campinas`): `new_version` v2, objek v1 tetap ada di bucket dan manifest. Setelah file dikembalikan, v3 menunjuk objek v1 yang sama tanpa upload ulang.
 - Jumlah baris dihitung dengan parser CSV dan cocok dengan kontrak untuk semua tabel.
@@ -123,7 +163,7 @@ Pada data asli tidak ada tabel yang dikarantina, jadi kasus lolos dan gagal ditu
 ## T3 — Streaming replay di Kafka
 
 ```bash
-make stream           # reset → consumer (proses terpisah) → producer → laporan; ±36 detik untuk 99.441 order
+make stream           # reset → consumer (proses terpisah) → producer → laporan; ±43,3 detik untuk 99.441 order
 make stream-small     # 5.000 order, untuk uji cepat
 make stream-report    # laporan dari kondisi sekarang
 python pipeline.py stream produce|consume|reset [--limit N --speed N --seed N --crash-at-batch N]
@@ -150,11 +190,11 @@ Kode: [olist/stream.py](olist/stream.py) (logika murni), [olist/producer.py](oli
 | Total pesan | 408.489 | 408.489 |
 | Status terkini = `raw.orders.order_status` | | 99.441 dari 99.441 |
 
-Event terlambat dikirim 7.988; consumer mencatat 6.490 event out-of-order. Angkanya wajar berbeda: event yang ditahan hanya out-of-order bila status berikutnya sudah tiba, dan data asli menghasilkan out-of-order alami (tanggal tiba lebih awal dari tanggal kurir). Replay selesai ±36 detik (batas 5 menit). Duplikat di sisi consumer dihitung sebagai total pesan di topic − event unik − DLQ, sehingga tetap tepat walau ada pesan yang dikirim ulang setelah crash.
+Event terlambat dikirim 7.988; consumer mencatat 6.490 event out-of-order. Angkanya wajar berbeda: event yang ditahan hanya out-of-order bila status berikutnya sudah tiba, dan data asli menghasilkan out-of-order alami (tanggal tiba lebih awal dari tanggal kurir). Replay selesai 43,3 detik termasuk reset dan laporan (producer saja 22,1 s; batas 5 menit). Duplikat di sisi consumer dihitung sebagai total pesan di topic − event unik − DLQ, sehingga tetap tepat walau ada pesan yang dikirim ulang setelah crash.
 
-**Consumer dimatikan paksa.** `--crash-at-batch N` memanggil `os._exit(137)` setelah transaksi DB batch N commit dan sebelum offset di-commit. Setelah dijalankan lagi tanpa reset, semua kriteria tetap terpenuhi (event unik, duplikat, DLQ, dan status 100 % cocok). Percobaan: 20.000 order, crash di batch 5, restart, laporan 4/4 cocok.
+**Consumer dimatikan paksa.** `--crash-at-batch N` memanggil `os._exit(137)` setelah transaksi DB batch N commit dan sebelum offset di-commit. Setelah dijalankan lagi tanpa reset, semua kriteria tetap terpenuhi (event unik, duplikat, DLQ, dan status 100 % cocok). Diuji otomatis di failure test (c): crash di batch ke-3 dengan 5.794 event sudah di Postgres, setelah restart 2.000 pesan (satu batch penuh) diproses ulang, dan hasil akhir tetap 19.632 event unik dan status 5000/5000 cocok.
 
-**Freshness.** Dengan consumer berjalan bersamaan dengan producer: p50 = 652,6 ms, p95 = 1.954 ms, maks = 2.540 ms. Lag **tumbuh** selama replay (rata-rata p50 per 50 batch: 210 → 405 → 833 → 1.277 → 1.685 ms), artinya consumer lebih lambat daripada producer yang tanpa batas kecepatan (producer 408.489 pesan dalam 22,0 s ≈ 18,6 ribu pesan/detik; consumer selesai 23,7 s sejak pesan pertama ≈ 17,2 ribu pesan/detik) dan antrean menumpuk. Ini dicatat sebagai limitation. Hipotesis yang belum diuji (next experiment): `--speed` di bawah kapasitas consumer menjaga lag tetap rendah, dan consumer ditambah (satu per partisi, 3 partisi) memangkas lag.
+**Freshness.** Dengan consumer berjalan bersamaan dengan producer: p50 = 761,1 ms, p95 = 1.958 ms, maks = 2.423 ms. Lag **tumbuh** selama replay (rata-rata p50 per 50 batch: 231 → 439 → 968 → 1.383 → 1.738 ms), artinya consumer lebih lambat daripada producer yang tanpa batas kecepatan (producer 408.489 pesan dalam 22,1 s ≈ 18,5 ribu pesan/detik; consumer selesai 23,8 s sejak pesan pertama ≈ 17,2 ribu pesan/detik) dan antrean menumpuk. Ini dicatat sebagai limitation. Hipotesis yang belum diuji (next experiment): `--speed` di bawah kapasitas consumer menjaga lag tetap rendah, dan consumer ditambah (satu per partisi, 3 partisi) memangkas lag.
 
 ### Pertanyaan README: skenario crash consumer
 
@@ -172,7 +212,7 @@ Yang tidak idempoten: **publikasi ke topic DLQ**. Kalau proses mati setelah DB c
 ## T4 — Star schema `dw`
 
 ```bash
-make model        # raw.* → dw.* (±8 detik) → outputs/dw_report.md
+make model        # raw.* → dw.* (±13,5 detik) → outputs/dw_report.md
 ```
 
 SQL ada di [sql/dw/](sql/dw/) (dijalankan urut nama file) dan pemeriksaan integritas di [sql/checks/dw_integrity.sql](sql/checks/dw_integrity.sql); pelari Python hanya [olist/model.py](olist/model.py). Test: [tests/test_dw.py](tests/test_dw.py) (Postgres). Hasil: [outputs/dw_report.md](outputs/dw_report.md), `outputs/dw.json`.
@@ -197,7 +237,7 @@ PK dan FK dipasang sebagai constraint: `CREATE TABLE … AS SELECT` lalu `ADD PR
 
 | Keputusan | Alternatif yang ditolak | Alasan |
 |---|---|---|
-| Rebuild penuh dalam satu transaksi (`DROP SCHEMA dw` → CTAS → PK → FK → cek) | Update inkremental | `dw` murni turunan `raw` (±8 detik); tanpa logika inkremental yang bisa melenceng. Gagal di tengah → rollback, `dw` lama utuh (dibuktikan test). |
+| Rebuild penuh dalam satu transaksi (`DROP SCHEMA dw` → CTAS → PK → FK → cek) | Update inkremental | `dw` murni turunan `raw` (±13,5 detik); tanpa logika inkremental yang bisa melenceng. Gagal di tengah → rollback, `dw` lama utuh (dibuktikan test). |
 | `dim_customer` per orang, atribut terbaru (SCD tipe 1) | per `customer_id`; SCD tipe 2 | `customer_id` menghitung 99.441 "pelanggan" padahal orangnya 96.096. Yang hilang pada SCD 1: riwayat pindah alamat. |
 | `dim_geo` rata-rata koordinat + `mode()` kota; titik luar Brasil dikecualikan; baris `unknown` | membuang pelanggan tanpa prefix | 1.357 pelanggan dan 14 seller tidak punya prefix di geolocation; mereka menunjuk ke `unknown` sehingga FK tetap valid. `geo_key` bertipe `text` (bukan `char(5)`) supaya `'unknown'` muat. |
 | `is_late` NULL untuk order yang tidak/belum terkirim, dibandingkan per **tanggal** | `false` untuk yang belum sampai; timestamp vs tanggal | `false` membuat late rate terlihat lebih bagus; estimasi hanya punya tanggal, jadi tiba pukul 10.00 pada hari estimasi tidak terlambat. |
@@ -230,7 +270,7 @@ Jadi pilihan kebijakan hampir tidak mengubah **rata-rata** Q2 (selisih ≤ 0,003
 ## T5 — Mart & dashboard
 
 ```bash
-make marts        # dw/stream → mart.* → ekspor gold (Parquet + CSV) → marts_report.md → 5 grafik PNG   (±2 detik)
+make marts        # dw/stream → mart.* → ekspor gold (Parquet + CSV) → marts_report.md → 5 grafik PNG   (±5,8 detik)
 ```
 
 Dashboard: notebook [notebooks/dashboard.ipynb](notebooks/dashboard.ipynb) di JupyterLab (`http://localhost:8888`, token di `.env`), membaca `mart.*` langsung dari Postgres; PNG-nya ada di `outputs/dashboard/`. Kode: [olist/marts.py](olist/marts.py), [olist/dashboard.py](olist/dashboard.py), SQL di [sql/mart/](sql/mart/), pemeriksaan di [sql/checks/mart_checks.sql](sql/checks/mart_checks.sql). Test: [tests/test_marts.py](tests/test_marts.py). Hasil: [outputs/marts_report.md](outputs/marts_report.md) (Q1–Q4 dalam tabel, dibangkitkan oleh query yang sama dengan grafik), `outputs/marts.json`.
@@ -266,7 +306,7 @@ Semua mart juga diekspor ke bucket `gold` (`olist/mart/<mart>.parquet` dan `.csv
 - **Q2.** Late rate 6,79 % dari 96.203 order terkirim. Tertinggi AL (21,5 %, n=396) dan, di antara negara bagian ≥ 500 order, MA (17,5 %, n=713). Skor review 4,29 (tepat waktu) vs 2,27 (terlambat).
 - **Q3.** 54 dari 634 seller yang dinilai perlu ditindak: 38 karena late rate, 4 karena batal, 25 karena skor (bisa lebih dari satu alasan).
 - **Q4.** 2.887 dari 94.983 orang (3,0 %) belanja ulang (angka ini dari order bernilai saja, jadi sedikit di bawah 2.997 di profil T0 yang menghitung semua order). 14.010 orang bernilai tinggi sudah lama tidak kembali (rata-rata 444 hari, total 3.895.230 BRL).
-- **Freshness.** Lihat bagian T3: p50 batch awal 219 ms menjadi 1.461 ms di batch akhir (lag tumbuh selama replay).
+- **Freshness.** Lihat bagian T3: p50 batch awal 237 ms menjadi 1.522 ms di batch akhir (lag tumbuh selama replay).
 
 **Rekonsiliasi:** 98,91 % order cocok (≥ 98 % dipenuhi). Sisanya: 775 tanpa item, 1 tanpa pembayaran, 246 cicilan, 7 voucher, 50 tidak terjelaskan.
 
@@ -285,3 +325,56 @@ Dua angka lain bukan "tidak terjelaskan" tetapi sudah terklasifikasi dan lebih b
 2. Untuk 39 order yang dibayar kurang (maks 51,62 BRL): apakah ada diskon, kupon, atau pengembalian parsial yang tidak tercatat di data pembayaran? Mengapa 30 di antaranya bukan cicilan?
 3. Bagaimana order `delivered` senilai 143,46 BRL bisa tidak punya baris pembayaran (dibayar di luar sistem, atau baris hilang saat ekstrak)?
 4. Apakah bunga cicilan (246 order, 3.050,30 BRL lebih dari nilai pesanan) memang pendapatan Olist atau pendapatan pihak pembayaran?
+
+
+---
+
+## T6 — Failure test, evidence, runbook
+
+```bash
+make reset && make all     # dari docker compose down -v sampai dashboard siap
+make inject                # failure injection otomatis (6 kasus) + pemulihan + smoke
+make report                # EVALUATION_EVIDENCE.md
+make smoke                 # pemeriksaan kesehatan kapan saja
+```
+
+Kode: [olist/failures.py](olist/failures.py), [olist/smoke.py](olist/smoke.py), [olist/evidence.py](olist/evidence.py). Hasil: [outputs/failure_tests.md](outputs/failure_tests.md), [EVALUATION_EVIDENCE.md](EVALUATION_EVIDENCE.md) (dibangkitkan dari `outputs/*.json`), [RUNBOOK.md](RUNBOOK.md). Test: [tests/test_evidence.py](tests/test_evidence.py).
+
+**Dari `docker compose down -v` sampai dashboard siap: 108,8 detik (1,8 menit)**, batas tugas 15 menit. `make all` adalah satu perintah untuk 10 tahap (`init`, `up`, `check`, `profile`, `bronze`, `silver`, `load`, `stream`, `model`, `marts`), jadi total ≤ 10 perintah. Durasi per tahap (detik): init 0,0, up 21,6, check 1,2, profile 7,7, bronze 2,1, silver 7,5, load 6,0, stream 43,3, model 13,5, marts 5,8 (`outputs/run_all.json`).
+
+**Failure injection: 6/6 kasus TERTANGKAP, pemulihan stack OK, smoke 11/11.** Tiap kasus adalah fungsi yang mengembalikan verdict (bukan skrip yang mencetak); pelapor terpisah. Consumer benar-benar dimatikan (proses terpisah, exit 137), broker dihentikan dengan `docker stop`, dan file sumber dirusak di salinan sementara.
+
+| # | Kasus | Verdict | Pulih | Symptom |
+|---|---|---|:---:|---|
+| a | Kolom hilang di sumber | TERTANGKAP | ya | silver berhenti (Postgres tidak disentuh): olist_customers_dataset.csv (customers): kolom hilang: customer_unique_id (exit 1) |
+| b | Producer dijalankan dua kali | TERTANGKAP | ya | 40,614 pesan di topic, tetapi event tersimpan tetap 19,632 (= event unik); 20,802 duplikat diabaikan |
+| c | Consumer mati sebelum commit offset | TERTANGKAP | ya | proses mati exit 137 dengan 5,794 event sudah di Postgres; setelah restart 2,000 pesan diproses ulang (batch ke-3 berisi 2,000 pesan) namun event tersimpan tetap 19,632 (= event unik) |
+| d | Broker Kafka mati beberapa detik di tengah replay | TERTANGKAP | ya | outage pendek: producer exit 0, kegagalan 0, 31,502 event tiba. Outage panjang: producer naif exit 0 tanpa pesan error dan 28,113 event hilang; producer yang memeriksa hasil `send()` exit 1 dengan 29275 kegagalan terlapor |
+| e | Seluruh jalur batch dijalankan ulang tanpa perubahan | TERTANGKAP | ya | bronze: semua file `unchanged`; 28 besaran (baris tiap tabel raw/dw/mart, Σ pendapatan, order terlambat) identik |
+| f | Objek bronze berubah diam-diam di bucket | TERTANGKAP | ya | silver berhenti (Postgres tidak disentuh): sellers: isi objek bronze tidak cocok dengan sha256 di manifest (olist/sellers/ingest_date=2026-10-12/sha256=1f643d2b9503/olist_sellers_dataset.csv) (exit 1) |
+
+**Pelajaran dari kasus (d).** Dengan outage pendek producer pun tidak kehilangan pesan (retry internal kafka-python). Pada outage 50,0 detik (melewati `request_timeout_ms` 30 s), producer yang future `send()`-nya tidak diperiksa **kehilangan 28.113 dari 31.502 event tanpa satu pun pesan error dan keluar dengan exit 0**. Producer yang memeriksa hasil `send()` (errback + `flush()` + `SendFailure`) gagal keras: exit 1 dengan 29.275 kegagalan terlapor; kirim ulang yang idempoten (`event_id`) memulihkan semua 31.502 event.
+
+**Dua kriteria uji yang salah dan saya perbaiki selama pengerjaan** (bukan perubahan desain): (1) pada kasus (c) saya semula menuntut batch pertama setelah restart berisi duplikat, padahal urutan partisi berubah dan redelivery muncul di batch lain; ukuran yang benar dan eksak adalah Σ pesan diproses − pesan di topic. (2) Pada kasus (e) baseline mart freshness basi karena kasus stream sebelumnya mengubah `stream.batch_metrics`; baseline kini disegarkan dulu.
+
+### Pertanyaan README: data 100× lebih besar dan SLA freshness 60 detik
+
+Titik awalnya adalah yang sudah terukur pada skala sekarang: replay penuh memproses ±408.489 pesan, dan satu consumer Python tidak mengejar producer (p95 freshness 1.958 ms dan lag tumbuh selama replay). Pada 100× data, consumer akan jauh dari SLA 60 detik dan komponen berikut patah lebih dulu:
+
+1. **Satu consumer Python + satu broker Kafka (3 partisi, replikasi 1).** Lag tumbuh sejak skala 1×; pada 100× antrean mencapai puluhan juta pesan dan p95 freshness jauh melewati 60 detik. Satu broker juga berarti satu titik gagal. *Ganti dengan:* topic dengan jumlah partisi sebanding paralelisme (consumer group satu consumer per partisi), broker ≥ 3 dengan `replication.factor=3` dan `min.insync.replicas=2`, atau engine stream (Flink / Spark Structured Streaming) yang menulis ke tabel dengan upsert berbatch.
+2. **Postgres sebagai satu-satunya penulis + rebuild penuh `dw` dan `mart`.** Upsert per batch ke `order_current` dan indeks `order_events` menjadi bottleneck tulis; build `dw` dan `mart` (13,5 s dan 5,8 s hari ini) tumbuh linear dengan data sehingga tidak mungkin memenuhi SLA 60 detik. *Ganti dengan:* tabel stream dipartisi per tanggal, `dw`/`mart` inkremental (hanya partisi yang berubah, atau materialized view yang di-refresh bertahap), dan mart real-time di store analitik kolumnar (mis. ClickHouse/DuckDB di atas Parquet) alih-alih Postgres OLTP.
+3. **Silver dan ingest memuat satu CSV utuh ke memori.** File geolokasi ±1 juta baris (±60 MB) tidak masalah; pada 100× menjadi ±6 GB dalam satu proses pandas, dan `COPY` satu transaksi untuk semua tabel menahan lock lama. *Ganti dengan:* pembacaan per-chunk atau Spark/DuckDB di atas Parquet bertingkat, ingest ke bronze dengan multipart upload paralel, dan `load` per partisi atau per tabel dengan swap tabel (bukan satu transaksi raksasa).
+
+Yang tidak perlu berubah: `event_id` deterministik, aturan status naik-saja, dan urutan commit Postgres → offset. Merekalah yang membuat consumer yang di-scale-out tetap benar (duplikat dan event tidak urut tetap aman).
+
+## Alat bantu
+
+Kode, SQL, dan dokumen di repository ini ditulis dengan bantuan **Claude Code** (agen AI berbasis model Claude) yang bekerja langsung di repository ini. Pembagian kerja:
+
+| Dibantu AI | Dikerjakan dan diputuskan pemilik |
+|---|---|
+| Menulis modul Python (`olist/*`), SQL (`sql/*`), test, Makefile, dan draf dokumen | Memilih tahap dan urutan kerja, meninjau setiap perubahan, menjalankan dan meng-commit sendiri, memberi tag checkpoint |
+| Menjalankan profiling, mengusulkan angka dan ambang (mis. ambang karantina, 30 order minimum seller, 10 % bulan lengkap) | Menyetujui keputusan desain dan memutuskan arah (mis. dashboard notebook, bukan Power BI) |
+| Menemukan dan memperbaiki bug lewat test (kode pos kosong di gate, derau float di profil, lock Postgres yang menggantung, kriteria test crash) | Memverifikasi hasil di mesin sendiri |
+
+> **Catatan untuk pemilik repo:** kolom kanan menggambarkan pembagian kerja yang terjadi selama sesi. Sebelum dikumpulkan, tambahkan di sini bagian spesifik yang kamu ubah atau tulis sendiri; penilai akan menanyakan penjelasan baris demi baris, dan "apa yang kamu ubah" harus berasal darimu.

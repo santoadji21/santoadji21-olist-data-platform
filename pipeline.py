@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
-"""pipeline.py — satu pintu untuk Olist Data Platform (starter Tugas Besar).
+"""pipeline.py — satu pintu untuk Olist Data Platform.
 
-Yang SUDAH ada: init / up / down (infrastruktur, sama dengan lab Pertemuan 9).
-Yang KAMU tulis: check, profile, bronze, silver, load, stream, model, marts, inject, report.
-Tiap sub-perintah di bawah hanya menjelaskan targetnya lalu berhenti — ganti badannya dengan panggilan ke modulmu.
+  infrastruktur : init · up · down [-v]
+  data (T0–T2)  : check · profile · contract · contract-doc · bronze · silver · load
+  stream (T3)   : stream [run|produce|consume|report|reset]
+  model (T4–T5) : model · marts
+  bukti (T6)    : smoke · inject · report
+  semuanya      : all   (init → up → check → profile → bronze → silver → load → stream → model → marts)
 
-    python pipeline.py init && python pipeline.py up
-    python pipeline.py check
-    ...
+    python pipeline.py all && python pipeline.py inject && python pipeline.py report
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import socket
 import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -33,6 +36,7 @@ def read_env() -> dict[str, str]:
             if line.strip() and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 env[k.strip()] = v.strip()
+    env.update({k: os.environ[k] for k in list(env) if k in os.environ})   # env var menimpa .env
     return env
 
 
@@ -57,11 +61,30 @@ def cmd_init(a):
         print(f"    {k:10s} {p:6d}  {'bebas' if port_free(p) else 'BENTROK — ganti di .env (atau stack sudah jalan)'}")
     raw = ROOT / e.get("RAW_DIR", "data/raw")
     print(f"[3] data mentah: {raw} → {'ada' if any(raw.glob('*.csv')) else 'BELUM ADA — unduh dataset Kaggle ke sini, lalu python scripts/check_dataset.py'}")
-    print("[4] TODO kamu: buat skema (sql/00_schemas.sql), topic Kafka, dan pastikan bucket MinIO ada")
+    print("[4] skema, topic Kafka, dan bucket MinIO dibuat otomatis oleh `up` (setelah semua service healthy)")
+
+
+def _bootstrap_platform(env):
+    """Setelah semua service healthy: skema Postgres, topic Kafka, dan bucket MinIO (semua idempoten)."""
+    from olist.bronze import ensure_bucket, make_s3
+    from olist.producer import ensure_topics
+    with _pg(env) as conn:
+        for f in ("00_schemas.sql", "10_stream.sql"):
+            conn.execute((ROOT / "sql" / f).read_text(encoding="utf-8"))
+        conn.commit()
+    ensure_topics(env)
+    s3 = make_s3(env)
+    for b in env.get("MINIO_BUCKETS", "bronze,silver,gold").split(","):
+        ensure_bucket(s3, b.strip())
+    print("    skema (raw/stream/dw/mart), topic Kafka, dan bucket MinIO siap")
 
 
 def cmd_up(a):
-    compose("up", "-d", *([] if a.build else ["--no-build"]))
+    image = read_env().get("JUPYTER_IMAGE", "olist/jupyter:local")
+    need_build = a.build or subprocess.run(["docker", "image", "inspect", image], capture_output=True).returncode != 0
+    if need_build and not a.build:
+        print(f"image {image} belum ada → build (pertama kali, beberapa menit)")
+    compose("up", "-d", *([] if need_build else ["--no-build"]))
     t0 = time.time()
     seen = {}
     while time.time() - t0 < 240 and len(seen) < len(SERVICES):
@@ -76,17 +99,11 @@ def cmd_up(a):
     missing = [s for s in SERVICES if s not in seen]
     if missing:
         sys.exit(f"TIMEOUT: belum healthy: {missing} — cek `docker compose ps` dan `docker compose logs <svc>`")
+    _bootstrap_platform(read_env())
 
 
 def cmd_down(a):
     compose("down", *(["-v"] if a.volumes else []))
-
-
-def todo(stage: str, target: str):
-    def fn(a):
-        print(f"[{stage}] belum diimplementasikan.\n  Target: {target}\n  Lihat TUGAS_BESAR.md bagian {stage}.")
-        sys.exit(2)
-    return fn
 
 
 def cmd_check(a):
@@ -185,7 +202,8 @@ def cmd_stream(a):
         if a.action == "produce":
             d = Disturbance(a.dup, a.late, a.corrupt, seed=a.seed)
             try:
-                run = run_producer(env, conn, limit=a.limit, speed=a.speed, seed=a.seed, disturb=d, truth_path=truth)
+                run = run_producer(env, conn, limit=a.limit, speed=a.speed, seed=a.seed, disturb=d, truth_path=truth,
+                                   unchecked=a.unchecked)
             except SendFailure as e:
                 sys.exit(f"producer GAGAL: {e}")
             return print(f"[producer] selesai {run['seconds']} s, {run['counts']['messages_total']:,} pesan")
@@ -257,6 +275,59 @@ def cmd_marts(a):
     print(f"selesai {run['seconds']} s → {md.relative_to(ROOT)}")
 
 
+def cmd_smoke(a):
+    from olist.bronze import make_s3
+    from olist.smoke import run_smoke
+    env = read_env()
+    with _pg(env) as conn:
+        res = run_smoke(env, conn, make_s3(env), ROOT)
+    for r in res:
+        print(f"  [{'ok' if r['ok'] else 'GAGAL'}] {r['check']:48s} {r['detail']}")
+    bad = [r for r in res if not r["ok"]]
+    print(f"smoke: {len(res) - len(bad)}/{len(res)} lolos")
+    sys.exit(1 if bad else 0)
+
+
+def cmd_inject(a):
+    from olist import failures
+    env = read_env()
+    ctx = failures.Ctx(ROOT, env)
+    only = [x.strip() for x in a.only.split(",")] if a.only else None
+    cases = failures.run_cases(ctx, only)
+    restored = None if a.no_restore else failures.restore(ctx)
+    md = failures.write_outputs(ROOT, cases, restored)
+    n_ok = sum(c["verdict"] == "TERTANGKAP" for c in cases)
+    print(f"\ninject: {n_ok}/{len(cases)} TERTANGKAP" + ("" if restored is None else f"; pemulihan {'OK' if restored['ok'] else 'GAGAL'}")
+          + f" → {md.relative_to(ROOT)}")
+    sys.exit(0 if n_ok == len(cases) and (restored is None or restored["ok"]) else 1)
+
+
+def cmd_report(a):
+    from olist import evidence
+    print(f"{evidence.write(ROOT).relative_to(ROOT)} dibangkitkan dari outputs/*.json")
+
+
+ALL_STAGES = [("init", ["init"]), ("up", ["up"]), ("check", ["check"]), ("profile", ["profile"]), ("bronze", ["bronze"]),
+              ("silver", ["silver"]), ("load", ["load"]), ("stream", ["stream", "run"]), ("model", ["model"]), ("marts", ["marts"])]
+
+
+def cmd_all(a):
+    """Seluruh jalur dari .env sampai dashboard; durasi tiap tahap ke outputs/run_all.json (bahan EVALUATION_EVIDENCE)."""
+    t0, started, stages = time.time(), datetime.now(timezone.utc).isoformat(timespec="seconds"), []
+    for name, args in ALL_STAGES:
+        ts = time.time()
+        r = subprocess.run([sys.executable, "pipeline.py", *args], cwd=ROOT)
+        stages.append({"stage": name, "command": "python pipeline.py " + " ".join(args), "seconds": round(time.time() - ts, 1), "exit": r.returncode})
+        if r.returncode:
+            break
+    total = round(time.time() - t0, 1)
+    (ROOT / "outputs").mkdir(exist_ok=True)
+    (ROOT / "outputs" / "run_all.json").write_text(json.dumps({"started_at": started, "total_seconds": total, "stages": stages}, indent=2))
+    bad = [s for s in stages if s["exit"]]
+    print(f"\nall: {len(stages)} tahap, {total} s" + (f"; GAGAL di {bad[0]['stage']}" if bad else "; semua exit 0"))
+    sys.exit(1 if bad else 0)
+
+
 def cmd_contract(a):
     from olist.contract import link_data, write
     raw = read_env().get("RAW_DIR", "data/raw")
@@ -299,17 +370,20 @@ p.add_argument("--idle-exit", type=float, default=10.0, help="consumer berhenti 
 p.add_argument("--start-grace", type=float, default=90.0, help="consumer menunggu pesan pertama sekian detik")
 p.add_argument("--crash-at-batch", type=int, help="[uji] consumer mati paksa setelah DB commit batch ke-N, sebelum commit offset")
 p.add_argument("--no-reset", action="store_true", help="run: jangan reset topic/tabel dulu")
+p.add_argument("--unchecked", action="store_true", help="[uji] producer naif: future send() tidak diperiksa")
 p.set_defaults(func=cmd_stream)
 p = SUB.add_parser("model", help="raw.* → star schema dw.* (SQL di sql/dw, satu transaksi)"); p.set_defaults(func=cmd_model)
 p = SUB.add_parser("marts", help="dw/stream → mart.* + ekspor gold + laporan + grafik dashboard")
 p.add_argument("--no-export", action="store_true", help="jangan ekspor ke bucket gold")
 p.add_argument("--no-dashboard", action="store_true", help="jangan render PNG dashboard")
 p.set_defaults(func=cmd_marts)
-for name, stage, target in [
-    ("inject", "T6", "≥ 5 failure injection yang pulih sendiri → outputs/failure_tests.md"),
-    ("report", "T6", "EVALUATION_EVIDENCE.md dari outputs/*.json"),
-]:
-    p = SUB.add_parser(name); p.set_defaults(func=todo(stage, target))
+p = SUB.add_parser("smoke", help="pemeriksaan kesehatan seluruh lapisan (exit ≠ 0 bila ada yang gagal)"); p.set_defaults(func=cmd_smoke)
+p = SUB.add_parser("inject", help="failure injection otomatis → outputs/failure_tests.md")
+p.add_argument("--only", help="kasus tertentu, mis. a,c (default: semua)")
+p.add_argument("--no-restore", action="store_true", help="jangan pulihkan stack (replay penuh + marts + smoke) di akhir")
+p.set_defaults(func=cmd_inject)
+p = SUB.add_parser("report", help="EVALUATION_EVIDENCE.md dari outputs/*.json"); p.set_defaults(func=cmd_report)
+p = SUB.add_parser("all", help="init → up → check → profile → bronze → silver → load → stream → model → marts"); p.set_defaults(func=cmd_all)
 
 if __name__ == "__main__":
     args = PARSER.parse_args()

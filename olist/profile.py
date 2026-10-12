@@ -148,7 +148,7 @@ def compute_findings(d: dict[str, pd.DataFrame], raw: Path) -> list[dict]:
         f"titik di luar Brasil={int(out.sum()):,} ({_pct(int(out.sum()), len(g))}); "
         f"lat [{lat.min():.2f}, {lat.max():.2f}]; lng [{lng.min():.2f}, {lng.max():.2f}]",
         "Soft rule: baris tetap di silver dengan flag `is_outside_brazil` (tidak menggagalkan batch, tidak dibuang); dikecualikan dari agregasi `dim_geo`",
-        "T2 gate kualitas, T4 `dim_geo`", "quarantine")
+        "T2 gate kualitas, T4 `dim_geo`", "keep-and-flag")
 
     # 6. BOM di file terjemahan
     with open(raw / "product_category_name_translation.csv", "rb") as fh:
@@ -197,7 +197,7 @@ def compute_findings(d: dict[str, pd.DataFrame], raw: Path) -> list[dict]:
         f"approved_at < purchase={int((ap < pu).sum()):,}",
         "Soft rule (simpan + flag `has_time_anomaly`, tidak dibuang; tanggal kosong maupun urutan terbalik); "
         "`is_late` = NULL (bukan false) bila tanggal terkirim kosong",
-        "T2 gate kualitas, T4 `is_late`", "quarantine")
+        "T2 gate kualitas, T4 `is_late`", "keep-and-flag")
 
     # 10. rekonsiliasi item+freight vs payment
     it2 = it.assign(v=pd.to_numeric(it.price, errors="coerce") + pd.to_numeric(it.freight_value, errors="coerce"))

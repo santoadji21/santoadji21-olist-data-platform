@@ -1,7 +1,7 @@
 {
   "stage": "load",
-  "ran_at": "2026-10-12T11:50:10+00:00",
-  "seconds": 5.43,
+  "ran_at": "2026-10-12T13:44:39+00:00",
+  "seconds": 5.59,
   "tables": [
     {
       "table": "customers",
@@ -10,7 +10,7 @@
       "expected": 99441,
       "loaded": 99441,
       "match": true,
-      "seconds": 0.26
+      "seconds": 0.25
     },
     {
       "table": "geolocation",
@@ -19,7 +19,7 @@
       "expected": 1000163,
       "loaded": 1000163,
       "match": true,
-      "seconds": 2.74
+      "seconds": 2.78
     },
     {
       "table": "order_items",
@@ -28,7 +28,7 @@
       "expected": 112650,
       "loaded": 112650,
       "match": true,
-      "seconds": 0.53
+      "seconds": 0.57
     },
     {
       "table": "order_payments",
@@ -37,7 +37,7 @@
       "expected": 103886,
       "loaded": 103886,
       "match": true,
-      "seconds": 0.24
+      "seconds": 0.26
     },
     {
       "table": "order_reviews",
@@ -46,7 +46,7 @@
       "expected": 99224,
       "loaded": 99224,
       "match": true,
-      "seconds": 0.51
+      "seconds": 0.59
     },
     {
       "table": "orders",
@@ -55,7 +55,7 @@
       "expected": 99441,
       "loaded": 99441,
       "match": true,
-      "seconds": 0.64
+      "seconds": 0.67
     },
     {
       "table": "products",
@@ -64,7 +64,7 @@
       "expected": 32951,
       "loaded": 32951,
       "match": true,
-      "seconds": 0.12
+      "seconds": 0.23
     },
     {
       "table": "sellers",
@@ -82,7 +82,7 @@
       "expected": 71,
       "loaded": 71,
       "match": true,
-      "seconds": 0.0
+      "seconds": 0.01
     }
   ],
   "skipped_fail": []

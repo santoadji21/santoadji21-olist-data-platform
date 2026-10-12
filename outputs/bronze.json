@@ -1,14 +1,14 @@
 {
   "stage": "bronze",
   "bucket": "bronze",
-  "ran_at": "2026-10-12T11:41:04+00:00",
-  "seconds": 1.13,
+  "ran_at": "2026-10-12T13:44:25+00:00",
+  "seconds": 1.09,
   "files": [
     {
       "table": "customers",
       "file": "olist_customers_dataset.csv",
       "status": "unchanged",
-      "version": 1,
+      "version": 3,
       "object_key": "olist/customers/ingest_date=2026-10-12/sha256=983a422239e1/olist_customers_dataset.csv",
       "rows": 99441,
       "expected_rows": 99441,
@@ -28,7 +28,7 @@
       "rows_match": true,
       "size_bytes": 61273883,
       "sha256": "b514f6fc991b9566aeba02aa5d67e2c3630f034b60a0e05aa0d082a3b66d88d6",
-      "seconds": 0.57
+      "seconds": 0.54
     },
     {
       "table": "order_items",
@@ -54,7 +54,7 @@
       "rows_match": true,
       "size_bytes": 5777138,
       "sha256": "4f713964f2815dbbaa40b9488268c55aac3627bfce5aa96cf58d1f3616de3cc0",
-      "seconds": 0.06
+      "seconds": 0.07
     },
     {
       "table": "order_reviews",
@@ -80,7 +80,7 @@
       "rows_match": true,
       "size_bytes": 17654914,
       "sha256": "8df58ef3d2d7e9944010f7beecd9b75367f5588ec6e3c91cec19ae3345ef9ecf",
-      "seconds": 0.17
+      "seconds": 0.14
     },
     {
       "table": "products",
@@ -99,7 +99,7 @@
       "table": "sellers",
       "file": "olist_sellers_dataset.csv",
       "status": "unchanged",
-      "version": 3,
+      "version": 1,
       "object_key": "olist/sellers/ingest_date=2026-10-12/sha256=1f643d2b9503/olist_sellers_dataset.csv",
       "rows": 3095,
       "expected_rows": 3095,
