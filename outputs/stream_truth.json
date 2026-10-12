@@ -1,0 +1,29 @@
+{
+  "runs": [
+    {
+      "run_id": "da10eb28",
+      "started_at": "2026-10-12T12:02:43+00:00",
+      "seconds": 22.0,
+      "seed": 42,
+      "limit": null,
+      "orders": 99441,
+      "rates": {
+        "duplicate": 0.03,
+        "late": 0.02,
+        "corrupt": 0.005
+      },
+      "counts": {
+        "events_unique": 394713,
+        "duplicates": 11812,
+        "late": 7988,
+        "corrupt": {
+          "missing_field": 657,
+          "bad_timestamp": 646,
+          "not_json": 661
+        },
+        "messages_total": 408489
+      },
+      "send_failures": 0
+    }
+  ]
+}

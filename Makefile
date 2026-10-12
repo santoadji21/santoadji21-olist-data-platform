@@ -5,7 +5,7 @@ COMPOSE ?= docker compose
 SVC     ?=
 
 .DEFAULT_GOAL := help
-.PHONY: help init up build down reset ps logs restart shell-pg check profile contract contract-doc bronze silver load test
+.PHONY: help init up build down reset ps logs restart shell-pg check profile contract contract-doc bronze silver load test minio-ls minio-cat stream stream-small stream-report
 
 help: ## tampilkan daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -54,6 +54,15 @@ contract: ## tulis kontrak ODCS + datacontract lint + test
 contract-doc: ## bangkitkan DATA_CONTRACT.md
 	$(PY) pipeline.py contract-doc
 
+MC = docker exec olist-minio sh -c 'mc alias set local http://localhost:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" >/dev/null &&
+
+minio-ls: ## daftar semua objek di bucket bronze/silver/gold (tanpa web console)
+	@$(MC) mc ls --recursive local/bronze local/silver local/gold'
+
+minio-cat: ## isi satu objek; contoh: make minio-cat OBJ=bronze/olist/_manifest/sellers.json
+	@test -n "$(OBJ)" || { echo "pakai: make minio-cat OBJ=bucket/key"; exit 2; }
+	@$(MC) mc cat local/$(OBJ)'
+
 bronze: ## CSV -> MinIO bronze + manifest (idempoten)
 	$(PY) pipeline.py bronze
 
@@ -65,3 +74,12 @@ load: ## silver -> raw.* di Postgres (TRUNCATE+COPY, satu transaksi)
 
 test: ## pytest (test yang butuh Docker di-skip bila stack mati)
 	$(PY) -m pytest tests -q
+
+stream: ## replay penuh 99.441 order: reset, producer + consumer, laporan
+	$(PY) pipeline.py stream run
+
+stream-small: ## replay 5.000 order (cepat, untuk uji)
+	$(PY) pipeline.py stream run --limit 5000
+
+stream-report: ## laporan producer vs consumer dari kondisi sekarang
+	$(PY) pipeline.py stream report

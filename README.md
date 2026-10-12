@@ -116,3 +116,52 @@ Ambang 0 % membuat satu baris salah menghentikan pipeline, dan 50 % meloloskan f
 Pada data asli tidak ada tabel yang dikarantina, jadi kasus lolos dan gagal ditunjukkan oleh test `test_threshold_pass_and_fail_cases` dengan 100 baris pada ambang 2 %:
 - **Lolos:** 2 baris melanggar = 2,0 % → `PASS+KARANTINA`, 2 baris di karantina, 98 di silver.
 - **Gagal:** 3 baris melanggar = 3,0 % → `FAIL`, alasan "karantina 3.000% > ambang 2.0%", tabel tidak dimuat.
+
+
+---
+
+## T3 — Streaming replay di Kafka
+
+```bash
+make stream           # reset → consumer (proses terpisah) → producer → laporan; ±36 detik untuk 99.441 order
+make stream-small     # 5.000 order, untuk uji cepat
+make stream-report    # laporan dari kondisi sekarang
+python pipeline.py stream produce|consume|reset [--limit N --speed N --seed N --crash-at-batch N]
+```
+
+Kode: [olist/stream.py](olist/stream.py) (logika murni), [olist/producer.py](olist/producer.py), [olist/consumer.py](olist/consumer.py), [olist/stream_report.py](olist/stream_report.py), [sql/10_stream.sql](sql/10_stream.sql). Test: [tests/test_stream.py](tests/test_stream.py) (tanpa Docker), [tests/test_consumer_db.py](tests/test_consumer_db.py) (Postgres). Hasil: [outputs/stream_report.md](outputs/stream_report.md), `outputs/stream.json`, kunci jawaban producer `outputs/stream_truth.json`.
+
+**Desain.**
+- **Event.** Tiap order dipecah dari header `raw.orders` menjadi event `created → approved → shipped → delivered` (hanya yang punya waktu nyata dan tidak melewati status akhir), ditambah satu event status akhir bila belum ada (`canceled`, `unavailable`, `invoiced`, dst.; waktunya diisi waktu terakhir yang diketahui dan ditandai `ts_imputed`). Key Kafka = `order_id` (3 partisi), sehingga urutan per order terjaga.
+- **`event_id` deterministik** `"<order_id>:<status>"` dan menjadi PK `stream.order_events`: duplikat dikenali tanpa state tambahan. Dua replay berbeda menghasilkan id yang sama, jadi memutar ulang tidak menggandakan data.
+- **Status hanya naik.** Peringkat `created 1 < approved 2 < invoiced 3 < processing 4 < shipped 5 < delivered 6 < canceled = unavailable 9`. `canceled` terminal: `delivered` yang datang terlambat tidak menimpanya. Upsert `stream.order_current` memakai `ON CONFLICT … DO UPDATE … WHERE status_rank < EXCLUDED.status_rank`.
+- **Gangguan** (seed 42, dicatat ke `stream_truth.json`): 3 % event dikirim dua kali, 2 % ditahan 500–20.000 pesan lalu dikirim terlambat, 0,5 % salinan **tambahan** yang dirusak (field hilang, format waktu salah, bukan JSON). Rusak berupa tambahan, bukan pengganti, supaya event unik yang tersimpan harus tepat sama dengan event unik asli.
+- **Consumer.** Group `olist-order-consumer`, `auto_offset_reset=earliest`, `enable_auto_commit=False`, batch sampai 2.000 pesan, satu transaksi per batch. Pesan rusak → tabel `stream.dlq` + topic `olist.order_events.dlq` dengan alasan. Metrik per batch di `stream.batch_metrics`.
+- **Producer** memeriksa hasil tiap `send()` lewat errback dan gagal keras bila ada pesan yang tidak terkirim.
+
+**Hasil replay penuh (dari `outputs/stream_report.md`).**
+
+| Besaran | Producer | Consumer |
+|---|---:|---:|
+| Order | 99.441 | 99.441 (`order_current`) |
+| Event unik | 394.713 | 394.713 |
+| Duplikat | 11.812 | 11.812 |
+| Rusak / DLQ | 1.964 (657 field hilang, 646 waktu salah, 661 bukan JSON) | 1.964 |
+| Total pesan | 408.489 | 408.489 |
+| Status terkini = `raw.orders.order_status` | | 99.441 dari 99.441 |
+
+Event terlambat dikirim 7.988; consumer mencatat 6.490 event out-of-order. Angkanya wajar berbeda: event yang ditahan hanya out-of-order bila status berikutnya sudah tiba, dan data asli menghasilkan out-of-order alami (tanggal tiba lebih awal dari tanggal kurir). Replay selesai ±36 detik (batas 5 menit). Duplikat di sisi consumer dihitung sebagai total pesan di topic − event unik − DLQ, sehingga tetap tepat walau ada pesan yang dikirim ulang setelah crash.
+
+**Consumer dimatikan paksa.** `--crash-at-batch N` memanggil `os._exit(137)` setelah transaksi DB batch N commit dan sebelum offset di-commit. Setelah dijalankan lagi tanpa reset, semua kriteria tetap terpenuhi (event unik, duplikat, DLQ, dan status 100 % cocok). Percobaan: 20.000 order, crash di batch 5, restart, laporan 4/4 cocok.
+
+**Freshness.** Dengan consumer berjalan bersamaan dengan producer: p50 = 652,6 ms, p95 = 1.954 ms, maks = 2.540 ms. Lag **tumbuh** selama replay (rata-rata p50 per 50 batch: 210 → 405 → 833 → 1.277 → 1.685 ms), artinya consumer lebih lambat daripada producer yang tanpa batas kecepatan (producer 408.489 pesan dalam 22,0 s ≈ 18,6 ribu pesan/detik; consumer selesai 23,7 s sejak pesan pertama ≈ 17,2 ribu pesan/detik) dan antrean menumpuk. Ini dicatat sebagai limitation. Hipotesis yang belum diuji (next experiment): `--speed` di bawah kapasitas consumer menjaga lag tetap rendah, dan consumer ditambah (satu per partisi, 3 partisi) memangkas lag.
+
+### Pertanyaan README: skenario crash consumer
+
+Pesan ke-N sudah di Postgres (transaksi batch commit), offset belum di-commit, proses mati:
+
+1. Offset terakhir yang tersimpan di Kafka masih sebelum batch itu. Setelah restart, group menugaskan ulang partisi dan consumer membaca ulang dari offset itu (`auto_offset_reset=earliest` hanya berlaku bila group belum punya offset sama sekali).
+2. Batch yang sama diproses lagi. `INSERT … ON CONFLICT (event_id) DO NOTHING` membuat semua event yang sudah ada diabaikan dan dihitung duplikat; upsert `order_current` dengan `WHERE status_rank < EXCLUDED.status_rank` tidak mengubah status yang sudah sama atau lebih tinggi; baris DLQ ditolak oleh `UNIQUE (topic, partition, offset)`.
+3. Hasil akhirnya sama dengan kalau crash tidak pernah terjadi. Yang menjamin: `process_batch` di [olist/consumer.py](olist/consumer.py) (transaksi + `ON CONFLICT`), urutan commit di `run_consumer` (Postgres → topic DLQ → offset), dan `enable_auto_commit=False`.
+
+Yang tidak idempoten: **publikasi ke topic DLQ**. Kalau proses mati setelah DB commit tapi sebelum offset commit, pesan rusak yang sama dipublikasi lagi ke topic `olist.order_events.dlq`, jadi topic itu bisa berisi salinan ganda. Ini bisa diterima karena sumber kebenaran DLQ adalah tabel `stream.dlq` (idempoten lewat offset sumber), sedangkan topic DLQ hanya sarana pemberitahuan dan konsumennya wajib toleran terhadap duplikat. Producer dua kali juga menambah baris DLQ baru (offset berbeda), dan itu memang dua kejadian rusak yang berbeda.

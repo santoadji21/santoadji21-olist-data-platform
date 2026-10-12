@@ -150,6 +150,70 @@ def cmd_load(a):
     sys.exit(1 if run["skipped_fail"] else 0)
 
 
+def _pg(env):
+    import psycopg
+    from olist.load import pg_dsn
+    return psycopg.connect(pg_dsn(env), connect_timeout=5)
+
+
+def _stream_sql(conn):
+    conn.execute((ROOT / "sql" / "10_stream.sql").read_text(encoding="utf-8"))
+    conn.commit()
+
+
+def _stream_reset(env, conn):
+    from olist.producer import reset_kafka
+    reset_kafka(env)
+    conn.execute("TRUNCATE stream.order_events, stream.order_current, stream.dlq, stream.batch_metrics")
+    conn.commit()
+    (ROOT / "outputs" / "stream_truth.json").unlink(missing_ok=True)
+    print("[stream] reset: topic + consumer group + tabel stream.* + stream_truth.json dikosongkan")
+
+
+def cmd_stream(a):
+    from olist.consumer import run_consumer
+    from olist.producer import SendFailure, run_producer
+    from olist.stream import Disturbance
+    from olist.stream_report import write_outputs
+    env = read_env()
+    truth = ROOT / "outputs" / "stream_truth.json"
+    with _pg(env) as conn:
+        _stream_sql(conn)
+        if a.action == "reset":
+            return _stream_reset(env, conn)
+        if a.action == "produce":
+            d = Disturbance(a.dup, a.late, a.corrupt, seed=a.seed)
+            try:
+                run = run_producer(env, conn, limit=a.limit, speed=a.speed, seed=a.seed, disturb=d, truth_path=truth)
+            except SendFailure as e:
+                sys.exit(f"producer GAGAL: {e}")
+            return print(f"[producer] selesai {run['seconds']} s, {run['counts']['messages_total']:,} pesan")
+        if a.action == "consume":
+            t = run_consumer(env, conn, idle_exit=a.idle_exit, start_grace=a.start_grace, crash_at_batch=a.crash_at_batch)
+            return print(f"[consumer] selesai {t}")
+        if a.action == "report":
+            md, r = write_outputs(ROOT, env, conn)
+            print(md.read_text(encoding="utf-8"))
+            sys.exit(0 if all(r["checks"].values()) else 1)
+        # run: reset → consumer (proses terpisah, mulai lebih dulu) → producer → tunggu consumer → laporan
+        if not a.no_reset:
+            _stream_reset(env, conn)
+        cons = subprocess.Popen([sys.executable, "pipeline.py", "stream", "consume", "--idle-exit", str(a.idle_exit)], cwd=ROOT)
+        time.sleep(3)
+        t0 = time.time()
+        d = Disturbance(a.dup, a.late, a.corrupt, seed=a.seed)
+        try:
+            run_producer(env, conn, limit=a.limit, speed=a.speed, seed=a.seed, disturb=d, truth_path=truth)
+        except SendFailure as e:
+            cons.terminate()
+            sys.exit(f"producer GAGAL: {e}")
+        cons.wait()
+        print(f"[stream] replay selesai {round(time.time() - t0, 1)} s (producer + consumer)")
+        md, r = write_outputs(ROOT, env, conn)
+        print(md.read_text(encoding="utf-8"))
+        sys.exit(0 if all(r["checks"].values()) else 1)
+
+
 def cmd_contract(a):
     from olist.contract import link_data, write
     raw = read_env().get("RAW_DIR", "data/raw")
@@ -180,8 +244,20 @@ p = SUB.add_parser("contract-doc", help="bangkitkan DATA_CONTRACT.md"); p.set_de
 p = SUB.add_parser("bronze", help="CSV → MinIO bronze apa adanya + manifest (idempoten)"); p.set_defaults(func=cmd_bronze)
 p = SUB.add_parser("silver", help="bronze → silver Parquet + gate kualitas + karantina"); p.set_defaults(func=cmd_silver)
 p = SUB.add_parser("load", help="silver → raw.* (TRUNCATE+COPY, satu transaksi)"); p.set_defaults(func=cmd_load)
+p = SUB.add_parser("stream", help="replay order → Kafka → Postgres (stream run|produce|consume|report|reset)")
+p.add_argument("action", nargs="?", default="run", choices=["run", "produce", "consume", "report", "reset"])
+p.add_argument("--limit", type=int, help="replay hanya N order pertama (berdasar waktu beli)")
+p.add_argument("--speed", type=float, default=0.0, help="pesan/detik (0 = secepatnya)")
+p.add_argument("--seed", type=int, default=42)
+p.add_argument("--dup", type=float, default=0.03, help="proporsi event dikirim dobel")
+p.add_argument("--late", type=float, default=0.02, help="proporsi event ditahan lalu dikirim terlambat")
+p.add_argument("--corrupt", type=float, default=0.005, help="proporsi salinan rusak (tambahan)")
+p.add_argument("--idle-exit", type=float, default=10.0, help="consumer berhenti setelah sekian detik tanpa pesan")
+p.add_argument("--start-grace", type=float, default=90.0, help="consumer menunggu pesan pertama sekian detik")
+p.add_argument("--crash-at-batch", type=int, help="[uji] consumer mati paksa setelah DB commit batch ke-N, sebelum commit offset")
+p.add_argument("--no-reset", action="store_true", help="run: jangan reset topic/tabel dulu")
+p.set_defaults(func=cmd_stream)
 for name, stage, target in [
-    ("stream", "T3", "producer replay + consumer idempoten + DLQ + freshness → outputs/stream_report.md"),
     ("model", "T4", "star schema dw.* dengan PK/FK terpasang → outputs/dw_report.md"),
     ("marts", "T5", "mart.* + rekonsiliasi + ekspor gold → outputs/marts_report.md"),
     ("inject", "T6", "≥ 5 failure injection yang pulih sendiri → outputs/failure_tests.md"),
