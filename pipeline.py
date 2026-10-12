@@ -115,6 +115,41 @@ def cmd_bronze(a):
     print(f"selesai {run['seconds']} s → {md.relative_to(ROOT)}")
 
 
+def cmd_silver(a):
+    from olist.bronze import make_s3
+    from olist.gate import SourceError
+    from olist.silver import run_silver, write_outputs
+    try:
+        run = run_silver(make_s3(read_env()))
+    except SourceError as e:
+        sys.exit(f"silver berhenti (Postgres tidak disentuh): {e}")
+    md = write_outputs(ROOT, run)
+    for t in run["tables"]:
+        print(f"  {t['table']:30s} {t['verdict']:15s} {t['source_rows']:>9,} sumber  {t['quarantined']:>6,} karantina")
+    print(f"selesai {run['seconds']} s → {md.relative_to(ROOT)}")
+    sys.exit(1 if any(t["verdict"] == "FAIL" for t in run["tables"]) else 0)
+
+
+def cmd_load(a):
+    import psycopg
+    from olist.bronze import make_s3
+    from olist.gate import SourceError
+    from olist.load import pg_dsn, run_load, write_outputs
+    env = read_env()
+    try:
+        with psycopg.connect(pg_dsn(env), connect_timeout=5) as conn:
+            run = run_load(make_s3(env), conn)
+    except SourceError as e:
+        sys.exit(f"load berhenti: {e}")
+    md = write_outputs(ROOT, run)
+    for r in run["tables"]:
+        print(f"  raw.{r['table']:30s} {r['loaded']:>9,} baris  {r['seconds']:>5} s")
+    if run["skipped_fail"]:
+        print(f"  TIDAK dimuat (FAIL): {', '.join(run['skipped_fail'])}")
+    print(f"selesai {run['seconds']} s → {md.relative_to(ROOT)}")
+    sys.exit(1 if run["skipped_fail"] else 0)
+
+
 def cmd_contract(a):
     from olist.contract import link_data, write
     raw = read_env().get("RAW_DIR", "data/raw")
@@ -143,9 +178,9 @@ p = SUB.add_parser("profile"); p.set_defaults(func=cmd_profile)
 p = SUB.add_parser("contract", help="bangkitkan kontrak ODCS + lint + test"); p.add_argument("--no-test", action="store_true"); p.set_defaults(func=cmd_contract)
 p = SUB.add_parser("contract-doc", help="bangkitkan DATA_CONTRACT.md"); p.set_defaults(func=cmd_contract_doc)
 p = SUB.add_parser("bronze", help="CSV → MinIO bronze apa adanya + manifest (idempoten)"); p.set_defaults(func=cmd_bronze)
+p = SUB.add_parser("silver", help="bronze → silver Parquet + gate kualitas + karantina"); p.set_defaults(func=cmd_silver)
+p = SUB.add_parser("load", help="silver → raw.* (TRUNCATE+COPY, satu transaksi)"); p.set_defaults(func=cmd_load)
 for name, stage, target in [
-    ("silver", "T2", "tipe sesuai kontrak, gate kualitas, karantina → outputs/dq_report.md"),
-    ("load", "T2", "silver → raw.* dengan COPY, TRUNCATE+COPY satu transaksi → outputs/load_report.md"),
     ("stream", "T3", "producer replay + consumer idempoten + DLQ + freshness → outputs/stream_report.md"),
     ("model", "T4", "star schema dw.* dengan PK/FK terpasang → outputs/dw_report.md"),
     ("marts", "T5", "mart.* + rekonsiliasi + ekspor gold → outputs/marts_report.md"),

@@ -78,3 +78,41 @@ Hasil: [outputs/bronze_report.md](outputs/bronze_report.md) (tabel per file) dan
 Karena bronze adalah satu-satunya salinan sumber apa adanya. Silver dan semua lapisan di atasnya dibangun ulang darinya. Kalau bronze bisa ditimpa, kesalahan di ingest atau di sumber ikut menghapus kebenaran dan tidak ada yang bisa diaudit.
 
 Skenario Olist: file `olist_order_reviews_dataset.csv` dikirim ulang dengan satu kolom bergeser atau komentar yang terpotong, dan sistem hulu tidak memberi tahu. Karena versi lama masih ada di bucket dan manifest (sha256-nya berbeda), kita bisa membandingkan v1 dan v2, melihat tepatnya apa yang berubah, dan membangun ulang silver dari v1 sementara menunggu perbaikan dari hulu. Pada skenario yang lebih ringan, angka di dashboard berubah setelah file diperbarui, dan kita bisa menjawab "angka itu dari versi file yang mana".
+
+
+---
+
+## T2 — Silver, gate kualitas, dan `raw.*`
+
+```bash
+make silver     # bronze → silver Parquet + gate + karantina  → outputs/dq_report.md
+make load       # silver → raw.* (TRUNCATE+COPY, satu transaksi) → outputs/load_report.md
+```
+
+Kode: [olist/gate.py](olist/gate.py) (gate murni), [olist/silver.py](olist/silver.py), [olist/load.py](olist/load.py). Test: [tests/test_gate.py](tests/test_gate.py) (tanpa Docker), [tests/test_load_db.py](tests/test_load_db.py) (Docker).
+
+**Satu sumber untuk aturan.** Tipe dan kolom dari [olist/schema.py](olist/schema.py); aturan, ambang, dan FK dari [olist/contract.py](olist/contract.py). Klausa `WHERE` yang sama dipakai kontrak ODCS (`datacontract test`) dan gate (DuckDB di atas DataFrame), jadi kalau aturan berubah hanya satu tempat yang diedit. DDL `raw.*` juga dibangkitkan dari `schema.py`.
+
+**Alur.** `silver` mengambil versi terbaru dari manifest bronze dan memverifikasi sha256-nya, lalu memeriksa kolom semua tabel *sebelum* menulis apa pun. Setelah itu tiap tabel diproses dengan induk sebelum anak: konversi tipe → aturan hard (karantina) → FK (karantina) → aturan soft (hitung + flag). Baris lolos ditulis ke `silver/olist/<tabel>/<tabel>.parquet`, baris bermasalah ke `silver/olist/_quarantine/<tabel>.parquet` dengan kolom `_reasons`. Tabel berverdict `FAIL` tidak mendapat silver.
+
+**Hasil (dari `outputs/dq_report.md` dan `outputs/load_report.md`).** Semua tabel `PASS`, 0 baris dikarantina: temuan kotor yang diketahui semuanya soft (simpan + flag). Jumlah soft cocok dengan profil T0, misalnya `lng_in_brazil` 11.682, `customer_after_carrier` 23, `delivered_has_date` 8. Flag `is_outside_brazil` = 11.687 titik dan `has_time_anomaly` = 31 order (8 + 23). `raw.*` berisi 9 tabel dan jumlah barisnya = sumber − karantina, dicek di dalam transaksi load sebelum commit.
+
+**Perilaku yang dibuktikan test.**
+- Kolom hilang atau berubah nama → `silver` berhenti sebelum menulis apa pun dan sebelum Postgres disentuh, dengan pesan yang menyebut kolom itu.
+- `load` dua kali → jumlah baris sama. Gangguan di tengah load (tabel ketiga gagal) → rollback, `raw.customers` tidak berubah.
+- Kode pos `1003` menjadi `01003` (teks); string kosong menjadi `NULL`, bukan `''`.
+
+### Pertanyaan README: ambang karantina
+
+| Tabel | Ambang | Alasan |
+|---|---:|---|
+| customers, order_items, sellers, product_category_translation | 0 % | kunci dan FK; satu baris rusak = file korup |
+| order_payments, orders, products | 0,1 % | anomali yang diketahui sudah soft; lebih dari 1 per 1.000 berarti sumber berubah |
+| order_reviews | 0,5 % | skor di luar 1–5 mengubah rata-rata Q2, toleransi kecil |
+| geolocation | 2 % | 1 juta baris, ada ketidakrapian koordinat; di atas 2 % berarti sumber rusak |
+
+Ambang 0 % membuat satu baris salah menghentikan pipeline, dan 50 % meloloskan file yang separuhnya sampah. Karena itu ambang diletakkan sedikit di atas tingkat gangguan yang terukur, dan hanya berlaku untuk pelanggaran hard (tipe, null, FK, aturan hard). Pelanggaran soft yang sudah diketahui tidak pernah mengarantina.
+
+Pada data asli tidak ada tabel yang dikarantina, jadi kasus lolos dan gagal ditunjukkan oleh test `test_threshold_pass_and_fail_cases` dengan 100 baris pada ambang 2 %:
+- **Lolos:** 2 baris melanggar = 2,0 % → `PASS+KARANTINA`, 2 baris di karantina, 98 di silver.
+- **Gagal:** 3 baris melanggar = 3,0 % → `FAIL`, alasan "karantina 3.000% > ambang 2.0%", tabel tidak dimuat.

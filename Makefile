@@ -5,7 +5,7 @@ COMPOSE ?= docker compose
 SVC     ?=
 
 .DEFAULT_GOAL := help
-.PHONY: help init up build down reset ps logs restart shell-pg check profile contract contract-doc bronze test
+.PHONY: help init up build down reset ps logs restart shell-pg check profile contract contract-doc bronze silver load test
 
 help: ## tampilkan daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -56,6 +56,12 @@ contract-doc: ## bangkitkan DATA_CONTRACT.md
 
 bronze: ## CSV -> MinIO bronze + manifest (idempoten)
 	$(PY) pipeline.py bronze
+
+silver: ## bronze -> silver Parquet + gate kualitas + karantina
+	$(PY) pipeline.py silver
+
+load: ## silver -> raw.* di Postgres (TRUNCATE+COPY, satu transaksi)
+	$(PY) pipeline.py load
 
 test: ## pytest (test yang butuh Docker di-skip bila stack mati)
 	$(PY) -m pytest tests -q

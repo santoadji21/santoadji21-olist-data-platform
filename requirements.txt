@@ -6,3 +6,5 @@ kafka-python-ng>=2.2.3,<3
 boto3>=1.35,<2
 pytest>=8,<10
 matplotlib>=3.8,<4
+duckdb>=1.1,<2            # gate kualitas T2 (menjalankan klausa WHERE kontrak di atas DataFrame)
+datacontract-cli>=1.2,<2  # lint + test kontrak ODCS (T0)

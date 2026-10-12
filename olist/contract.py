@@ -86,6 +86,41 @@ RULES: dict[str, list[tuple[str, str, str, str]]] = {
 }
 
 
+# Ambang karantina per tabel: (persen baris, alasan). Lebih dari ambang → tabel FAIL (tidak dimuat).
+# Ambang hanya berlaku untuk pelanggaran HARD; aturan soft tidak pernah mengarantina.
+THRESHOLDS: dict[str, tuple[float, str]] = {
+    "customers": (0.0, "kunci & FK ke orders; satu baris rusak = indikasi file korup → batch berhenti"),
+    "geolocation": (2.0, "titik di luar Brasil (1,17%) soft: disimpan + flag, tidak dihitung; ambang untuk pelanggaran hard (tipe/null); >2% berarti sumber rusak"),
+    "order_items": (0.0, "sumber pendapatan Q1; baris tanpa order/produk/seller tak boleh lolos"),
+    "order_payments": (0.1, "14 baris janggal (0,01%) bersifat soft (simpan + flag); ambang untuk pelanggaran hard; >0,1% berarti anomali baru"),
+    "order_reviews": (0.5, "skor di luar 1–5 mengubah rata-rata Q2; toleransi kecil"),
+    "orders": (0.1, "31 baris waktu janggal (0,03%) bersifat soft (simpan + flag); ambang untuk pelanggaran hard; >0,1% = anomali baru"),
+    "products": (0.1, "kategori null (1,85%) bukan error — jadi 'unknown', bukan karantina"),
+    "sellers": (0.0, "hanya 3.095 baris; kunci & FK harus bersih"),
+    "product_category_translation": (0.0, "71 baris; harus persis, BOM ditangani saat baca"),
+}
+
+# FK lintas tabel (temuan #13), semuanya HARD: baris anak yatim → karantina. (anak, kolom, induk, kolom induk)
+FKS: tuple[tuple[str, str, str, str], ...] = (
+    ("orders", "customer_id", "customers", "customer_id"),
+    ("order_items", "order_id", "orders", "order_id"),
+    ("order_items", "product_id", "products", "product_id"),
+    ("order_items", "seller_id", "sellers", "seller_id"),
+    ("order_payments", "order_id", "orders", "order_id"),
+    ("order_reviews", "order_id", "orders", "order_id"),
+)
+
+# Urutan proses: induk sebelum anak (FK dicek terhadap baris induk yang lolos).
+PROCESS_ORDER: tuple[str, ...] = (
+    "customers", "sellers", "products", "product_category_translation", "geolocation",
+    "orders", "order_items", "order_payments", "order_reviews",
+)
+
+# Kolom flag untuk aturan soft (simpan + flag). Tabel dengan aturan soft lain memakai nama bawaan.
+FLAG_NAMES = {"geolocation": "is_outside_brazil", "orders": "has_time_anomaly"}
+DEFAULT_FLAG = "has_dq_warning"
+
+
 def _schema_object(t: Table) -> dict:
     props = []
     for c in t.cols:
