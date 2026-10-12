@@ -1,0 +1,8 @@
+# Client di laptop. Tambahkan yang kamu butuhkan, dan PIN versinya (batas bawah–atas) — penilai akan install dari file ini.
+pandas>=2.2,<4
+pyarrow>=16,<27
+psycopg[binary]>=3.2,<4
+kafka-python-ng>=2.2.3,<3
+boto3>=1.35,<2
+pytest>=8,<10
+matplotlib>=3.8,<4

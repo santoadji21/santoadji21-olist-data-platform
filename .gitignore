@@ -1,0 +1,31 @@
+# OS files
+.DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Zip files
+*.zip
+
+# Local environment and secrets
+.env
+.kaggle/
+
+# Airflow local runtime artifacts
+airflow.cfg
+logs/
+
+# Notebook execution outputs
+notebooks/output/
+
+# Spark and local data artifacts
+data/checkpoint/
+data/raw/*.csv
+data/raw/*.zip
+*.log
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
