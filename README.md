@@ -38,7 +38,7 @@ python pipeline.py profile        # outputs/profile.md + profile.json
 python pipeline.py contract-doc   # DATA_CONTRACT.md
 ```
 
-**Sumber dataset.** Kesembilan CSV diambil dengan `scripts/get_dataset.py`. Kaggle CLI tidak terpasang di mesin ini, jadi file berasal dari mirror GitHub yang dipakai skrip itu sebagai cadangan. `check` lulus (jumlah baris dan md5 sesuai), jadi angka cek tetap berlaku.
+**Sumber dataset.** Kesembilan CSV diambil dengan `scripts/get_dataset.py`. Sumbernya Kaggle (`olistbr/brazilian-ecommerce`), dengan kredensial di `.kaggle/kaggle.json` (tidak di-commit); skrip itu punya cadangan mirror GitHub bila Kaggle gagal. `check` lulus (jumlah baris dan md5 sesuai), jadi angka cek berlaku.
 
 ### Pertanyaan README: temuan yang membuat Q1–Q4 salah secara diam-diam
 
