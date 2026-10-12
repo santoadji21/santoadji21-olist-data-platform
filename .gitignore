@@ -29,3 +29,6 @@ data/raw/*.zip
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
+# Python virtualenv
+.venv/
+data/contract/

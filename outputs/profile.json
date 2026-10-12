@@ -1,0 +1,887 @@
+{
+  "meta": {
+    "generated_at": "2026-10-12 17:57:09",
+    "raw_dir": "data/raw"
+  },
+  "tables": [
+    {
+      "table": "customers",
+      "file": "olist_customers_dataset.csv",
+      "rows": 99441,
+      "rows_expected": 99441,
+      "rows_ok": true,
+      "columns": [
+        {
+          "col": "customer_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 99441,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "customer_unique_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 96096,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "customer_zip_code_prefix",
+          "type": "char(5)",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 14994,
+          "min": "len=5",
+          "max": "len=5",
+          "unparseable": 0
+        },
+        {
+          "col": "customer_city",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 4119,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "customer_state",
+          "type": "char(2)",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 27,
+          "min": "len=2",
+          "max": "len=2",
+          "unparseable": 0
+        }
+      ],
+      "key": {
+        "key": [
+          "customer_id"
+        ],
+        "duplicate_rows": 0,
+        "unique": true
+      },
+      "exact_duplicate_rows": 0
+    },
+    {
+      "table": "geolocation",
+      "file": "olist_geolocation_dataset.csv",
+      "rows": 1000163,
+      "rows_expected": 1000163,
+      "rows_ok": true,
+      "columns": [
+        {
+          "col": "geolocation_zip_code_prefix",
+          "type": "char(5)",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 19015,
+          "min": "len=5",
+          "max": "len=5",
+          "unparseable": 0
+        },
+        {
+          "col": "geolocation_lat",
+          "type": "double precision",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 717372,
+          "min": -36.6053744107061,
+          "max": 45.06593318269697,
+          "unparseable": 0
+        },
+        {
+          "col": "geolocation_lng",
+          "type": "double precision",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 717615,
+          "min": -101.46676644931476,
+          "max": 121.10539381057764,
+          "unparseable": 0
+        },
+        {
+          "col": "geolocation_city",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 8011,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "geolocation_state",
+          "type": "char(2)",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 27,
+          "min": "len=2",
+          "max": "len=2",
+          "unparseable": 0
+        }
+      ],
+      "key": null,
+      "exact_duplicate_rows": 261831
+    },
+    {
+      "table": "order_items",
+      "file": "olist_order_items_dataset.csv",
+      "rows": 112650,
+      "rows_expected": 112650,
+      "rows_ok": true,
+      "columns": [
+        {
+          "col": "order_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 98666,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "order_item_id",
+          "type": "integer",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 21,
+          "min": 1.0,
+          "max": 21.0,
+          "unparseable": 0
+        },
+        {
+          "col": "product_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 32951,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "seller_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 3095,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "shipping_limit_date",
+          "type": "timestamp",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 93318,
+          "min": "2016-09-19 00:15:34",
+          "max": "2020-04-09 22:35:08",
+          "unparseable": 0
+        },
+        {
+          "col": "price",
+          "type": "numeric(10,2)",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 5968,
+          "min": 0.85,
+          "max": 6735.0,
+          "unparseable": 0
+        },
+        {
+          "col": "freight_value",
+          "type": "numeric(10,2)",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 6999,
+          "min": 0.0,
+          "max": 409.68,
+          "unparseable": 0
+        }
+      ],
+      "key": {
+        "key": [
+          "order_id",
+          "order_item_id"
+        ],
+        "duplicate_rows": 0,
+        "unique": true
+      },
+      "exact_duplicate_rows": 0
+    },
+    {
+      "table": "order_payments",
+      "file": "olist_order_payments_dataset.csv",
+      "rows": 103886,
+      "rows_expected": 103886,
+      "rows_ok": true,
+      "columns": [
+        {
+          "col": "order_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 99440,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "payment_sequential",
+          "type": "integer",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 29,
+          "min": 1.0,
+          "max": 29.0,
+          "unparseable": 0
+        },
+        {
+          "col": "payment_type",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 5,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "payment_installments",
+          "type": "integer",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 24,
+          "min": 0.0,
+          "max": 24.0,
+          "unparseable": 0
+        },
+        {
+          "col": "payment_value",
+          "type": "numeric(10,2)",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 29077,
+          "min": 0.0,
+          "max": 13664.08,
+          "unparseable": 0
+        }
+      ],
+      "key": {
+        "key": [
+          "order_id",
+          "payment_sequential"
+        ],
+        "duplicate_rows": 0,
+        "unique": true
+      },
+      "exact_duplicate_rows": 0
+    },
+    {
+      "table": "order_reviews",
+      "file": "olist_order_reviews_dataset.csv",
+      "rows": 99224,
+      "rows_expected": 99224,
+      "rows_ok": true,
+      "columns": [
+        {
+          "col": "review_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 98410,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "order_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 98673,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "review_score",
+          "type": "smallint",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 5,
+          "min": 1.0,
+          "max": 5.0,
+          "unparseable": 0
+        },
+        {
+          "col": "review_comment_title",
+          "type": "text",
+          "nullable_in_contract": true,
+          "nulls": 87656,
+          "null_pct": 88.34,
+          "distinct": 4527,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "review_comment_message",
+          "type": "text",
+          "nullable_in_contract": true,
+          "nulls": 58247,
+          "null_pct": 58.7,
+          "distinct": 36159,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "review_creation_date",
+          "type": "timestamp",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 636,
+          "min": "2016-10-02 00:00:00",
+          "max": "2018-08-31 00:00:00",
+          "unparseable": 0
+        },
+        {
+          "col": "review_answer_timestamp",
+          "type": "timestamp",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 98248,
+          "min": "2016-10-07 18:32:28",
+          "max": "2018-10-29 12:27:35",
+          "unparseable": 0
+        }
+      ],
+      "key": null,
+      "exact_duplicate_rows": 0
+    },
+    {
+      "table": "orders",
+      "file": "olist_orders_dataset.csv",
+      "rows": 99441,
+      "rows_expected": 99441,
+      "rows_ok": true,
+      "columns": [
+        {
+          "col": "order_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 99441,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "customer_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 99441,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "order_status",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 8,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "order_purchase_timestamp",
+          "type": "timestamp",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 98875,
+          "min": "2016-09-04 21:15:19",
+          "max": "2018-10-17 17:30:18",
+          "unparseable": 0
+        },
+        {
+          "col": "order_approved_at",
+          "type": "timestamp",
+          "nullable_in_contract": true,
+          "nulls": 160,
+          "null_pct": 0.16,
+          "distinct": 90733,
+          "min": "2016-09-15 12:16:38",
+          "max": "2018-09-03 17:40:06",
+          "unparseable": 0
+        },
+        {
+          "col": "order_delivered_carrier_date",
+          "type": "timestamp",
+          "nullable_in_contract": true,
+          "nulls": 1783,
+          "null_pct": 1.79,
+          "distinct": 81018,
+          "min": "2016-10-08 10:34:01",
+          "max": "2018-09-11 19:48:28",
+          "unparseable": 0
+        },
+        {
+          "col": "order_delivered_customer_date",
+          "type": "timestamp",
+          "nullable_in_contract": true,
+          "nulls": 2965,
+          "null_pct": 2.98,
+          "distinct": 95664,
+          "min": "2016-10-11 13:46:32",
+          "max": "2018-10-17 13:22:46",
+          "unparseable": 0
+        },
+        {
+          "col": "order_estimated_delivery_date",
+          "type": "timestamp",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 459,
+          "min": "2016-09-30 00:00:00",
+          "max": "2018-11-12 00:00:00",
+          "unparseable": 0
+        }
+      ],
+      "key": {
+        "key": [
+          "order_id"
+        ],
+        "duplicate_rows": 0,
+        "unique": true
+      },
+      "exact_duplicate_rows": 0
+    },
+    {
+      "table": "products",
+      "file": "olist_products_dataset.csv",
+      "rows": 32951,
+      "rows_expected": 32951,
+      "rows_ok": true,
+      "columns": [
+        {
+          "col": "product_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 32951,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "product_category_name",
+          "type": "text",
+          "nullable_in_contract": true,
+          "nulls": 610,
+          "null_pct": 1.85,
+          "distinct": 73,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "product_name_lenght",
+          "type": "integer",
+          "nullable_in_contract": true,
+          "nulls": 610,
+          "null_pct": 1.85,
+          "distinct": 66,
+          "min": 5.0,
+          "max": 76.0,
+          "unparseable": 0
+        },
+        {
+          "col": "product_description_lenght",
+          "type": "integer",
+          "nullable_in_contract": true,
+          "nulls": 610,
+          "null_pct": 1.85,
+          "distinct": 2960,
+          "min": 4.0,
+          "max": 3992.0,
+          "unparseable": 0
+        },
+        {
+          "col": "product_photos_qty",
+          "type": "integer",
+          "nullable_in_contract": true,
+          "nulls": 610,
+          "null_pct": 1.85,
+          "distinct": 19,
+          "min": 1.0,
+          "max": 20.0,
+          "unparseable": 0
+        },
+        {
+          "col": "product_weight_g",
+          "type": "integer",
+          "nullable_in_contract": true,
+          "nulls": 2,
+          "null_pct": 0.01,
+          "distinct": 2204,
+          "min": 0.0,
+          "max": 40425.0,
+          "unparseable": 0
+        },
+        {
+          "col": "product_length_cm",
+          "type": "integer",
+          "nullable_in_contract": true,
+          "nulls": 2,
+          "null_pct": 0.01,
+          "distinct": 99,
+          "min": 7.0,
+          "max": 105.0,
+          "unparseable": 0
+        },
+        {
+          "col": "product_height_cm",
+          "type": "integer",
+          "nullable_in_contract": true,
+          "nulls": 2,
+          "null_pct": 0.01,
+          "distinct": 102,
+          "min": 2.0,
+          "max": 105.0,
+          "unparseable": 0
+        },
+        {
+          "col": "product_width_cm",
+          "type": "integer",
+          "nullable_in_contract": true,
+          "nulls": 2,
+          "null_pct": 0.01,
+          "distinct": 95,
+          "min": 6.0,
+          "max": 118.0,
+          "unparseable": 0
+        }
+      ],
+      "key": {
+        "key": [
+          "product_id"
+        ],
+        "duplicate_rows": 0,
+        "unique": true
+      },
+      "exact_duplicate_rows": 0
+    },
+    {
+      "table": "sellers",
+      "file": "olist_sellers_dataset.csv",
+      "rows": 3095,
+      "rows_expected": 3095,
+      "rows_ok": true,
+      "columns": [
+        {
+          "col": "seller_id",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 3095,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "seller_zip_code_prefix",
+          "type": "char(5)",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 2246,
+          "min": "len=5",
+          "max": "len=5",
+          "unparseable": 0
+        },
+        {
+          "col": "seller_city",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 611,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "seller_state",
+          "type": "char(2)",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 23,
+          "min": "len=2",
+          "max": "len=2",
+          "unparseable": 0
+        }
+      ],
+      "key": {
+        "key": [
+          "seller_id"
+        ],
+        "duplicate_rows": 0,
+        "unique": true
+      },
+      "exact_duplicate_rows": 0
+    },
+    {
+      "table": "product_category_translation",
+      "file": "product_category_name_translation.csv",
+      "rows": 71,
+      "rows_expected": 71,
+      "rows_ok": true,
+      "columns": [
+        {
+          "col": "product_category_name",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 71,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        },
+        {
+          "col": "product_category_name_english",
+          "type": "text",
+          "nullable_in_contract": false,
+          "nulls": 0,
+          "null_pct": 0.0,
+          "distinct": 71,
+          "min": null,
+          "max": null,
+          "unparseable": 0
+        }
+      ],
+      "key": {
+        "key": [
+          "product_category_name"
+        ],
+        "duplicate_rows": 0,
+        "unique": true
+      },
+      "exact_duplicate_rows": 0
+    }
+  ],
+  "findings": [
+    {
+      "id": 1,
+      "table": "customers",
+      "finding": "Dua id pelanggan: `customer_id` per-ORDER, `customer_unique_id` = ORANG",
+      "numbers": "customer_id unik=99,441; customer_unique_id unik=96,096; selisih=3,345 (3.36% jika salah pilih); orang belanja >1 kali=2,997",
+      "decision": "Grain `dim_customer` = `customer_unique_id`; join orders→customers tetap lewat `customer_id`; atribut yang berubah antar order (zip/kota) ambil yang terbaru (SCD tipe 1), hilangnya riwayat dicatat",
+      "applied_in": "T4 `dim_customer`",
+      "severity": "silent-wrong"
+    },
+    {
+      "id": 2,
+      "table": "order_reviews",
+      "finding": "`review_id` tidak unik dan satu `order_id` bisa punya >1 ulasan",
+      "numbers": "baris dengan review_id berulang=814; review_id unik=98,410; order dengan >1 ulasan=547; order unik=98,673; pasangan (review_id, order_id) berulang=0",
+      "decision": "`fact_review` satu baris per order: pilih ulasan dengan `review_answer_timestamp` terbaru (seri → `review_creation_date` terbaru → `review_id`); simpan `review_count` asli",
+      "applied_in": "T4 `fact_review`",
+      "severity": "silent-wrong"
+    },
+    {
+      "id": 3,
+      "table": "customers, sellers, geolocation",
+      "finding": "Kode pos prefix berawalan `0` (`'01003'`) — kehilangan nol di depan bila dibaca sebagai angka",
+      "numbers": "baris berawalan '0' (akan jadi 4 digit jika di-cast ke integer): customers=23,995 dari 99,441 (24.13%); sellers=1,027 dari 3,095 (33.18%); geolocation=245,733 dari 1,000,163 (24.57%); panjang string di file sumber=[5]",
+      "decision": "Baca sebagai teks (`dtype=str`); tipe target `char(5)`; `lpad(…, 5, '0')` sebagai pengaman di silver; join zip hanya antar kolom bertipe teks 5 digit",
+      "applied_in": "T2 silver (typing), T4 `dim_geo`",
+      "severity": "silent-wrong"
+    },
+    {
+      "id": 4,
+      "table": "geolocation",
+      "finding": "Satu zip prefix punya banyak baris + duplikat persis (bukan kunci)",
+      "numbers": "baris=1,000,163; prefix unik=19,015; maks baris/prefix=1,146; duplikat persis=261,831 (26.18%)",
+      "decision": "Agregasi ke satu baris per prefix: `avg(lat/lng)`, `mode(city/state)`; baris mentah dipertahankan di bronze/silver",
+      "applied_in": "T4 `dim_geo`",
+      "severity": "silent-wrong"
+    },
+    {
+      "id": 5,
+      "table": "geolocation",
+      "finding": "Koordinat di luar Brasil (lat −34…+5, lng −74…−35)",
+      "numbers": "titik di luar Brasil=11,687 (1.17%); lat [-36.61, 45.07]; lng [-101.47, 121.11]",
+      "decision": "Soft rule: baris tetap di silver dengan flag `is_outside_brazil` (tidak menggagalkan batch, tidak dibuang); dikecualikan dari agregasi `dim_geo`",
+      "applied_in": "T2 gate kualitas, T4 `dim_geo`",
+      "severity": "quarantine"
+    },
+    {
+      "id": 6,
+      "table": "product_category_translation",
+      "finding": "File diawali BOM UTF-8 → nama kolom pertama tak terlihat berbeda, join kategori diam-diam gagal",
+      "numbers": "3 byte pertama=efbbbf; repr kolom pertama (utf-8)='\\ufeffproduct_category_name'; repr dengan utf-8-sig='product_category_name'",
+      "decision": "Baca file ini dengan `encoding='utf-8-sig'`; kontrak mencatat encoding per file",
+      "applied_in": "T1 bronze (checksum apa adanya), T2 silver (decode)",
+      "severity": "silent-wrong"
+    },
+    {
+      "id": 7,
+      "table": "orders",
+      "finding": "Order tanpa item dan order tanpa pembayaran",
+      "numbers": "order tanpa item=775 (status: {'unavailable': 603, 'canceled': 164, 'created': 5, 'invoiced': 2, 'shipped': 1}); order tanpa pembayaran=1",
+      "decision": "Tetap masuk `fact_order` (99.441 baris) dengan flag `has_items` / `has_payment`; tidak dibuang",
+      "applied_in": "T4 `fact_order`",
+      "severity": "silent-wrong"
+    },
+    {
+      "id": 8,
+      "table": "order_payments",
+      "finding": "Pembayaran bernilai 0, `payment_type='not_defined'`, dan cicilan 0",
+      "numbers": "payment_value=0: 9; payment_type not_defined: 3; payment_installments=0: 2",
+      "decision": "Biarkan & catat di silver; flag `is_zero_payment` di `fact_payment`; tidak dihitung sebagai pendapatan terbayar",
+      "applied_in": "T2 soft rule, T4 `fact_payment`",
+      "severity": "keep-and-flag"
+    },
+    {
+      "id": 9,
+      "table": "orders",
+      "finding": "Status `delivered` tanpa tanggal terkirim; tanggal terkirim lebih awal dari tanggal diserahkan ke kurir",
+      "numbers": "delivered tanpa order_delivered_customer_date=8; delivered tanpa order_delivered_carrier_date=2; delivered_customer < delivered_carrier=23; approved_at < purchase=0",
+      "decision": "Soft rule (simpan + flag `has_time_anomaly`, tidak dibuang; tanggal kosong maupun urutan terbalik); `is_late` = NULL (bukan false) bila tanggal terkirim kosong",
+      "applied_in": "T2 gate kualitas, T4 `is_late`",
+      "severity": "quarantine"
+    },
+    {
+      "id": 10,
+      "table": "order_items vs order_payments",
+      "finding": "Σ(price+freight) item ≠ Σ(payment_value) — penyebabnya lebih dari satu",
+      "numbers": "order dgn item & bayar=98,665; selisih >0,01=378; selisih >1,00=249; dari yang >0,01: dibayar LEBIH dari nilai item=290 (kartu kredit cicilan >1 di 258 di antaranya), dibayar KURANG=88, memakai voucher=10; total selisih absolut=3,271.95 BRL",
+      "decision": "Jangan dipaksa sama: mart pendapatan menampilkan dua angka (nilai pesanan vs terbayar) + tabel rekonsiliasi yang menjelaskan selisih per sebab",
+      "applied_in": "T5 mart rekonsiliasi",
+      "severity": "keep-and-flag"
+    },
+    {
+      "id": 11,
+      "table": "orders",
+      "finding": "Bulan pertama dan terakhir dataset hanya berisi segelintir order",
+      "numbers": "rentang purchase=2016-09-04 21:15:19 … 2018-10-17 17:30:18; bulan pertama 2016-09=4; kedua 2016-10=324; bulan terakhir 2018-10=4; median per bulan=4,285; bulan <5% median={'2016-09': 4, '2016-12': 1, '2018-09': 16, '2018-10': 4}",
+      "decision": "Jangan dibuang; `dim_date.is_complete_month` = false untuk bulan tak lengkap agar mart/dashboard bisa memilih",
+      "applied_in": "T4 `dim_date`, T5 dashboard",
+      "severity": "keep-and-flag"
+    },
+    {
+      "id": 12,
+      "table": "products",
+      "finding": "Produk tanpa kategori, kategori tanpa terjemahan, dan typo nama kolom (`lenght`)",
+      "numbers": "kategori null=610; produk dgn kategori tak terjemahkan=13 (kategori: ['pc_gamer', 'portateis_cozinha_e_preparadores_de_alimentos']); dimensi null=2; kolom typo: product_name_lenght, product_description_lenght",
+      "decision": "Kategori Inggris dengan fallback (`'unknown'` untuk null, nama Portugis untuk tanpa terjemahan); typo diperbaiki hanya di dw (`*_length`), silver tetap nama sumber",
+      "applied_in": "T4 `dim_product`",
+      "severity": "keep-and-flag"
+    },
+    {
+      "id": 13,
+      "table": "semua",
+      "finding": "Integritas referensial antar tabel (yatim/orphan)",
+      "numbers": "order_items.order_id→orders=0; order_items.product_id→products=0; order_items.seller_id→sellers=0; order_payments.order_id→orders=0; order_reviews.order_id→orders=0; orders.customer_id→customers=0",
+      "decision": "Semua FK sumber dinyatakan HARD di silver; bila >0 baris yatim → karantina, bukan dihapus diam-diam",
+      "applied_in": "T2 gate kualitas",
+      "severity": "hard-rule"
+    },
+    {
+      "id": 14,
+      "table": "customers, sellers → geolocation",
+      "finding": "Kode pos pelanggan/seller yang tidak ada di tabel geolocation",
+      "numbers": "customers=278 baris; sellers=7 baris (setelah lpad 5 digit)",
+      "decision": "Jangan hapus FK: sediakan baris `unknown` di `dim_geo`; FK ke `dim_geo` tetap valid 100%",
+      "applied_in": "T4 `dim_geo`",
+      "severity": "keep-and-flag"
+    },
+    {
+      "id": 15,
+      "table": "order_reviews",
+      "finding": "Skor di luar 1–5 dan jawaban lebih awal dari pembuatan survei; komentar kosong dominan",
+      "numbers": "skor di luar 1–5=0; answer<creation=0; judul kosong=88.34%; pesan kosong=58.70%",
+      "decision": "`review_score` CHECK 1..5 (hard); urutan waktu = soft; komentar kosong ≠ error (NULL, bukan '')",
+      "applied_in": "T2 gate kualitas",
+      "severity": "keep-and-flag"
+    },
+    {
+      "id": 16,
+      "table": "order_items, products",
+      "finding": "Harga ≤ 0, ongkir 0, dan berat produk 0",
+      "numbers": "price<=0=0; freight_value=0=383; freight_value<0=0; product_weight_g=0=4",
+      "decision": "price/freight ≥ 0 sebagai hard rule; ongkir 0 sah (gratis ongkir); berat 0 → NULL di `dim_product`",
+      "applied_in": "T2 gate kualitas, T4 `dim_product`",
+      "severity": "keep-and-flag"
+    },
+    {
+      "id": 17,
+      "table": "orders",
+      "finding": "Status canceled/unavailable tetapi punya tanggal tiba di pelanggan",
+      "numbers": "canceled/unavailable dengan delivered_customer_date=6; sebaran status={'delivered': 96478, 'shipped': 1107, 'canceled': 625, 'unavailable': 609, 'invoiced': 314, 'processing': 301, 'created': 5, 'approved': 2}",
+      "decision": "Biarkan & catat; `is_late` hanya dihitung untuk status `delivered`",
+      "applied_in": "T4 `is_late`",
+      "severity": "keep-and-flag"
+    },
+    {
+      "id": 18,
+      "table": "sellers, geolocation",
+      "finding": "Nama kota tidak seragam: satu zip prefix punya beberapa ejaan, karakter non-ASCII/simbol",
+      "numbers": "seller_city berisi karakter non-huruf=24 dari 3,095; prefix geolocation dengan >1 ejaan kota=8,556 dari 19,015; baris geolocation_city non-ASCII=73,442 dari 1,000,163",
+      "decision": "Kota bukan kunci join (kunci geografis = zip prefix). Di `dim_geo` kota = modus per prefix (trim + lower); ejaan lain dibiarkan di bronze/silver",
+      "applied_in": "T4 `dim_geo`",
+      "severity": "keep-and-flag"
+    }
+  ]
+}

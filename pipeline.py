@@ -88,14 +88,48 @@ def todo(stage: str, target: str):
     return fn
 
 
+def cmd_check(a):
+    r = subprocess.run([sys.executable, "scripts/check_dataset.py"], cwd=ROOT, capture_output=True, text=True)
+    out = ROOT / "outputs"; out.mkdir(exist_ok=True)
+    (out / "dataset_check.md").write_text("# Dataset check\n\n```\n" + r.stdout + r.stderr + "```\n", encoding="utf-8")
+    print(r.stdout + r.stderr, end="")
+    sys.exit(r.returncode)
+
+
+def cmd_profile(a):
+    from olist.profile import run
+    run(ROOT, read_env().get("RAW_DIR", "data/raw"))
+    print("outputs/profile.md + outputs/profile.json ditulis")
+
+
+def cmd_contract(a):
+    from olist.contract import link_data, write
+    raw = read_env().get("RAW_DIR", "data/raw")
+    f = write(ROOT)
+    print(f"kontrak ODCS → {f.relative_to(ROOT)}")
+    exe = str(Path(sys.executable).parent / "datacontract")
+    r = subprocess.run([exe, "lint", str(f)], cwd=ROOT)
+    if r.returncode or a.no_test:
+        sys.exit(r.returncode)
+    link_data(ROOT, raw)
+    sys.exit(subprocess.run([exe, "test", str(f)], cwd=ROOT).returncode)
+
+
+def cmd_contract_doc(a):
+    from olist.contract_md import write
+    print(f"{write(ROOT).relative_to(ROOT)} ditulis")
+
+
 PARSER = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 SUB = PARSER.add_subparsers(dest="cmd", required=True)
 p = SUB.add_parser("init"); p.set_defaults(func=cmd_init)
 p = SUB.add_parser("up"); p.add_argument("--build", action="store_true", help="bangun image jupyter (pertama kali)"); p.set_defaults(func=cmd_up)
 p = SUB.add_parser("down"); p.add_argument("-v", "--volumes", action="store_true"); p.set_defaults(func=cmd_down)
+p = SUB.add_parser("check"); p.set_defaults(func=cmd_check)
+p = SUB.add_parser("profile"); p.set_defaults(func=cmd_profile)
+p = SUB.add_parser("contract", help="bangkitkan kontrak ODCS + lint + test"); p.add_argument("--no-test", action="store_true"); p.set_defaults(func=cmd_contract)
+p = SUB.add_parser("contract-doc", help="bangkitkan DATA_CONTRACT.md"); p.set_defaults(func=cmd_contract_doc)
 for name, stage, target in [
-    ("check", "T0", "9 file ada & sesuai kontrak → outputs/dataset_check.md"),
-    ("profile", "T0", "profil per tabel + daftar temuan bernomor → outputs/profile.md"),
     ("bronze", "T1", "CSV → MinIO bronze apa adanya, manifest, idempoten → outputs/bronze_report.md"),
     ("silver", "T2", "tipe sesuai kontrak, gate kualitas, karantina → outputs/dq_report.md"),
     ("load", "T2", "silver → raw.* dengan COPY, TRUNCATE+COPY satu transaksi → outputs/load_report.md"),
