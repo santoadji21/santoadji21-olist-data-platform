@@ -12,10 +12,13 @@ def db():
     """Koneksi ke Postgres stack; test yang memakainya di-skip kalau stack tidak jalan (bukan gagal)."""
     import psycopg
 
-    from olist_platform.config  # ganti dengan nama paketmu import settings
+    from pipeline import read_env
 
+    e = read_env()
+    dsn = (f"host=localhost port={e.get('POSTGRES_PORT', '5432')} dbname={e.get('POSTGRES_DB', 'olist')} "
+           f"user={e.get('POSTGRES_USER', 'olist')} password={e.get('POSTGRES_PASSWORD', '')}")
     try:
-        conn = psycopg.connect(settings().pg_dsn, autocommit=True)
+        conn = psycopg.connect(dsn, autocommit=True, connect_timeout=3)
     except psycopg.OperationalError as e:
         pytest.skip(f"Postgres tidak bisa dihubungi: {e}")
     yield conn

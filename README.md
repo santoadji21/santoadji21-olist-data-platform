@@ -49,3 +49,32 @@ python pipeline.py contract-doc   # DATA_CONTRACT.md
 5. **Ulasan ganda (temuan #2, Q2).** 547 order punya lebih dari satu ulasan dan 814 baris `review_id` berulang. Join langsung order ke review menggandakan baris order, sehingga skor rata-rata dan jumlah order terlambat ikut tertimbang ganda.
 
 Keputusan penanganannya ada di DATA_CONTRACT.md §2, termasuk tahap yang menerapkannya.
+
+
+---
+
+## T1 — Bronze: ingest ke MinIO
+
+```bash
+make up && make bronze        # atau: python pipeline.py bronze
+```
+
+Hasil: [outputs/bronze_report.md](outputs/bronze_report.md) (tabel per file) dan `outputs/bronze.json`. Kode: [olist/bronze.py](olist/bronze.py), test tanpa Docker: [tests/test_bronze.py](tests/test_bronze.py).
+
+**Tata letak.** Bucket `bronze`:
+- `olist/<tabel>/ingest_date=YYYY-MM-DD/sha256=<12 hex>/<file>`: isi CSV apa adanya. Kunci memuat sha256, jadi isi berbeda tidak pernah menimpa objek lama, termasuk di hari yang sama.
+- `olist/_manifest/<tabel>.json`: manifest per tabel (JSON biasa, di bucket, bukan di laptop). Isinya sumber, `versions[]` (versi, sha256, ukuran byte, jumlah baris, waktu ingest, kunci objek) yang hanya bertambah, dan `latest` yang menunjuk objek terbaru.
+
+**Idempotensi.** sha256 isi dibandingkan dengan versi terakhir di manifest. Sama → `unchanged`, tanpa upload. Beda → `new_version`. Ukuran byte tidak pernah dipakai sebagai pembanding. Manifest ditulis setelah objek, sehingga kalau proses mati di antaranya, run berikutnya hanya menulis manifest (objeknya sudah ada).
+
+**Bukti (dijalankan di MinIO lokal).**
+- Ingest pertama 9 file (±126 MB): 1,9 detik (batas tugas 2 menit). Semua `uploaded`.
+- Ingest kedua tanpa perubahan: 9/9 `unchanged`, tidak ada upload.
+- Satu byte diubah di `sellers` (huruf pertama `campinas` jadi `Campinas`): `new_version` v2, objek v1 tetap ada di bucket dan manifest. Setelah file dikembalikan, v3 menunjuk objek v1 yang sama tanpa upload ulang.
+- Jumlah baris dihitung dengan parser CSV dan cocok dengan kontrak untuk semua tabel.
+
+### Pertanyaan README: kenapa bronze harus append-only?
+
+Karena bronze adalah satu-satunya salinan sumber apa adanya. Silver dan semua lapisan di atasnya dibangun ulang darinya. Kalau bronze bisa ditimpa, kesalahan di ingest atau di sumber ikut menghapus kebenaran dan tidak ada yang bisa diaudit.
+
+Skenario Olist: file `olist_order_reviews_dataset.csv` dikirim ulang dengan satu kolom bergeser atau komentar yang terpotong, dan sistem hulu tidak memberi tahu. Karena versi lama masih ada di bucket dan manifest (sha256-nya berbeda), kita bisa membandingkan v1 dan v2, melihat tepatnya apa yang berubah, dan membangun ulang silver dari v1 sementara menunggu perbaikan dari hulu. Pada skenario yang lebih ringan, angka di dashboard berubah setelah file diperbarui, dan kita bisa menjawab "angka itu dari versi file yang mana".

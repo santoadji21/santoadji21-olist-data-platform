@@ -102,6 +102,19 @@ def cmd_profile(a):
     print("outputs/profile.md + outputs/profile.json ditulis")
 
 
+def cmd_bronze(a):
+    from olist.bronze import make_s3, run_ingest, write_outputs
+    env = read_env()
+    try:
+        run = run_ingest(make_s3(env), "bronze", ROOT / env.get("RAW_DIR", "data/raw"))
+    except FileNotFoundError as e:
+        sys.exit(f"bronze berhenti: {e}")
+    md = write_outputs(ROOT, run)
+    for r in run["files"]:
+        print(f"  {r['table']:30s} {r['status']:12s} v{r['version']}  {r['rows']:>9,} baris  {r['seconds']:>5} s")
+    print(f"selesai {run['seconds']} s → {md.relative_to(ROOT)}")
+
+
 def cmd_contract(a):
     from olist.contract import link_data, write
     raw = read_env().get("RAW_DIR", "data/raw")
@@ -129,8 +142,8 @@ p = SUB.add_parser("check"); p.set_defaults(func=cmd_check)
 p = SUB.add_parser("profile"); p.set_defaults(func=cmd_profile)
 p = SUB.add_parser("contract", help="bangkitkan kontrak ODCS + lint + test"); p.add_argument("--no-test", action="store_true"); p.set_defaults(func=cmd_contract)
 p = SUB.add_parser("contract-doc", help="bangkitkan DATA_CONTRACT.md"); p.set_defaults(func=cmd_contract_doc)
+p = SUB.add_parser("bronze", help="CSV → MinIO bronze apa adanya + manifest (idempoten)"); p.set_defaults(func=cmd_bronze)
 for name, stage, target in [
-    ("bronze", "T1", "CSV → MinIO bronze apa adanya, manifest, idempoten → outputs/bronze_report.md"),
     ("silver", "T2", "tipe sesuai kontrak, gate kualitas, karantina → outputs/dq_report.md"),
     ("load", "T2", "silver → raw.* dengan COPY, TRUNCATE+COPY satu transaksi → outputs/load_report.md"),
     ("stream", "T3", "producer replay + consumer idempoten + DLQ + freshness → outputs/stream_report.md"),
