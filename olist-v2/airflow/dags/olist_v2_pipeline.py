@@ -106,7 +106,7 @@ with DAG(
     # dbt di venv terpisah ($DBT_BIN). target/ dan logs/ ke /tmp agar tidak menulis ke folder sumber yang di-mount.
     dbt = BashOperator(
         task_id="dbt_build",
-        bash_command='"$DBT_BIN" build --project-dir "$DBT_PROJECT_DIR" --profiles-dir "$DBT_PROFILES_DIR"',
+        bash_command='python -c "from olist_v2.stream_cli import connect; connect().close()" && "$DBT_BIN" build --project-dir "$DBT_PROJECT_DIR" --profiles-dir "$DBT_PROFILES_DIR"',
         env={"DBT_TARGET_PATH": "/tmp/dbt_target", "DBT_LOG_PATH": "/tmp/dbt_logs", "DBT_SEND_ANONYMOUS_USAGE_STATS": "False"},
         append_env=True, retries=0, execution_timeout=timedelta(minutes=15),
     )

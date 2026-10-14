@@ -86,6 +86,16 @@ def _recon(r):
             f"sisanya dijelaskan: " + ", ".join(f"{x['class']} {n(x['orders'])}" for x in r if x["class"] != "cocok") + ".")
 
 
+def _fresh(r):
+    if not r:
+        return "Belum ada metrik stream (jalankan `make stream` lalu `make dbt-build`)."
+    k = max(len(r) // 4, 1)
+    first = sum(float(x["fresh_p50_ms"] or 0) for x in r[:k]) / k
+    last = sum(float(x["fresh_p50_ms"] or 0) for x in r[-k:]) / k
+    return (f"Dari {n(len(r))} batch (p95 tertinggi {n(max(float(x['fresh_p95_ms'] or 0) for x in r))} ms), p50 batch awal {n(first)} ms → "
+            f"batch akhir {n(last)} ms: lag {'tumbuh' if last > 1.5 * first else 'stabil'} selama replay.")
+
+
 QUESTIONS: list[Question] = [
     Question("q1_monthly", "Q1 · Pendapatan vs uang terbayar per bulan", f"""
         SELECT s.year_month, s.revenue, s.items, v.orders_compared, v.ordered_value, v.paid_value, v.paid_minus_ordered
@@ -136,4 +146,8 @@ QUESTIONS: list[Question] = [
                round(sum(abs(diff)), 2) AS abs_diff_brl, round(sum(diff), 2) AS net_diff_brl
         FROM mart.reconciliation GROUP BY class ORDER BY orders DESC""", "row", _recon,
              {"graph.dimensions": ["class"], "graph.metrics": ["orders"]}),
+    Question("fresh_batch", "Freshness stream · p50/p95 per batch consumer", """
+        SELECT batch_no, consumed_at, n_messages, n_new, n_duplicate, n_out_of_order, n_dlq, fresh_p50_ms, fresh_p95_ms
+        FROM mart.stream_freshness_batch ORDER BY consumed_at, batch_no""", "line", _fresh,
+             {"graph.dimensions": ["batch_no"], "graph.metrics": ["fresh_p50_ms", "fresh_p95_ms"]}),
 ]

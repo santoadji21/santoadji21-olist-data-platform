@@ -1,6 +1,6 @@
 # Laporan Mart (T5)
 
-Dibangun 2026-10-14T13:23:33+00:00 · 2.92 s · 16/16 pemeriksaan mart = 0 (`dbt/tests/mart_checks.sql`). Setiap bagian di bawah memakai query dan kalimat insight yang SAMA dengan kartu di dashboard Metabase (`olist_v2/questions.py`); hanya **bulan lengkap** yang ditampilkan.
+Dibangun 2026-10-14T13:39:43+00:00 · 3.45 s · 17/17 pemeriksaan mart = 0 (`dbt/tests/mart_checks.sql`). Setiap bagian di bawah memakai query dan kalimat insight yang SAMA dengan kartu di dashboard Metabase (`olist_v2/questions.py`); hanya **bulan lengkap** yang ditampilkan.
 
 ## Q1 · Pendapatan vs uang terbayar per bulan
 
@@ -149,6 +149,30 @@ _35 baris lain tidak ditampilkan._
 | voucher | 7 | 0,01 | 17,48 | 17,48 |
 | tanpa_pembayaran | 1 | 0 | 143,46 | -143,46 |
 
+## Freshness stream · p50/p95 per batch consumer
+
+**Insight:** Dari 217 batch (p95 tertinggi 2.933 ms), p50 batch awal 214 ms → batch akhir 1.906 ms: lag tumbuh selama replay.
+
+| batch_no | consumed_at | n_messages | n_new | n_duplicate | n_out_of_order | n_dlq | fresh_p50_ms | fresh_p95_ms |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 2026-10-14 13:38:02.670062+00:00 | 641 | 625 | 14 | 0 | 2 | 42,30 | 48,80 |
+| 2 | 2026-10-14 13:38:02.731759+00:00 | 1.391 | 1.346 | 36 | 4 | 9 | 68,40 | 77,80 |
+| 3 | 2026-10-14 13:38:02.814593+00:00 | 2.000 | 1.931 | 59 | 2 | 10 | 68,30 | 98,40 |
+| 4 | 2026-10-14 13:38:02.901570+00:00 | 45 | 45 | 0 | 0 | 0 | 116,30 | 117,50 |
+| 5 | 2026-10-14 13:38:02.915080+00:00 | 1.579 | 1.523 | 46 | 5 | 10 | 76,70 | 107,20 |
+| 6 | 2026-10-14 13:38:02.983480+00:00 | 680 | 658 | 18 | 1 | 4 | 101,40 | 107 |
+| 7 | 2026-10-14 13:38:03.027479+00:00 | 1.570 | 1.515 | 48 | 7 | 7 | 96,80 | 120,60 |
+| 8 | 2026-10-14 13:38:03.104585+00:00 | 1.171 | 1.139 | 31 | 12 | 1 | 122,50 | 131,50 |
+| 9 | 2026-10-14 13:38:03.167902+00:00 | 1.422 | 1.369 | 50 | 10 | 3 | 133,60 | 144,30 |
+| 10 | 2026-10-14 13:38:03.270637+00:00 | 1.720 | 1.660 | 53 | 13 | 7 | 151,60 | 183,80 |
+| 11 | 2026-10-14 13:38:03.352087+00:00 | 293 | 282 | 8 | 2 | 3 | 185,20 | 187,50 |
+| 12 | 2026-10-14 13:38:03.384345+00:00 | 1.655 | 1.594 | 50 | 12 | 11 | 82,90 | 111,80 |
+| 13 | 2026-10-14 13:38:03.472296+00:00 | 690 | 675 | 11 | 8 | 4 | 120,80 | 126,10 |
+| 14 | 2026-10-14 13:38:03.520862+00:00 | 1.435 | 1.391 | 40 | 19 | 4 | 123,20 | 141,20 |
+| 15 | 2026-10-14 13:38:03.595299+00:00 | 1.075 | 1.039 | 33 | 18 | 3 | 142,10 | 151 |
+
+_202 baris lain tidak ditampilkan._
+
 ## Pemeriksaan mart
 
 | Pemeriksaan | Baris bermasalah |
@@ -169,17 +193,20 @@ _35 baris lain tidak ditampilkan._
 | reconciliation_every_order_has_a_class | 0 |
 | reconciliation_matched_share_at_least_98pct | 0 |
 | reconciliation_paid_equals_fact | 0 |
+| stream_freshness_batches_equal_source | 0 |
 
 ## Ekspor gold
 
 | Mart | Baris | Parquet (byte) |
 |---|---:|---:|
 | s3://gold/olist/mart/sales_monthly | 11,805 | 210,419 |
-| s3://gold/olist/mart/revenue_vs_paid_monthly | 24 | 5,441 |
+| s3://gold/olist/mart/revenue_vs_paid_monthly | 24 | 5,444 |
 | s3://gold/olist/mart/delivery_monthly | 556 | 30,394 |
 | s3://gold/olist/mart/seller_scorecard | 3,095 | 178,367 |
 | s3://gold/olist/mart/customer_rfm | 94,983 | 3,496,852 |
-| s3://gold/olist/mart/reconciliation | 99,441 | 4,042,585 |
+| s3://gold/olist/mart/reconciliation | 99,441 | 4,042,065 |
+| s3://gold/olist/mart/stream_freshness | 1 | 6,697 |
+| s3://gold/olist/mart/stream_freshness_batch | 217 | 14,429 |
 
 ## Penelusuran angka (mart → model dbt → fakta)
 
@@ -191,5 +218,7 @@ _35 baris lain tidak ditampilkan._
 | mart.seller_scorecard | dbt/models/mart/seller_scorecard.sql | dw.fact_order_item, dw.fact_order, dw.fact_review, dw.dim_seller |
 | mart.customer_rfm | dbt/models/mart/customer_rfm.sql | dw.fact_order, dw.dim_customer |
 | mart.reconciliation | dbt/models/mart/reconciliation.sql | dw.fact_order, dw.fact_payment |
+| mart.stream_freshness | dbt/models/mart/stream_freshness.sql | stream.batch_metrics |
+| mart.stream_freshness_batch | dbt/models/mart/stream_freshness_batch.sql | stream.batch_metrics |
 
 Contoh penelusuran: pendapatan Q1 = `sum(mart.sales_monthly.revenue)` = `sum(dw.fact_order_item.price)` untuk order bukan `canceled`/`unavailable` (pemeriksaan `sales_revenue_equals_fact_items` = 0).

@@ -1,6 +1,6 @@
 """T5 — laporan mart dan ekspor gold. Mart sendiri dibangun dbt (`make dbt-build`); modul ini:
 
-  * menjalankan 16 pemeriksaan mart (dbt/tests/mart_checks.sql, referensi `ref()` diganti nama skema) — harus 0 semua
+  * menjalankan 17 pemeriksaan mart (dbt/tests/mart_checks.sql, referensi `ref()` diganti nama skema) — harus 0 semua
   * mengekspor tiap mart ke bucket gold (Parquet + CSV)
   * menulis outputs/marts_report.md + marts.json dari olist_v2.questions: query dan insight yang SAMA dengan dashboard Metabase
 """
@@ -20,7 +20,8 @@ from .contract import REPO
 from .questions import QUESTIONS, fetch, n
 
 GOLD = "gold"
-MART_TABLES = ("sales_monthly", "revenue_vs_paid_monthly", "delivery_monthly", "seller_scorecard", "customer_rfm", "reconciliation")
+MART_TABLES = ("sales_monthly", "revenue_vs_paid_monthly", "delivery_monthly", "seller_scorecard", "customer_rfm", "reconciliation",
+               "stream_freshness", "stream_freshness_batch")
 SHOW_ROWS = 15
 
 # Penelusuran angka: mart → model dbt → tabel fakta/dimensi sumber.
@@ -31,6 +32,8 @@ LINEAGE = {
     "seller_scorecard": ("dbt/models/mart/seller_scorecard.sql", "dw.fact_order_item, dw.fact_order, dw.fact_review, dw.dim_seller"),
     "customer_rfm": ("dbt/models/mart/customer_rfm.sql", "dw.fact_order, dw.dim_customer"),
     "reconciliation": ("dbt/models/mart/reconciliation.sql", "dw.fact_order, dw.fact_payment"),
+    "stream_freshness": ("dbt/models/mart/stream_freshness.sql", "stream.batch_metrics"),
+    "stream_freshness_batch": ("dbt/models/mart/stream_freshness_batch.sql", "stream.batch_metrics"),
 }
 
 
@@ -43,6 +46,7 @@ def run_checks(conn, dbt_dir: Path) -> list[dict]:
     sql = (dbt_dir / "tests" / "mart_checks.sql").read_text(encoding="utf-8")
     inner = sql.split("select * from (", 1)[1].rsplit(") t where", 1)[0]
     inner = re.sub(r"\{\{\s*ref\('(\w+)'\)\s*\}\}", lambda m: ("mart." if m.group(1) in MART_TABLES else "dw.") + m.group(1), inner)
+    inner = re.sub(r"\{\{\s*source\('(\w+)',\s*'(\w+)'\)\s*\}\}", r"\1.\2", inner)
     return [{"check": r["check_name"], "bad_rows": int(r["bad_rows"])} for r in fetch(conn, inner)]
 
 

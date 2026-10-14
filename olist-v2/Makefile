@@ -8,7 +8,7 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: marts dashboard dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: stream stream-small stream-report stream-reset marts dashboard dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
@@ -33,7 +33,19 @@ load: ## silver -> raw.* di Postgres (TRUNCATE+COPY, satu transaksi) -> outputs/
 dbt-build: ## raw -> staging -> dw (dbt run + test) dari laptop (venv lokal; Postgres di localhost:15432)
 	@set -a; . ./.env; set +a; DBT_PG_PASSWORD=$$V2_PG_PASSWORD DBT_PG_USER=$$V2_PG_USER DBT_PG_PORT=$$V2_PG_PORT $(VENV)/bin/dbt build --project-dir dbt --profiles-dir dbt
 
-marts: ## 16 pemeriksaan mart + ekspor gold + outputs/marts_report.md (jalan di container; butuh dbt-build dulu)
+stream: ## replay penuh 99.441 order: reset, producer + consumer, laporan (butuh `make up P=stream` + load)
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.stream_cli run
+
+stream-small: ## replay 5.000 order (cepat, untuk uji)
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.stream_cli run --limit 5000
+
+stream-report: ## laporan producer vs consumer dari kondisi sekarang
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.stream_cli report
+
+stream-reset: ## kosongkan topic, consumer group, dan tabel stream.*
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.stream_cli reset
+
+marts: ## 17 pemeriksaan mart + ekspor gold + outputs/marts_report.md (jalan di container; butuh dbt-build dulu)
 	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.marts
 
 dashboard: ## siapkan Metabase (admin, koneksi, 8 kartu + insight, dashboard) dari olist_v2/questions.py; butuh `make up P=bi` dan mart

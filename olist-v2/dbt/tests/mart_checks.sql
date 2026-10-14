@@ -1,4 +1,4 @@
--- Porting 16 pemeriksaan mart T5 (tanpa 'stream_freshness_*': menunggu Kafka). Lulus bila tidak ada baris bad_rows <> 0.
+-- Porting 17 pemeriksaan mart T5. Lulus bila tidak ada baris bad_rows <> 0.
 select * from (
 -- Setiap baris = satu pemeriksaan mart; bad_rows HARUS 0. Menelusuri tiap mart kembali ke fakta di dw.
 SELECT 'sales_revenue_equals_fact_items' AS check_name,
@@ -28,4 +28,5 @@ UNION ALL SELECT 'reconciliation_every_order_has_a_class', count(*) FROM {{ ref(
 UNION ALL SELECT 'reconciliation_matched_share_at_least_98pct',
        ((SELECT 100.0 * count(*) FILTER (WHERE class = 'cocok') / count(*) FROM {{ ref('reconciliation') }}) < 98)::int
 UNION ALL SELECT 'reconciliation_paid_equals_fact', (abs((SELECT sum(paid_value) FROM {{ ref('reconciliation') }}) - (SELECT sum(payment_value) FROM {{ ref('fact_order') }})) > 0.005)::int
+UNION ALL SELECT 'stream_freshness_batches_equal_source', abs((SELECT coalesce(sum(batches),0) FROM {{ ref('stream_freshness') }}) - (SELECT count(*) FROM {{ source('stream', 'batch_metrics') }}))
 ) t where bad_rows <> 0

@@ -29,3 +29,9 @@ sources:
         columns:
           - name: product_category_name
             tests: [unique, not_null]
+
+  - name: stream
+    description: "Tabel yang ditulis consumer Kafka (olist_v2.consumer); DDL di olist_v2/sql/10_stream.sql, dibuat sebelum dbt jalan."
+    schema: stream
+    tables:
+      - name: batch_metrics
