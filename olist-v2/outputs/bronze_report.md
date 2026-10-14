@@ -1,12 +1,12 @@
 # Laporan Bronze
 
-Bucket `bronze` · dijalankan 2026-10-14T13:08:58+00:00 · total 1.56 s
+Bucket `bronze` · dijalankan 2026-10-14T13:50:21+00:00 · total 1.45 s
 
 | Tabel | Status | Versi | Baris | Ukuran (byte) | Diingest | sha256 | md5 | Waktu (s) |
 |---|---|---:|---:|---:|---|---|---|---:|
-| customers | unchanged | 1 | 99,441 | 9,033,957 | 2026-10-14T01:20:47+00:00 | `983a422239e1` | `8a2c4244856a` | 0.14 |
-| geolocation | unchanged | 1 | 1,000,163 | 61,273,883 | 2026-10-14T01:20:48+00:00 | `b514f6fc991b` | `6d8464e41c8e` | 0.76 |
-| order_items | unchanged | 1 | 112,650 | 15,438,671 | 2026-10-14T01:20:48+00:00 | `0bc4d068c4fe` | `f4fa76976662` | 0.19 |
+| customers | unchanged | 5 | 99,441 | 9,033,957 | 2026-10-14T13:46:02+00:00 | `983a422239e1` | `8a2c4244856a` | 0.1 |
+| geolocation | unchanged | 1 | 1,000,163 | 61,273,883 | 2026-10-14T01:20:48+00:00 | `b514f6fc991b` | `6d8464e41c8e` | 0.71 |
+| order_items | unchanged | 1 | 112,650 | 15,438,671 | 2026-10-14T01:20:48+00:00 | `0bc4d068c4fe` | `f4fa76976662` | 0.17 |
 | order_payments | unchanged | 1 | 103,886 | 5,777,138 | 2026-10-14T01:20:48+00:00 | `4f713964f281` | `75ce0c041d18` | 0.07 |
 | order_reviews | unchanged | 2 | 99,224 | 14,451,670 | 2026-10-14T12:33:21+00:00 | `012b61c7593e` | `914066be00d2` | 0.18 |
 | orders | unchanged | 1 | 99,441 | 17,654,914 | 2026-10-14T01:20:49+00:00 | `8df58ef3d2d7` | `8bd60e55c1ca` | 0.18 |

@@ -41,13 +41,30 @@ class MartCheckError(RuntimeError):
     pass
 
 
+def render_sql(sql: str) -> str:
+    """SQL dbt (ref/source) → SQL biasa: ref('stg_*') → staging.*, ref(mart) → mart.*, ref(lain) → dw.*, source('s','t') → s.t."""
+    sql = re.sub(r"\{\{\s*ref\('(\w+)'\)\s*\}\}",
+                 lambda m: ("staging." if m.group(1).startswith("stg_") else "mart." if m.group(1) in MART_TABLES else "dw.") + m.group(1), sql)
+    return re.sub(r"\{\{\s*source\('(\w+)',\s*'(\w+)'\)\s*\}\}", r"\1.\2", sql)
+
+
+def run_test_sql(conn, path: Path) -> list[dict]:
+    """Jalankan satu uji dbt tunggal (`select * from ( … UNION ALL … ) t where bad_rows <> 0`) tanpa dbt: kembalikan SEMUA pemeriksaannya."""
+    sql = path.read_text(encoding="utf-8")
+    inner = re.split(r"(?i)select \* from \(", sql, maxsplit=1)[1]
+    inner = re.split(r"(?is)\)\s*\w+\s*where\s+bad_rows\s*<>\s*0\s*$", inner.rstrip())[0]
+    return [{"check": r["check_name"], "bad_rows": int(r["bad_rows"])} for r in fetch(conn, render_sql(inner))]
+
+
+def run_failing_rows(conn, path: Path) -> list[dict]:
+    """Uji dbt biasa (lulus bila 0 baris), mis. dw_check_numbers.sql: kembalikan baris yang GAGAL, diubah ke bentuk pemeriksaan."""
+    rows = fetch(conn, render_sql(path.read_text(encoding="utf-8")))
+    return [{"check": str(r.get("pemeriksaan", r)), "bad_rows": 1} for r in rows] or [{"check": path.stem, "bad_rows": 0}]
+
+
 def run_checks(conn, dbt_dir: Path) -> list[dict]:
-    """Jalankan dbt/tests/mart_checks.sql apa adanya (ref() → skema.tabel); satu baris hasil = satu pemeriksaan GAGAL."""
-    sql = (dbt_dir / "tests" / "mart_checks.sql").read_text(encoding="utf-8")
-    inner = sql.split("select * from (", 1)[1].rsplit(") t where", 1)[0]
-    inner = re.sub(r"\{\{\s*ref\('(\w+)'\)\s*\}\}", lambda m: ("mart." if m.group(1) in MART_TABLES else "dw.") + m.group(1), inner)
-    inner = re.sub(r"\{\{\s*source\('(\w+)',\s*'(\w+)'\)\s*\}\}", r"\1.\2", inner)
-    return [{"check": r["check_name"], "bad_rows": int(r["bad_rows"])} for r in fetch(conn, inner)]
+    """17 pemeriksaan mart (dbt/tests/mart_checks.sql apa adanya); bad_rows HARUS 0."""
+    return run_test_sql(conn, dbt_dir / "tests" / "mart_checks.sql")
 
 
 def export_gold(s3, conn) -> list[dict]:

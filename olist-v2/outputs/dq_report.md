@@ -1,6 +1,6 @@
 # Laporan Kualitas Data (silver, Spark)
 
-Dijalankan 2026-10-14T13:09:27+00:00 · 24.83 s · spark 3.5.4 (local[2])
+Dijalankan 2026-10-14T13:51:49+00:00 · 23.35 s · spark 3.5.4 (local[2])
 
 Verdict: `PASS` · `PASS+KARANTINA` (ada baris dikarantina, di bawah ambang) · `FAIL` (di atas ambang / kunci tidak unik / jumlah baris menyimpang → silver tidak disediakan).
 

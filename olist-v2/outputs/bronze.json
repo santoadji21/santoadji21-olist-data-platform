@@ -1,14 +1,14 @@
 {
   "stage": "bronze",
   "bucket": "bronze",
-  "ran_at": "2026-10-14T13:08:58+00:00",
-  "seconds": 1.56,
+  "ran_at": "2026-10-14T13:50:21+00:00",
+  "seconds": 1.45,
   "files": [
     {
       "table": "customers",
       "file": "olist_customers_dataset.csv",
       "status": "unchanged",
-      "version": 1,
+      "version": 5,
       "object_key": "olist/customers/ingest_date=2026-10-14/sha256=983a422239e1/olist_customers_dataset.csv",
       "rows": 99441,
       "expected_rows": 99441,
@@ -16,8 +16,8 @@
       "size_bytes": 9033957,
       "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2",
       "md5": "8a2c4244856aab4bde3b8ed81f8ca251",
-      "ingested_at": "2026-10-14T01:20:47+00:00",
-      "seconds": 0.14
+      "ingested_at": "2026-10-14T13:46:02+00:00",
+      "seconds": 0.1
     },
     {
       "table": "geolocation",
@@ -32,7 +32,7 @@
       "sha256": "b514f6fc991b9566aeba02aa5d67e2c3630f034b60a0e05aa0d082a3b66d88d6",
       "md5": "6d8464e41c8e2013955e437b6b4fafbd",
       "ingested_at": "2026-10-14T01:20:48+00:00",
-      "seconds": 0.76
+      "seconds": 0.71
     },
     {
       "table": "order_items",
@@ -47,7 +47,7 @@
       "sha256": "0bc4d068c4fe38cbb01bd90e8746e3c613fe7b4baef75fab7b0e329701c3e279",
       "md5": "f4fa76976662e9cba0633f9e49ed2645",
       "ingested_at": "2026-10-14T01:20:48+00:00",
-      "seconds": 0.19
+      "seconds": 0.17
     },
     {
       "table": "order_payments",

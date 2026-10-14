@@ -9,7 +9,7 @@
     "late": 7988,
     "corrupt": 1964,
     "send_failures": 0,
-    "producer_seconds": 20.9
+    "producer_seconds": 20.4
   },
   "consumer": {
     "messages_on_topic": 408489,
@@ -18,15 +18,15 @@
     "dlq_rows": 1964,
     "duplicates_derived": 11812,
     "out_of_order": 6490,
-    "batches": 217,
+    "batches": 219,
     "order_current_rows": 99441,
     "status_match": 99441,
     "status_total": 99441,
     "status_mismatch_examples": [],
-    "fresh_p50_ms": 837.2,
-    "fresh_p95_ms": 2519.7,
-    "fresh_max_ms": 2946.0,
-    "end_to_end_seconds": 23.3
+    "fresh_p50_ms": 617.7,
+    "fresh_p95_ms": 2868.9,
+    "fresh_max_ms": 3544.6,
+    "end_to_end_seconds": 23.4
   },
   "checks": {
     "unique_events_equal": true,

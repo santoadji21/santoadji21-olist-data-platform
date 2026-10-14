@@ -1,0 +1,214 @@
+{
+  "ran_at": "2026-10-14T13:52:56+00:00",
+  "cases": [
+    {
+      "id": "a",
+      "name": "Kolom hilang di sumber",
+      "broken": "kolom `customer_unique_id` dihapus dari salinan CSV customers, lalu `bronze` dan `silver` dijalankan",
+      "symptom": "silver berhenti (Postgres/silver tidak disentuh): olist_customers_dataset.csv (customers): kolom hilang: customer_unique_id (exit 1)",
+      "verdict": "TERTANGKAP",
+      "mechanism": "`check_header` (olist_v2/rules.py) membandingkan header dengan kontrak ODCS SEBELUM menulis apa pun; `run_silver` berhenti sebelum silver/Postgres disentuh",
+      "recovery": "ingest ulang CSV asli (bronze v baru; versi rusak tetap tercatat di manifest), lalu `silver`, `gate`, `load`",
+      "recovered": true,
+      "evidence": {
+        "bronze_exit": 0,
+        "silver_exit": 1,
+        "raw_customers_before": 99441,
+        "raw_customers_after": 99441,
+        "silver_parquet_unchanged": true,
+        "dq_report_unchanged": true
+      },
+      "seconds": 48.4
+    },
+    {
+      "id": "b",
+      "name": "Producer dijalankan dua kali",
+      "broken": "`stream produce --limit 5000` dijalankan dua kali berturut-turut tanpa reset (semua event dikirim ulang)",
+      "symptom": "40,614 pesan di topic, tetapi event tersimpan tetap 19,632 (= event unik); 20,802 duplikat diabaikan",
+      "verdict": "TERTANGKAP",
+      "mechanism": "`event_id` deterministik `<order_id>:<status>` = PK `stream.order_events`; `INSERT … ON CONFLICT DO NOTHING` mengabaikan duplikat; upsert `order_current` hanya menaikkan status",
+      "recovery": "tidak perlu pemulihan (idempoten). Baris DLQ ikut berlipat karena pesan rusak run ke-2 punya offset baru; `stream reset` membersihkannya",
+      "recovered": true,
+      "evidence": {
+        "runs": 2,
+        "events_unique": 19632,
+        "events_stored": 19632,
+        "messages_total": 40614,
+        "duplicates_ignored": 20802,
+        "dlq_rows": 180,
+        "status_match": "5000/5000",
+        "consumer_exit": 0
+      },
+      "seconds": 19.6
+    },
+    {
+      "id": "c",
+      "name": "Consumer mati sebelum commit offset",
+      "broken": "consumer dijalankan sebagai proses terpisah dan dimatikan (exit 137) tepat setelah transaksi Postgres batch ke-3 commit, sebelum offset di-commit",
+      "symptom": "proses mati exit 137 dengan 5,793 event sudah di Postgres; setelah restart 2,000 pesan diproses ulang (batch ke-3 berisi 2,000 pesan) namun event tersimpan tetap 19,632 (= event unik)",
+      "verdict": "TERTANGKAP",
+      "mechanism": "urutan commit di `run_consumer`: Postgres → topic DLQ → offset (`enable_auto_commit=False`); pesan dikirim ulang lalu `ON CONFLICT DO NOTHING` dan upsert `WHERE status_rank <` membuat hasil akhir sama",
+      "recovery": "jalankan consumer lagi tanpa reset; tidak ada langkah manual",
+      "recovered": true,
+      "evidence": {
+        "crash_exit_code": 137,
+        "events_stored_at_crash": 5793,
+        "messages_in_crashed_batch": 2000,
+        "messages_redelivered": 2000,
+        "events_stored_final": 19632,
+        "events_unique_sent": 19632,
+        "status_match": "5000/5000",
+        "checks_ok": 4
+      },
+      "seconds": 27.5
+    },
+    {
+      "id": "d",
+      "name": "Broker Kafka mati beberapa detik di tengah replay",
+      "broken": "`docker stop olist-v2-kafka` ±2 s setelah producer mulai (replay 31,502 event unik, 3.000 pesan/detik), lalu `docker start` setelah 16.3 s (pendek) dan setelah 48.4 s (panjang, melewati `request_timeout_ms` 30 s)",
+      "symptom": "outage pendek: producer exit 0, kegagalan 0, 31,502 event tiba. Outage panjang: producer naif exit 0 dengan 30,627 event hilang; producer yang memeriksa hasil `send()` exit 1 dengan 31375 kegagalan terlapor",
+      "verdict": "TERTANGKAP",
+      "mechanism": "errback pada tiap future `send()` + `flush()` + `SendFailure` membuat run GAGAL keras bila ada pesan yang menyerah; retry internal (`acks=all`, `retries=5`) menyerap outage pendek",
+      "recovery": "kirim ulang producer (idempoten lewat `event_id`) lalu jalankan consumer; tidak perlu reset",
+      "recovered": true,
+      "evidence": {
+        "expected_unique_events": 31502,
+        "short_outage_s": 16.3,
+        "short_exit": 0,
+        "short_send_failures": 0,
+        "short_events_stored": 31502,
+        "long_outage_s": 48.4,
+        "naive_exit": 0,
+        "naive_reported_failures": 0,
+        "naive_silent_loss": 30627,
+        "checked_exit": 1,
+        "checked_send_failures": 31375,
+        "checked_lost_before_resend": 30337,
+        "checked_resend_exit": 0,
+        "checked_events_stored_final": 31502,
+        "status_match": "8000/8000"
+      },
+      "seconds": 171.7
+    },
+    {
+      "id": "e",
+      "name": "Seluruh jalur batch dijalankan ulang tanpa perubahan",
+      "broken": "`bronze → silver → gate → load → dbt build → marts` dijalankan lagi tanpa mengubah data sumber",
+      "symptom": "bronze: semua file `unchanged`; 26 besaran (baris tiap tabel raw/dw/mart, Σ pendapatan, order terlambat) identik",
+      "verdict": "TERTANGKAP",
+      "mechanism": "bronze: perbandingan sha256 dengan manifest; silver/load: TRUNCATE+COPY satu transaksi; dw/mart: dbt membangun ulang tabel penuh dari raw",
+      "recovery": "tidak ada yang perlu dipulihkan",
+      "recovered": true,
+      "evidence": {
+        "stage_seconds": {
+          "bronze": 2.2,
+          "silver": 28.9,
+          "gate": 4.9,
+          "load": 6.7,
+          "dbt": 10.4,
+          "marts": 3.3
+        },
+        "stage_exit": {
+          "bronze": 0,
+          "silver": 0,
+          "gate": 0,
+          "load": 0,
+          "dbt": 0,
+          "marts": 0
+        },
+        "quantities_compared": 26,
+        "differences": 0,
+        "bronze_statuses": [
+          "unchanged"
+        ]
+      },
+      "seconds": 58.1
+    },
+    {
+      "id": "f",
+      "name": "Objek bronze berubah diam-diam di bucket",
+      "broken": "satu byte di `olist/sellers/ingest_date=2026-10-14/sha256=1f643d2b9503/olist_sellers_dataset.csv` diubah langsung di MinIO (manifest tidak diubah)",
+      "symptom": "silver berhenti (Postgres/silver tidak disentuh): sellers: isi objek bronze tidak cocok dengan sha256 di manifest (olist/sellers/ingest_date=2026-10-14/sha256=1f643d2b9503/olist_sellers_dataset.csv) (exit 1)",
+      "verdict": "TERTANGKAP",
+      "mechanism": "`verified_entry` (olist_v2/silver.py) menghitung sha256 objek dan membandingkannya dengan manifest sebelum memproses",
+      "recovery": "kembalikan objek asli dari sumber/riwayat bronze, lalu `silver`",
+      "recovered": true,
+      "evidence": {
+        "silver_exit": 1,
+        "raw_sellers_before": 3095,
+        "raw_sellers_after": 3095,
+        "silver_after_restore_exit": 0
+      },
+      "seconds": 34.8
+    }
+  ],
+  "restore": {
+    "stream_exit": 0,
+    "dbt_exit": 0,
+    "marts_exit": 0,
+    "smoke": [
+      {
+        "check": "service postgres healthy",
+        "ok": true,
+        "detail": "healthy"
+      },
+      {
+        "check": "service minio healthy",
+        "ok": true,
+        "detail": "healthy"
+      },
+      {
+        "check": "service kafka healthy",
+        "ok": true,
+        "detail": "healthy"
+      },
+      {
+        "check": "service airflow-webserver healthy",
+        "ok": true,
+        "detail": "healthy"
+      },
+      {
+        "check": "service airflow-scheduler healthy",
+        "ok": true,
+        "detail": "healthy"
+      },
+      {
+        "check": "bronze: 9 manifest ada",
+        "ok": true,
+        "detail": "9/9"
+      },
+      {
+        "check": "silver: tidak ada tabel FAIL",
+        "ok": true,
+        "detail": "9/9 lolos"
+      },
+      {
+        "check": "raw: baris = sumber − karantina",
+        "ok": true,
+        "detail": "9/9 cocok"
+      },
+      {
+        "check": "dw: pemeriksaan integritas = 0",
+        "ok": true,
+        "detail": "28 pemeriksaan"
+      },
+      {
+        "check": "dw: angka cek tugas (96.096 / 99.441 / 112.650 / 775 / 1)",
+        "ok": true,
+        "detail": "1 pemeriksaan"
+      },
+      {
+        "check": "mart: pemeriksaan = 0",
+        "ok": true,
+        "detail": "17 pemeriksaan"
+      },
+      {
+        "check": "stream: 4 pemeriksaan producer vs consumer",
+        "ok": true,
+        "detail": "4/4 cocok"
+      }
+    ],
+    "ok": true,
+    "seconds": 65.2
+  }
+}

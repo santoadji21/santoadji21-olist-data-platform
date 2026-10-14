@@ -1,7 +1,7 @@
 {
   "stage": "load",
-  "ran_at": "2026-10-14T13:09:43+00:00",
-  "seconds": 5.54,
+  "ran_at": "2026-10-14T13:51:01+00:00",
+  "seconds": 5.04,
   "tables": [
     {
       "table": "customers",
@@ -11,7 +11,7 @@
       "loaded": 99441,
       "match": true,
       "table_ddl": "ok",
-      "seconds": 1.6
+      "seconds": 1.12
     },
     {
       "table": "geolocation",
@@ -21,7 +21,7 @@
       "loaded": 1000163,
       "match": true,
       "table_ddl": "ok",
-      "seconds": 2.69
+      "seconds": 2.73
     },
     {
       "table": "order_items",
@@ -31,7 +31,7 @@
       "loaded": 112650,
       "match": true,
       "table_ddl": "ok",
-      "seconds": 0.3
+      "seconds": 0.27
     },
     {
       "table": "order_payments",
@@ -41,7 +41,7 @@
       "loaded": 103886,
       "match": true,
       "table_ddl": "ok",
-      "seconds": 0.16
+      "seconds": 0.15
     },
     {
       "table": "order_reviews",
@@ -61,7 +61,7 @@
       "loaded": 99441,
       "match": true,
       "table_ddl": "ok",
-      "seconds": 0.43
+      "seconds": 0.37
     },
     {
       "table": "products",
@@ -71,7 +71,7 @@
       "loaded": 32951,
       "match": true,
       "table_ddl": "ok",
-      "seconds": 0.05
+      "seconds": 0.07
     },
     {
       "table": "sellers",

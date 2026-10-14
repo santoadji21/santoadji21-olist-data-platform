@@ -8,7 +8,7 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: stream stream-small stream-report stream-reset marts dashboard dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: smoke inject restore stream stream-small stream-report stream-reset marts dashboard dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
@@ -32,6 +32,15 @@ load: ## silver -> raw.* di Postgres (TRUNCATE+COPY, satu transaksi) -> outputs/
 
 dbt-build: ## raw -> staging -> dw (dbt run + test) dari laptop (venv lokal; Postgres di localhost:15432)
 	@set -a; . ./.env; set +a; DBT_PG_PASSWORD=$$V2_PG_PASSWORD DBT_PG_USER=$$V2_PG_USER DBT_PG_PORT=$$V2_PG_PORT $(VENV)/bin/dbt build --project-dir dbt --profiles-dir dbt
+
+smoke: ## pemeriksaan menyeluruh: service sehat, tiap lapisan konsisten, stream benar (exit != 0 bila ada gagal)
+	$(VENV)/bin/python -m olist_v2.failures smoke
+
+inject: ## failure injection T6 (6 kasus, perusak sungguhan) lalu pulihkan stack -> outputs/failure_tests.md (±10 menit; ONLY=a,c untuk sebagian)
+	$(VENV)/bin/python -m olist_v2.failures inject $(if $(ONLY),--only $(ONLY),)
+
+restore: ## pulihkan stack setelah inject: replay stream penuh + dbt + marts + smoke
+	$(VENV)/bin/python -m olist_v2.failures restore
 
 stream: ## replay penuh 99.441 order: reset, producer + consumer, laporan (butuh `make up P=stream` + load)
 	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.stream_cli run
