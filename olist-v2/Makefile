@@ -8,7 +8,7 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: dashboard dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
@@ -32,6 +32,9 @@ load: ## silver -> raw.* di Postgres (TRUNCATE+COPY, satu transaksi) -> outputs/
 
 dbt-build: ## raw -> staging -> dw (dbt run + test) dari laptop (venv lokal; Postgres di localhost:15432)
 	@set -a; . ./.env; set +a; DBT_PG_PASSWORD=$$V2_PG_PASSWORD DBT_PG_USER=$$V2_PG_USER DBT_PG_PORT=$$V2_PG_PORT $(VENV)/bin/dbt build --project-dir dbt --profiles-dir dbt
+
+dashboard: ## siapkan Metabase (admin, koneksi, 8 kartu + insight, dashboard) dari olist_v2/questions.py; butuh `make up P=bi` dan mart
+	@set -a; . ./.env; set +a; WAREHOUSE_DSN="postgresql://$$V2_PG_USER:$$V2_PG_PASSWORD@localhost:$$V2_PG_PORT/olist_dw" METABASE_URL="http://localhost:$$V2_METABASE_PORT" $(VENV)/bin/python -m olist_v2.metabase
 
 dbt-docs: ## dokumentasi dan lineage dbt -> dbt/target/ (buka dbt/target/index.html)
 	@set -a; . ./.env; set +a; DBT_PG_PASSWORD=$$V2_PG_PASSWORD DBT_PG_USER=$$V2_PG_USER DBT_PG_PORT=$$V2_PG_PORT $(VENV)/bin/dbt docs generate --project-dir dbt --profiles-dir dbt
