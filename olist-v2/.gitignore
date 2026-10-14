@@ -7,3 +7,4 @@ __pycache__/
 # data mentah Kaggle (±126 MB) tidak boleh ter-commit
 data/raw/*
 !data/raw/.gitkeep
+airflow/logs/

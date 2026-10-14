@@ -65,7 +65,7 @@ x-airflow-common: &airflow-common
     - ./outputs:/opt/airflow/outputs
     - ./spark/jobs:/opt/airflow/spark-jobs:ro
     - ./spark/conf:/opt/airflow/spark-conf:ro
-    - airflow_logs:/opt/airflow/logs
+    - ./airflow/logs:/opt/airflow/logs                    # BIND MOUNT, bukan named volume: dengan named volume log task dari scheduler terpotong (8 baris)
     - ./data/raw:/opt/airflow/data/raw                    # CSV Olist milik v2: ditulis `download_kaggle`, dibaca `ingest_bronze`
     - ./.kaggle:/home/airflow/.kaggle:ro                  # kredensial Kaggle (di-ignore git), read-only
   depends_on:
@@ -318,4 +318,3 @@ volumes:
   pg_data: { name: olist-v2-pg-data }
   minio_data: { name: olist-v2-minio-data }
   kafka_data: { name: olist-v2-kafka-data }
-  airflow_logs: { name: olist-v2-airflow-logs }
