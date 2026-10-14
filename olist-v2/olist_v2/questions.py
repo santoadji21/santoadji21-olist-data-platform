@@ -21,6 +21,14 @@ class Question:
     viz: dict | None = None                        # visualization_settings Metabase
 
 
+def fetch(conn, sql: str) -> list[dict]:
+    """Jalankan query, kembalikan baris sebagai dict (Decimal → float)."""
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        names = [d[0] for d in cur.description]
+        return [dict(zip(names, (float(v) if hasattr(v, "as_tuple") else v for v in row))) for row in cur.fetchall()]
+
+
 def n(x, d=0) -> str:
     """Format angka gaya Indonesia: 1.234,5"""
     s = f"{float(x):,.{d}f}"

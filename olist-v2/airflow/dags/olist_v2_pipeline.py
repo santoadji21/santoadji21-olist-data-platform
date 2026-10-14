@@ -1,4 +1,4 @@
-"""DAG olist_v2_pipeline. Diperluas bertahap: sekarang `download_kaggle` → `ingest_bronze` → `spark_silver` → `contract_gate` → `load_raw` → `dbt_build`; mart, gate, load, dbt, publish menyusul.
+"""DAG olist_v2_pipeline. Diperluas bertahap: sekarang `download_kaggle` → `ingest_bronze` → `spark_silver` → `contract_gate` → `load_raw` → `dbt_build` → `marts_report`; stream, evidence menyusul.
 Airflow hanya merangkai: logikanya ada di paket `olist_v2` (bisa dijalankan tanpa Airflow: `make bronze`)."""
 from datetime import datetime, timedelta
 
@@ -52,6 +52,14 @@ def contract_gate():
     print(f"gate: {s['result']} — {s['passed']}/{s['checks']} lolos, {len(s['soft_violations'])} soft")
 
 
+def marts_report():
+    from airflow.exceptions import AirflowException
+    from olist_v2.marts import main
+
+    if main() != 0:
+        raise AirflowException("pemeriksaan mart gagal — lihat log task")
+
+
 def load_raw():
     import os
     from pathlib import Path
@@ -102,4 +110,5 @@ with DAG(
         env={"DBT_TARGET_PATH": "/tmp/dbt_target", "DBT_LOG_PATH": "/tmp/dbt_logs", "DBT_SEND_ANONYMOUS_USAGE_STATS": "False"},
         append_env=True, retries=0, execution_timeout=timedelta(minutes=15),
     )
-    download >> ingest >> silver >> gate >> load >> dbt
+    marts = PythonOperator(task_id="marts_report", python_callable=marts_report, execution_timeout=timedelta(minutes=10), retries=0)
+    download >> ingest >> silver >> gate >> load >> dbt >> marts

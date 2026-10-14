@@ -14,7 +14,7 @@ import time
 import urllib.error
 import urllib.request
 
-from .questions import QUESTIONS
+from .questions import QUESTIONS, fetch
 
 COLLECTION = "Olist v2"
 DASHBOARD = "Olist v2 — penjualan, pengiriman, seller, pelanggan"
@@ -79,13 +79,6 @@ def ensure_collection(c: Client) -> int:
     cols = c.call("GET", "/api/collection")
     found = next((x for x in cols if x["name"] == COLLECTION and not x.get("archived")), None)
     return found["id"] if found else c.call("POST", "/api/collection", {"name": COLLECTION})["id"]
-
-
-def fetch(conn, sql: str) -> list[dict]:
-    with conn.cursor() as cur:
-        cur.execute(sql)
-        names = [d[0] for d in cur.description]
-        return [dict(zip(names, (float(v) if hasattr(v, "as_tuple") else v for v in row))) for row in cur.fetchall()]
 
 
 def provision(c: Client, conn, env) -> dict:
