@@ -1,8 +1,9 @@
-"""DAG olist_v2_pipeline. Diperluas bertahap: sekarang `download_kaggle` → `ingest_bronze` → `spark_silver` → `contract_gate` → `load_raw`; dbt, gate, load, dbt, publish menyusul.
+"""DAG olist_v2_pipeline. Diperluas bertahap: sekarang `download_kaggle` → `ingest_bronze` → `spark_silver` → `contract_gate` → `load_raw` → `dbt_build`; mart, gate, load, dbt, publish menyusul.
 Airflow hanya merangkai: logikanya ada di paket `olist_v2` (bisa dijalankan tanpa Airflow: `make bronze`)."""
 from datetime import datetime, timedelta
 
 from airflow import DAG
+from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 
 
@@ -94,4 +95,11 @@ with DAG(
     silver = PythonOperator(task_id="spark_silver", python_callable=spark_silver, execution_timeout=timedelta(minutes=20), retries=0)
     gate = PythonOperator(task_id="contract_gate", python_callable=contract_gate, execution_timeout=timedelta(minutes=10), retries=0)
     load = PythonOperator(task_id="load_raw", python_callable=load_raw, execution_timeout=timedelta(minutes=10), retries=0)
-    download >> ingest >> silver >> gate >> load
+    # dbt di venv terpisah ($DBT_BIN). target/ dan logs/ ke /tmp agar tidak menulis ke folder sumber yang di-mount.
+    dbt = BashOperator(
+        task_id="dbt_build",
+        bash_command='"$DBT_BIN" build --project-dir "$DBT_PROJECT_DIR" --profiles-dir "$DBT_PROFILES_DIR"',
+        env={"DBT_TARGET_PATH": "/tmp/dbt_target", "DBT_LOG_PATH": "/tmp/dbt_logs", "DBT_SEND_ANONYMOUS_USAGE_STATS": "False"},
+        append_env=True, retries=0, execution_timeout=timedelta(minutes=15),
+    )
+    download >> ingest >> silver >> gate >> load >> dbt

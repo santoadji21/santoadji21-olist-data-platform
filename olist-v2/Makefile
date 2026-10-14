@@ -8,7 +8,7 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
@@ -29,6 +29,12 @@ gate: ## datacontract test terhadap silver di MinIO -> outputs/contract_gate.md
 
 load: ## silver -> raw.* di Postgres (TRUNCATE+COPY, satu transaksi) -> outputs/load_report.md
 	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.load
+
+dbt-build: ## raw -> staging -> dw (dbt run + test) dari laptop (venv lokal; Postgres di localhost:15432)
+	@set -a; . ./.env; set +a; DBT_PG_PASSWORD=$$V2_PG_PASSWORD DBT_PG_USER=$$V2_PG_USER DBT_PG_PORT=$$V2_PG_PORT $(VENV)/bin/dbt build --project-dir dbt --profiles-dir dbt
+
+dbt-docs: ## dokumentasi dan lineage dbt -> dbt/target/ (buka dbt/target/index.html)
+	@set -a; . ./.env; set +a; DBT_PG_PASSWORD=$$V2_PG_PASSWORD DBT_PG_USER=$$V2_PG_USER DBT_PG_PORT=$$V2_PG_PORT $(VENV)/bin/dbt docs generate --project-dir dbt --profiles-dir dbt
 
 dag-test: ## jalankan SELURUH DAG di proses sendiri, log tercetak di layar (tidak bergantung pada file log Airflow)
 	$(COMPOSE) exec -T airflow-scheduler airflow dags test olist_v2_pipeline

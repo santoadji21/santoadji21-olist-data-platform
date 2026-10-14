@@ -52,6 +52,8 @@ x-airflow-common: &airflow-common
     OLIST_CONTRACT: /opt/airflow/contracts/olist_raw.odcs.yaml
     OLIST_OUTPUTS: /opt/airflow/outputs
     DBT_PG_HOST: postgres
+    DBT_PG_PORT: "5432"
+    DBT_PG_DBNAME: olist_dw
     DBT_PG_USER: ${V2_PG_USER}
     DBT_PG_PASSWORD: ${V2_PG_PASSWORD}
   volumes:

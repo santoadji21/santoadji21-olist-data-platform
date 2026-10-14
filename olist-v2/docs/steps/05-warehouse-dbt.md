@@ -1,5 +1,7 @@
 # Langkah 5 — Warehouse: dbt
 
+> **Status: `dw` selesai dan terbukti** (staging + 9 model dw, 56/56 lulus: 38 test termasuk 28 pemeriksaan integritas dan angka cek; 9 PK + 13 FK nyata; jumlah baris dan late rate 6,77 % sama dengan T0–T6; build ±9 s dan idempoten). **Mart belum** (langkah berikutnya). Dijalankan dari laptop; task `dbt_build` di DAG ditulis, belum dijalankan lewat Airflow.
+>
 > v2 tidak dinilai, jadi dbt **dipakai penuh** (aturan §9 tugas tidak mengikat). Ketentuan T4 tetap berlaku: **PK dan FK terpasang** (di dbt lewat *model contracts* dengan `constraints`, bukan bawaan), `outputs/dw_report.md` yang dibangkitkan, test database, dan 9 tabel dw dengan nama yang diminta. Lihat [ALIGNMENT.md](../ALIGNMENT.md) dan [PRODUCTION-GRADE.md](../PRODUCTION-GRADE.md).
 
 **Status: rencana.** venv dbt sudah ada (`make venv`; `dbt-core 1.8.9`, `dbt-postgres 1.8.2`); folder `dbt/` masih kosong. Tujuan: `raw → staging → dw → mart` sebagai model dbt dengan test dan dokumentasi, menggantikan `sql/dw`, `sql/mart`, dan `sql/checks` di T0–T6.
