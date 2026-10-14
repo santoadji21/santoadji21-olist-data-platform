@@ -10,7 +10,7 @@ from olist_v2.silver import process_table  # noqa: E402
 PARENT = Model("parent", "parent.csv", 3, "utf-8", ("id",), (Column("id", "text", True),), (), (), 0.0, None)
 CHILD = Model(
     "child", "child.csv", 5, "utf-8", ("id",),
-    (Column("id", "text", True), Column("parent_id", "text", True), Column("zip", "char(5)", True),
+    (Column("id", "text", True), Column("parent_id", "text", True), Column("zip", "varchar(5)", True),
      Column("amount", "numeric(10,2)", False), Column("ts", "timestamp", False), Column("n", "integer", False)),
     (Rule("amount_positive", "error", "amount <= 0"), Rule("amount_big", "warning", "amount >= 1000")),
     (FK("parent_id", "parent", "id"),), 100.0, "has_dq_warning")

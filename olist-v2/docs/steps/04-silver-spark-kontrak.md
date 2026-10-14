@@ -1,6 +1,6 @@
 # Langkah 4 — Silver: Spark dan gate kontrak ODCS
 
-**Status: 4a–4c ditulis dan terbukti end-to-end di host** (Spark lokal 3.5.3, bronze nyata di MinIO): 24 detik, 9 tabel `PASS`, 0 karantina; pelanggaran soft, flag, tipe, dan kode pos cocok dengan T0–T6. 42 test (33 tanpa Spark + 9 Spark lokal). **Belum**: dijalankan lewat Airflow/container (butuh `make build-core`), dan 4d (`contract_gate` = `datacontract test`) belum ditulis. Tujuan: data bertipe sesuai kontrak, dengan aturan kualitas hard dan soft, baris bermasalah dikarantina, dan kontrak ODCS menjadi **gate** di DAG.
+**Status: 4a–4c ditulis dan terbukti end-to-end di host** (Spark lokal 3.5.3, bronze nyata di MinIO): 24 detik, 9 tabel `PASS`, 0 karantina; pelanggaran soft, flag, tipe, dan kode pos cocok dengan T0–T6. 42 test (33 tanpa Spark + 9 Spark lokal). **4d (`contract_gate`) terbukti dari host**: `datacontract test` ke silver di MinIO = `warning` (189 pemeriksaan: 129 lolos, 0 gagal, 8 soft, 52 pemeriksaan tipe Parquet *belum didukung* datacontract-cli 1.2.4). **Belum**: dijalankan lewat Airflow/container (butuh `make build-core`). Tujuan: data bertipe sesuai kontrak, dengan aturan kualitas hard dan soft, baris bermasalah dikarantina, dan kontrak ODCS menjadi **gate** di DAG.
 
 ## Pembagian peran
 | Alat | Tugas |

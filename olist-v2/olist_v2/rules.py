@@ -46,15 +46,15 @@ def process_order(models: list[Model]) -> list[str]:
 
 def cast_kind(pg_type: str) -> str:
     t = pg_type.strip().lower()
-    if t == "text" or t == "char(2)":
+    if t == "text" or t == "varchar(2)":
         return "text"
-    if t == "char(5)":
+    if t == "varchar(5)":           # satu-satunya kolom varchar(5) di kontrak = prefix kode pos (teks 5 digit, nol di depan)
         return "zip5"
     if t in ("integer", "smallint"):
         return "int"
     if t.startswith("numeric"):
         return "decimal"
-    if t == "double precision":
+    if t == "double":
         return "double"
     if t == "timestamp":
         return "timestamp"

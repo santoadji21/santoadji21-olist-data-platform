@@ -42,7 +42,7 @@ schema:
     required: true
   - name: customer_zip_code_prefix
     logicalType: string
-    physicalType: char(5)
+    physicalType: varchar(5)
     description: Prefix kode pos — wajib teks 5 digit, lpad '0'
     required: true
     logicalTypeOptions:
@@ -55,7 +55,7 @@ schema:
     required: true
   - name: customer_state
     logicalType: string
-    physicalType: char(2)
+    physicalType: varchar(2)
     description: Kode negara bagian (UF)
     required: true
     logicalTypeOptions:
@@ -91,7 +91,7 @@ schema:
   properties:
   - name: geolocation_zip_code_prefix
     logicalType: string
-    physicalType: char(5)
+    physicalType: varchar(5)
     description: Prefix kode pos — wajib teks 5 digit, lpad '0'
     required: true
     logicalTypeOptions:
@@ -99,12 +99,12 @@ schema:
       maxLength: 5
   - name: geolocation_lat
     logicalType: number
-    physicalType: double precision
+    physicalType: double
     description: Lintang — Brasil ≈ −34 … +5
     required: true
   - name: geolocation_lng
     logicalType: number
-    physicalType: double precision
+    physicalType: double
     description: Bujur — Brasil ≈ −74 … −35
     required: true
   - name: geolocation_city
@@ -114,7 +114,7 @@ schema:
     required: true
   - name: geolocation_state
     logicalType: string
-    physicalType: char(2)
+    physicalType: varchar(2)
     description: Kode negara bagian (UF)
     required: true
     logicalTypeOptions:
@@ -564,7 +564,7 @@ schema:
     unique: true
   - name: seller_zip_code_prefix
     logicalType: string
-    physicalType: char(5)
+    physicalType: varchar(5)
     description: Prefix kode pos — wajib teks 5 digit, lpad '0'
     required: true
     logicalTypeOptions:
@@ -577,7 +577,7 @@ schema:
     required: true
   - name: seller_state
     logicalType: string
-    physicalType: char(2)
+    physicalType: varchar(2)
     description: Kode negara bagian (UF)
     required: true
     logicalTypeOptions:

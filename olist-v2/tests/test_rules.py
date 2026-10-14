@@ -30,8 +30,8 @@ def test_rules_are_row_level_where_clauses_not_key_checks():
 
 def test_every_contract_rule_is_valid_sql_against_typed_columns():
     """Jalankan SETIAP aturan kontrak pada tabel kosong bertipe (DuckDB): membuktikan sintaks valid dan semua kolom ada."""
-    ddl = {"text": "VARCHAR", "char(2)": "VARCHAR", "char(5)": "VARCHAR", "integer": "INTEGER", "smallint": "SMALLINT",
-           "double precision": "DOUBLE", "timestamp": "TIMESTAMP"}
+    ddl = {"text": "VARCHAR", "varchar(2)": "VARCHAR", "varchar(5)": "VARCHAR", "integer": "INTEGER", "smallint": "SMALLINT",
+           "double": "DOUBLE", "timestamp": "TIMESTAMP"}
     con = duckdb.connect()
     for m in MODELS.values():
         cols = ", ".join(f'"{c.name}" ' + (ddl.get(c.pg_type) or "DECIMAL(10,2)") for c in m.columns)

@@ -8,7 +8,7 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: build-core download bronze silver test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: build-core download bronze silver gate test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
@@ -23,6 +23,9 @@ bronze: ## CSV -> MinIO bronze + manifest (perintah mandiri, tanpa UI Airflow)
 
 silver: ## bronze -> silver (Spark lokal) + gate + karantina -> outputs/dq_report.md
 	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.silver
+
+gate: ## datacontract test terhadap silver di MinIO -> outputs/contract_gate.md
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.gate
 
 test: ## pytest tanpa Docker (venv lokal)
 	$(VENV)/bin/python -m pytest tests -q
