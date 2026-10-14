@@ -1,0 +1,642 @@
+# Sumber kebenaran kontrak olist-v2 (ditulis tangan). Titik awal: salinan ../contracts/olist_raw.odcs.yaml @ cf8b911 (tag final),
+# yang di repo T0–T6 dibangkitkan dari olist/schema.py; generator itu TIDAK ada di olist-v2, jadi berkas ini diedit langsung.
+# Dibaca oleh olist_v2 (bronze: nama tabel, sourceFile, row_count, encoding) dan oleh gate silver (datacontract test).
+apiVersion: v3.1.0
+kind: DataContract
+id: olist-raw
+name: Olist E-Commerce — raw (landing)
+version: 1.0.0
+status: active
+domain: ecommerce
+dataProduct: olist-data-platform
+description:
+  purpose: Kontrak 9 file CSV Olist yang masuk ke bronze/silver. Mendefinisikan tabel, tipe target, kunci alami,
+    jumlah baris, dan aturan kualitas (error=hard, warning=soft).
+  limitations: Dataset sudah beranonimisasi; 3 file punya kunci tak unik (geolocation, order_reviews).
+servers:
+- server: silver-minio
+  type: s3
+  environment: dev
+  location: s3://silver/olist/{model}/*.parquet
+  endpointUrl: http://minio:9000
+  format: parquet
+  description: Silver (Parquet) di MinIO. Dipakai gate datacontract test; kredensial dari environment, bukan dari berkas ini.
+schema:
+- name: customers
+  physicalName: customers
+  physicalType: table
+  description: Satu baris per ORDER (bukan per orang). customer_id bersifat per-order; customer_unique_id adalah
+    identitas orang yang sebenarnya.
+  properties:
+  - name: customer_id
+    logicalType: string
+    physicalType: text
+    description: ID pelanggan per order (join ke orders.customer_id)
+    required: true
+    primaryKey: true
+    unique: true
+  - name: customer_unique_id
+    logicalType: string
+    physicalType: text
+    description: ID orang sebenarnya; satu orang bisa punya banyak customer_id
+    required: true
+  - name: customer_zip_code_prefix
+    logicalType: string
+    physicalType: varchar(5)
+    description: Prefix kode pos — wajib teks 5 digit, lpad '0'
+    required: true
+    logicalTypeOptions:
+      minLength: 5
+      maxLength: 5
+  - name: customer_city
+    logicalType: string
+    physicalType: text
+    description: Kota
+    required: true
+  - name: customer_state
+    logicalType: string
+    physicalType: varchar(2)
+    description: Kode negara bagian (UF)
+    required: true
+    logicalTypeOptions:
+      minLength: 2
+      maxLength: 2
+  quality:
+  - type: library
+    metric: rowCount
+    mustBe: 99441
+    name: row_count
+    description: jumlah baris harus 99,441 (parser CSV, bukan wc -l)
+    severity: error
+  - type: sql
+    name: state_len2
+    description: customer_state harus 2 huruf (UF)
+    severity: error
+    query: SELECT COUNT(*) FROM {model} WHERE length(customer_state) <> 2
+    mustBe: 0
+  customProperties:
+  - property: sourceFile
+    value: olist_customers_dataset.csv
+  - property: naturalKey
+    value: customer_id
+  - property: encoding
+    value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.0
+- name: geolocation
+  physicalName: geolocation
+  physicalType: table
+  description: Koordinat per zip prefix. BANYAK baris per prefix (bukan kunci), banyak duplikat persis, dan ada
+    titik di luar Brasil.
+  properties:
+  - name: geolocation_zip_code_prefix
+    logicalType: string
+    physicalType: varchar(5)
+    description: Prefix kode pos — wajib teks 5 digit, lpad '0'
+    required: true
+    logicalTypeOptions:
+      minLength: 5
+      maxLength: 5
+  - name: geolocation_lat
+    logicalType: number
+    physicalType: double
+    description: Lintang — Brasil ≈ −34 … +5
+    required: true
+  - name: geolocation_lng
+    logicalType: number
+    physicalType: double
+    description: Bujur — Brasil ≈ −74 … −35
+    required: true
+  - name: geolocation_city
+    logicalType: string
+    physicalType: text
+    description: Kota (ejaan tidak seragam)
+    required: true
+  - name: geolocation_state
+    logicalType: string
+    physicalType: varchar(2)
+    description: Kode negara bagian (UF)
+    required: true
+    logicalTypeOptions:
+      minLength: 2
+      maxLength: 2
+  quality:
+  - type: library
+    metric: rowCount
+    mustBe: 1000163
+    name: row_count
+    description: jumlah baris harus 1,000,163 (parser CSV, bukan wc -l)
+    severity: error
+  - type: sql
+    name: lat_in_brazil
+    description: 'lat dalam kotak Brasil (-34.0, 5.0) (temuan #5: titik di luar = soft)'
+    severity: warning
+    query: SELECT COUNT(*) FROM {model} WHERE geolocation_lat NOT BETWEEN -34.0 AND 5.0
+    mustBe: 0
+  - type: sql
+    name: lng_in_brazil
+    description: 'lng dalam kotak Brasil (-74.0, -35.0) (temuan #5: titik di luar = soft)'
+    severity: warning
+    query: SELECT COUNT(*) FROM {model} WHERE geolocation_lng NOT BETWEEN -74.0 AND -35.0
+    mustBe: 0
+  customProperties:
+  - property: sourceFile
+    value: olist_geolocation_dataset.csv
+  - property: naturalKey
+    value: none
+  - property: encoding
+    value: utf-8
+  - property: quarantineThresholdPct
+    value: 2.0
+  - property: softFlagColumn
+    value: is_outside_brazil
+- name: order_items
+  physicalName: order_items
+  physicalType: table
+  description: Satu baris per unit barang dalam order.
+  properties:
+  - name: order_id
+    logicalType: string
+    physicalType: text
+    description: FK → orders.order_id
+    required: true
+    primaryKey: true
+    primaryKeyPosition: 1
+  - name: order_item_id
+    logicalType: integer
+    physicalType: integer
+    description: Nomor urut item dalam order (mulai 1)
+    required: true
+    primaryKey: true
+    primaryKeyPosition: 2
+  - name: product_id
+    logicalType: string
+    physicalType: text
+    description: FK → products.product_id
+    required: true
+  - name: seller_id
+    logicalType: string
+    physicalType: text
+    description: FK → sellers.seller_id
+    required: true
+  - name: shipping_limit_date
+    logicalType: timestamp
+    physicalType: timestamp
+    description: Batas seller menyerahkan ke kurir (waktu lokal Brasil)
+    required: true
+  - name: price
+    logicalType: number
+    physicalType: numeric(10,2)
+    description: Harga barang (BRL) — ≥ 0
+    required: true
+  - name: freight_value
+    logicalType: number
+    physicalType: numeric(10,2)
+    description: Ongkir bagian item ini (BRL) — ≥ 0
+    required: true
+  quality:
+  - type: library
+    metric: rowCount
+    mustBe: 112650
+    name: row_count
+    description: jumlah baris harus 112,650 (parser CSV, bukan wc -l)
+    severity: error
+  - type: sql
+    name: price_positive
+    description: price > 0
+    severity: error
+    query: SELECT COUNT(*) FROM {model} WHERE price <= 0
+    mustBe: 0
+  - type: sql
+    name: freight_nonneg
+    description: freight_value >= 0
+    severity: error
+    query: SELECT COUNT(*) FROM {model} WHERE freight_value < 0
+    mustBe: 0
+  - type: sql
+    name: composite_key_unique
+    severity: error
+    description: (order_id, order_item_id) unik
+    query: SELECT COUNT(*) FROM (SELECT order_id, order_item_id FROM {model} GROUP BY order_id, order_item_id HAVING
+      COUNT(*) > 1)
+    mustBe: 0
+  customProperties:
+  - property: sourceFile
+    value: olist_order_items_dataset.csv
+  - property: naturalKey
+    value: order_id, order_item_id
+  - property: encoding
+    value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.0
+  - property: foreignKeys
+    value: "order_id->orders.order_id, product_id->products.product_id, seller_id->sellers.seller_id"
+- name: order_payments
+  physicalName: order_payments
+  physicalType: table
+  description: Pembayaran; satu order bisa dibayar dengan beberapa metode/cicilan.
+  properties:
+  - name: order_id
+    logicalType: string
+    physicalType: text
+    description: FK → orders.order_id
+    required: true
+    primaryKey: true
+    primaryKeyPosition: 1
+  - name: payment_sequential
+    logicalType: integer
+    physicalType: integer
+    description: Urutan pembayaran dalam order (mulai 1)
+    required: true
+    primaryKey: true
+    primaryKeyPosition: 2
+  - name: payment_type
+    logicalType: string
+    physicalType: text
+    description: credit_card | boleto | voucher | debit_card | not_defined
+    required: true
+  - name: payment_installments
+    logicalType: integer
+    physicalType: integer
+    description: Jumlah cicilan — 0 muncul di sumber
+    required: true
+  - name: payment_value
+    logicalType: number
+    physicalType: numeric(10,2)
+    description: Nilai pembayaran (BRL) — ≥ 0; ada yang 0
+    required: true
+  quality:
+  - type: library
+    metric: rowCount
+    mustBe: 103886
+    name: row_count
+    description: jumlah baris harus 103,886 (parser CSV, bukan wc -l)
+    severity: error
+  - type: sql
+    name: value_positive
+    description: 'payment_value > 0 (temuan #8: 9 baris bernilai 0 = soft)'
+    severity: warning
+    query: SELECT COUNT(*) FROM {model} WHERE payment_value <= 0
+    mustBe: 0
+  - type: sql
+    name: type_known
+    description: 'payment_type bukan ''not_defined'' (temuan #8: 3 baris = soft)'
+    severity: warning
+    query: SELECT COUNT(*) FROM {model} WHERE payment_type = 'not_defined'
+    mustBe: 0
+  - type: sql
+    name: installments_ge1
+    description: 'payment_installments >= 1 (temuan #8: 2 baris bernilai 0 = soft)'
+    severity: warning
+    query: SELECT COUNT(*) FROM {model} WHERE payment_installments < 1
+    mustBe: 0
+  - type: sql
+    name: composite_key_unique
+    severity: error
+    description: (order_id, payment_sequential) unik
+    query: SELECT COUNT(*) FROM (SELECT order_id, payment_sequential FROM {model} GROUP BY order_id, payment_sequential
+      HAVING COUNT(*) > 1)
+    mustBe: 0
+  customProperties:
+  - property: sourceFile
+    value: olist_order_payments_dataset.csv
+  - property: naturalKey
+    value: order_id, payment_sequential
+  - property: encoding
+    value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.1
+  - property: foreignKeys
+    value: "order_id->orders.order_id"
+  - property: softFlagColumn
+    value: has_dq_warning
+- name: order_reviews
+  physicalName: order_reviews
+  physicalType: table
+  description: Ulasan. review_id TIDAK unik, order_id TIDAK unik; komentar multi-baris (mengandung newline di dalam
+    kutip).
+  properties:
+  - name: review_id
+    logicalType: string
+    physicalType: text
+    description: ID ulasan (tidak unik)
+    required: true
+  - name: order_id
+    logicalType: string
+    physicalType: text
+    description: FK → orders.order_id (satu order bisa punya > 1 ulasan)
+    required: true
+  - name: review_score
+    logicalType: integer
+    physicalType: smallint
+    description: Skor 1–5 — CHECK 1..5
+    required: true
+  - name: review_comment_title
+    logicalType: string
+    physicalType: text
+    description: Judul komentar (kebanyakan kosong)
+    required: false
+  - name: review_comment_message
+    logicalType: string
+    physicalType: text
+    description: Isi komentar (kebanyakan kosong)
+    required: false
+  - name: review_creation_date
+    logicalType: timestamp
+    physicalType: timestamp
+    description: Waktu survei dikirim
+    required: true
+  - name: review_answer_timestamp
+    logicalType: timestamp
+    physicalType: timestamp
+    description: Waktu survei dijawab
+    required: true
+  quality:
+  - type: library
+    metric: rowCount
+    mustBe: 99224
+    name: row_count
+    description: jumlah baris harus 99,224 (parser CSV, bukan wc -l)
+    severity: error
+  - type: sql
+    name: score_1_5
+    description: review_score di 1..5
+    severity: error
+    query: SELECT COUNT(*) FROM {model} WHERE review_score NOT BETWEEN 1 AND 5
+    mustBe: 0
+  - type: sql
+    name: answer_after_creation
+    description: 'answer >= creation (temuan #15: 0 baris saat ini; soft)'
+    severity: warning
+    query: SELECT COUNT(*) FROM {model} WHERE review_answer_timestamp < review_creation_date
+    mustBe: 0
+  customProperties:
+  - property: sourceFile
+    value: olist_order_reviews_dataset.csv
+  - property: naturalKey
+    value: none
+  - property: encoding
+    value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.5
+  - property: foreignKeys
+    value: "order_id->orders.order_id"
+  - property: softFlagColumn
+    value: has_dq_warning
+- name: orders
+  physicalName: orders
+  physicalType: table
+  description: 'Header order: status + stempel waktu. Tabel pusat; tiap order punya tepat satu baris.'
+  properties:
+  - name: order_id
+    logicalType: string
+    physicalType: text
+    description: Kunci alami
+    required: true
+    primaryKey: true
+    unique: true
+  - name: customer_id
+    logicalType: string
+    physicalType: text
+    description: FK → customers.customer_id (per order)
+    required: true
+  - name: order_status
+    logicalType: string
+    physicalType: text
+    description: delivered | shipped | canceled | unavailable | invoiced | processing | created | approved
+    required: true
+  - name: order_purchase_timestamp
+    logicalType: timestamp
+    physicalType: timestamp
+    description: Waktu order dibuat
+    required: true
+  - name: order_approved_at
+    logicalType: timestamp
+    physicalType: timestamp
+    description: Waktu pembayaran disetujui
+    required: false
+  - name: order_delivered_carrier_date
+    logicalType: timestamp
+    physicalType: timestamp
+    description: Waktu diserahkan ke kurir
+    required: false
+  - name: order_delivered_customer_date
+    logicalType: timestamp
+    physicalType: timestamp
+    description: Waktu tiba di pelanggan
+    required: false
+  - name: order_estimated_delivery_date
+    logicalType: timestamp
+    physicalType: timestamp
+    description: Estimasi tiba (presisi tanggal; jam selalu 00:00:00)
+    required: true
+  quality:
+  - type: library
+    metric: rowCount
+    mustBe: 99441
+    name: row_count
+    description: jumlah baris harus 99,441 (parser CSV, bukan wc -l)
+    severity: error
+  - type: sql
+    name: status_known
+    description: order_status salah satu dari 8 status
+    severity: error
+    query: SELECT COUNT(*) FROM {model} WHERE order_status NOT IN ('delivered','shipped','canceled','unavailable','invoiced','processing','created','approved')
+    mustBe: 0
+  - type: sql
+    name: approved_after_purchase
+    description: approved_at >= purchase
+    severity: error
+    query: SELECT COUNT(*) FROM {model} WHERE order_approved_at < order_purchase_timestamp
+    mustBe: 0
+  - type: sql
+    name: delivered_has_date
+    description: 'status delivered wajib punya tanggal tiba (temuan #9: 8 baris = soft)'
+    severity: warning
+    query: SELECT COUNT(*) FROM {model} WHERE order_status = 'delivered' AND order_delivered_customer_date IS NULL
+    mustBe: 0
+  - type: sql
+    name: customer_after_carrier
+    description: 'tiba >= diserahkan ke kurir (temuan #9: 23 baris = soft)'
+    severity: warning
+    query: SELECT COUNT(*) FROM {model} WHERE order_delivered_customer_date < order_delivered_carrier_date
+    mustBe: 0
+  customProperties:
+  - property: sourceFile
+    value: olist_orders_dataset.csv
+  - property: naturalKey
+    value: order_id
+  - property: encoding
+    value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.1
+  - property: foreignKeys
+    value: "customer_id->customers.customer_id"
+  - property: softFlagColumn
+    value: has_time_anomaly
+- name: products
+  physicalName: products
+  physicalType: table
+  description: Katalog produk. Nama kolom sumber punya typo 'lenght'.
+  properties:
+  - name: product_id
+    logicalType: string
+    physicalType: text
+    description: Kunci alami
+    required: true
+    primaryKey: true
+    unique: true
+  - name: product_category_name
+    logicalType: string
+    physicalType: text
+    description: Kategori (Portugis)
+    required: false
+  - name: product_name_lenght
+    logicalType: integer
+    physicalType: integer
+    description: 'Panjang nama — typo sumber; dw: product_name_length'
+    required: false
+  - name: product_description_lenght
+    logicalType: integer
+    physicalType: integer
+    description: 'Panjang deskripsi — typo sumber; dw: product_description_length'
+    required: false
+  - name: product_photos_qty
+    logicalType: integer
+    physicalType: integer
+    description: Jumlah foto
+    required: false
+  - name: product_weight_g
+    logicalType: integer
+    physicalType: integer
+    description: Berat (gram)
+    required: false
+  - name: product_length_cm
+    logicalType: integer
+    physicalType: integer
+    description: Panjang (cm)
+    required: false
+  - name: product_height_cm
+    logicalType: integer
+    physicalType: integer
+    description: Tinggi (cm)
+    required: false
+  - name: product_width_cm
+    logicalType: integer
+    physicalType: integer
+    description: Lebar (cm)
+    required: false
+  quality:
+  - type: library
+    metric: rowCount
+    mustBe: 32951
+    name: row_count
+    description: jumlah baris harus 32,951 (parser CSV, bukan wc -l)
+    severity: error
+  - type: sql
+    name: weight_positive
+    description: 'product_weight_g > 0 (temuan #16: 4 baris bernilai 0 = soft)'
+    severity: warning
+    query: SELECT COUNT(*) FROM {model} WHERE product_weight_g <= 0
+    mustBe: 0
+  customProperties:
+  - property: sourceFile
+    value: olist_products_dataset.csv
+  - property: naturalKey
+    value: product_id
+  - property: encoding
+    value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.1
+  - property: softFlagColumn
+    value: has_dq_warning
+- name: sellers
+  physicalName: sellers
+  physicalType: table
+  description: Seller + lokasi.
+  properties:
+  - name: seller_id
+    logicalType: string
+    physicalType: text
+    description: Kunci alami
+    required: true
+    primaryKey: true
+    unique: true
+  - name: seller_zip_code_prefix
+    logicalType: string
+    physicalType: varchar(5)
+    description: Prefix kode pos — wajib teks 5 digit, lpad '0'
+    required: true
+    logicalTypeOptions:
+      minLength: 5
+      maxLength: 5
+  - name: seller_city
+    logicalType: string
+    physicalType: text
+    description: Kota
+    required: true
+  - name: seller_state
+    logicalType: string
+    physicalType: varchar(2)
+    description: Kode negara bagian (UF)
+    required: true
+    logicalTypeOptions:
+      minLength: 2
+      maxLength: 2
+  quality:
+  - type: library
+    metric: rowCount
+    mustBe: 3095
+    name: row_count
+    description: jumlah baris harus 3,095 (parser CSV, bukan wc -l)
+    severity: error
+  - type: sql
+    name: state_len2
+    description: seller_state harus 2 huruf (UF)
+    severity: error
+    query: SELECT COUNT(*) FROM {model} WHERE length(seller_state) <> 2
+    mustBe: 0
+  customProperties:
+  - property: sourceFile
+    value: olist_sellers_dataset.csv
+  - property: naturalKey
+    value: seller_id
+  - property: encoding
+    value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.0
+- name: product_category_translation
+  physicalName: product_category_translation
+  physicalType: table
+  description: Terjemahan kategori Portugis → Inggris. File diawali BOM UTF-8 (EF BB BF).
+  properties:
+  - name: product_category_name
+    logicalType: string
+    physicalType: text
+    description: Kategori (Portugis) — baca dengan utf-8-sig
+    required: true
+    primaryKey: true
+    unique: true
+  - name: product_category_name_english
+    logicalType: string
+    physicalType: text
+    description: Kategori (Inggris)
+    required: true
+  quality:
+  - type: library
+    metric: rowCount
+    mustBe: 71
+    name: row_count
+    description: jumlah baris harus 71 (parser CSV, bukan wc -l)
+    severity: error
+  customProperties:
+  - property: sourceFile
+    value: product_category_name_translation.csv
+  - property: naturalKey
+    value: product_category_name
+  - property: encoding
+    value: utf-8-sig
+  - property: quarantineThresholdPct
+    value: 0.0
+team:
+  name: olist-data-platform

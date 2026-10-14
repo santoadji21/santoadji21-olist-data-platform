@@ -1,0 +1,2 @@
+# venv kaggle: /opt/airflow/venvs/kaggle  (dipanggil lewat $KAGGLE_BIN). Terpisah agar tidak bentrok dengan constraints Airflow.
+kaggle>=1.6,<2

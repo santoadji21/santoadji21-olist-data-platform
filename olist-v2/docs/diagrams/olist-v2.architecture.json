@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "olist-v2 — arsitektur stack",
+    "output": "olist-v2.architecture.html",
+    "quality_profile": "showcase",
+    "locale": "en"
+  },
+  "components": [
+    {
+      "id": "contract",
+      "type": "security",
+      "label": "datacontract",
+      "sublabel": "kontrak ODCS (gate)",
+      "pos": [
+        310,
+        60
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "airflow",
+      "type": "backend",
+      "label": "Airflow 2.10",
+      "sublabel": "orkestrasi saja",
+      "pos": [
+        580,
+        60
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "LocalExecutor"
+    },
+    {
+      "id": "dbt",
+      "type": "backend",
+      "label": "dbt 1.8",
+      "sublabel": "staging → dw → mart",
+      "pos": [
+        850,
+        60
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "csv",
+      "type": "external",
+      "label": "CSV Olist",
+      "sublabel": "9 file, data/raw",
+      "pos": [
+        40,
+        290
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "minio",
+      "type": "cloud",
+      "label": "MinIO",
+      "sublabel": "bronze / silver / gold",
+      "pos": [
+        310,
+        290
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "web :19001"
+    },
+    {
+      "id": "spark",
+      "type": "backend",
+      "label": "Spark 3.5",
+      "sublabel": "master + worker",
+      "pos": [
+        580,
+        290
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL 16",
+      "sublabel": "raw · staging · dw · mart",
+      "pos": [
+        850,
+        290
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "metabase",
+      "type": "frontend",
+      "label": "Metabase",
+      "sublabel": "dashboard",
+      "pos": [
+        1120,
+        290
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "kafka",
+      "type": "messagebus",
+      "label": "Kafka",
+      "sublabel": "profil stream (T3)",
+      "pos": [
+        580,
+        520
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "KRaft"
+    }
+  ],
+  "connections": [
+    {
+      "id": "csv-to-minio",
+      "from": "csv",
+      "to": "minio",
+      "label": "ingest",
+      "variant": "emphasis"
+    },
+    {
+      "id": "minio-to-spark",
+      "from": "minio",
+      "to": "spark",
+      "label": "bronze → silver"
+    },
+    {
+      "id": "spark-to-postgres",
+      "from": "spark",
+      "to": "postgres",
+      "label": "load raw",
+      "variant": "emphasis"
+    },
+    {
+      "id": "postgres-to-metabase",
+      "from": "postgres",
+      "to": "metabase",
+      "label": "mart"
+    },
+    {
+      "id": "airflow-to-contract",
+      "from": "airflow",
+      "to": "contract",
+      "label": "test"
+    },
+    {
+      "id": "airflow-to-dbt",
+      "from": "airflow",
+      "to": "dbt",
+      "label": "build"
+    },
+    {
+      "id": "airflow-to-spark",
+      "from": "airflow",
+      "to": "spark",
+      "label": "spark-submit",
+      "labelDy": 24
+    },
+    {
+      "id": "contract-to-minio",
+      "from": "contract",
+      "to": "minio",
+      "label": "gate silver",
+      "variant": "security",
+      "labelDy": 24
+    },
+    {
+      "id": "dbt-to-postgres",
+      "from": "dbt",
+      "to": "postgres",
+      "label": "transform",
+      "labelDy": 24
+    },
+    {
+      "id": "kafka-to-spark",
+      "from": "kafka",
+      "to": "spark",
+      "label": "stream",
+      "variant": "dashed"
+    }
+  ]
+}

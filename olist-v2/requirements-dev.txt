@@ -1,0 +1,10 @@
+# Lingkungan lokal untuk IDE (mis. plugin dbt): versi SAMA dengan image Airflow, dari satu sumber.
+-r airflow/requirements-dbt.txt
+pytest>=8,<9
+pyyaml>=6,<7
+duckdb>=1.1,<2
+pyarrow>=16,<27
+psycopg2-binary>=2.9,<3
+boto3>=1.35,<2
+kafka-python-ng==2.2.3   # sama dengan image Airflow (producer/consumer/laporan stream dari laptop)
+pandas>=2,<3

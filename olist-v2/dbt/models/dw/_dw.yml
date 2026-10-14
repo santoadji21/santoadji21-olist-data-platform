@@ -1,0 +1,112 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Grain: satu baris per tanggal kalender. PK dan FK juga dipasang sebagai constraint Postgres (post_hook)."
+    columns:
+      - name: date_key
+        tests:
+          - unique
+          - not_null
+  - name: dim_geo
+    description: "Grain: satu baris per zip prefix + baris 'unknown'. PK dan FK juga dipasang sebagai constraint Postgres (post_hook)."
+    columns:
+      - name: geo_key
+        tests:
+          - unique
+          - not_null
+  - name: dim_customer
+    description: "Grain: satu baris per ORANG (customer_unique_id). PK dan FK juga dipasang sebagai constraint Postgres (post_hook)."
+    columns:
+      - name: customer_unique_id
+        tests:
+          - unique
+          - not_null
+      - name: geo_key
+        tests:
+          - relationships:
+              to: ref('dim_geo')
+              field: geo_key
+  - name: dim_product
+    description: "Grain: satu baris per produk. PK dan FK juga dipasang sebagai constraint Postgres (post_hook)."
+    columns:
+      - name: product_id
+        tests:
+          - unique
+          - not_null
+  - name: dim_seller
+    description: "Grain: satu baris per seller. PK dan FK juga dipasang sebagai constraint Postgres (post_hook)."
+    columns:
+      - name: seller_id
+        tests:
+          - unique
+          - not_null
+      - name: geo_key
+        tests:
+          - relationships:
+              to: ref('dim_geo')
+              field: geo_key
+  - name: fact_order
+    description: "Grain: satu baris per order (header). PK dan FK juga dipasang sebagai constraint Postgres (post_hook)."
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+      - name: customer_unique_id
+        tests:
+          - relationships:
+              to: ref('dim_customer')
+              field: customer_unique_id
+      - name: purchase_date_key
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+      - name: estimated_date_key
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+  - name: fact_order_item
+    description: "Grain: satu baris per unit barang, PK (order_id, order_item_id). PK dan FK juga dipasang sebagai constraint Postgres (post_hook)."
+    columns:
+      - name: order_id
+        tests:
+          - relationships:
+              to: ref('fact_order')
+              field: order_id
+      - name: product_id
+        tests:
+          - relationships:
+              to: ref('dim_product')
+              field: product_id
+      - name: seller_id
+        tests:
+          - relationships:
+              to: ref('dim_seller')
+              field: seller_id
+      - name: order_item_id
+        tests:
+          - not_null
+  - name: fact_payment
+    description: "Grain: satu baris per pembayaran, PK (order_id, payment_sequential). PK dan FK juga dipasang sebagai constraint Postgres (post_hook)."
+    columns:
+      - name: order_id
+        tests:
+          - relationships:
+              to: ref('fact_order')
+              field: order_id
+      - name: payment_sequential
+        tests:
+          - not_null
+  - name: fact_review
+    description: "Grain: satu baris per order yang punya ulasan. PK dan FK juga dipasang sebagai constraint Postgres (post_hook)."
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('fact_order')
+              field: order_id

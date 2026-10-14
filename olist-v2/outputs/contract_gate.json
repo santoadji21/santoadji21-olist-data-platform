@@ -1,0 +1,52 @@
+{
+  "result": "warning",
+  "checks": 189,
+  "passed": 129,
+  "failed": [],
+  "soft_violations": [
+    {
+      "model": "geolocation",
+      "name": "lat dalam kotak Brasil (-34.0, 5.0) (temuan #5: titik di luar = soft)",
+      "reason": "Actual custom_sql(geolocation) was 31, expected = 0"
+    },
+    {
+      "model": "geolocation",
+      "name": "lng dalam kotak Brasil (-74.0, -35.0) (temuan #5: titik di luar = soft)",
+      "reason": "Actual custom_sql(geolocation) was 11682, expected = 0"
+    },
+    {
+      "model": "order_payments",
+      "name": "payment_value > 0 (temuan #8: 9 baris bernilai 0 = soft)",
+      "reason": "Actual custom_sql(order_payments) was 9, expected = 0"
+    },
+    {
+      "model": "order_payments",
+      "name": "payment_type bukan 'not_defined' (temuan #8: 3 baris = soft)",
+      "reason": "Actual custom_sql(order_payments) was 3, expected = 0"
+    },
+    {
+      "model": "order_payments",
+      "name": "payment_installments >= 1 (temuan #8: 2 baris bernilai 0 = soft)",
+      "reason": "Actual custom_sql(order_payments) was 2, expected = 0"
+    },
+    {
+      "model": "orders",
+      "name": "status delivered wajib punya tanggal tiba (temuan #9: 8 baris = soft)",
+      "reason": "Actual custom_sql(orders) was 8, expected = 0"
+    },
+    {
+      "model": "orders",
+      "name": "tiba >= diserahkan ke kurir (temuan #9: 23 baris = soft)",
+      "reason": "Actual custom_sql(orders) was 23, expected = 0"
+    },
+    {
+      "model": "products",
+      "name": "product_weight_g > 0 (temuan #16: 4 baris bernilai 0 = soft)",
+      "reason": "Actual custom_sql(products) was 4, expected = 0"
+    }
+  ],
+  "unsupported_type_checks": 52,
+  "ran_at": "2026-10-14T13:50:54+00:00",
+  "server": "silver-minio",
+  "exit_code": 0
+}

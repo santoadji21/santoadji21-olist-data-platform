@@ -1,0 +1,10 @@
+# olist-v2 berdiri sendiri: aturan ini TIDAK bergantung pada .gitignore di root repo.
+.env
+.venv/
+.kaggle/
+__pycache__/
+*.pyc
+# data mentah Kaggle (±126 MB) tidak boleh ter-commit
+data/raw/*
+!data/raw/.gitkeep
+airflow/logs/

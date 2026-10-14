@@ -1,0 +1,37 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Salinan silver di Postgres (dimuat oleh olist_v2.load, satu transaksi TRUNCATE+COPY)."
+    schema: raw
+    tables:
+      - name: customers
+        columns:
+          - name: customer_id
+            tests: [unique, not_null]
+      - name: geolocation
+      - name: order_items
+      - name: order_payments
+      - name: order_reviews
+      - name: orders
+        columns:
+          - name: order_id
+            tests: [unique, not_null]
+      - name: products
+        columns:
+          - name: product_id
+            tests: [unique, not_null]
+      - name: sellers
+        columns:
+          - name: seller_id
+            tests: [unique, not_null]
+      - name: product_category_translation
+        columns:
+          - name: product_category_name
+            tests: [unique, not_null]
+
+  - name: stream
+    description: "Tabel yang ditulis consumer Kafka (olist_v2.consumer); DDL di olist_v2/sql/10_stream.sql, dibuat sebelum dbt jalan."
+    schema: stream
+    tables:
+      - name: batch_metrics
