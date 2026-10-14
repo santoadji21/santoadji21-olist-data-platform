@@ -1,0 +1,8 @@
+# Lingkungan utama Airflow 2.10.5 / Python 3.11. Dipasang dengan --constraint resmi Airflow (lihat Dockerfile):
+# paket yang sudah dipatok constraints tidak perlu (dan tidak boleh) dipatok di sini.
+apache-airflow-providers-apache-spark      # SparkSubmitOperator
+apache-airflow-providers-postgres
+apache-airflow-providers-amazon            # S3Hook/boto3 untuk MinIO
+pyspark>=3.5.3,<3.6                        # klien spark-submit; HARUS satu minor dengan cluster Spark 3.5.3
+kafka-python-ng==2.2.3                     # admin/producer ringan dari DAG (sama dengan proyek T0–T6)
+# astronomer-cosmos                        # opsional: render model dbt sebagai task Airflow (uji kompatibilitas dulu)

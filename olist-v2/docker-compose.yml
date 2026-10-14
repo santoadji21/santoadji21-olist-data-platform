@@ -1,0 +1,308 @@
+# olist-v2 — eksplorasi: Airflow + MinIO + Spark + dbt + Metabase + datacontract (ODCS) + Kafka, di atas Postgres.
+#
+# ISOLASI (penting): shell bisa mengekspor COMPOSE_PROJECT_NAME / MINIO_* / POSTGRES_* milik proyek lain, dan itu
+# MENGALAHKAN .env dan `name:` di bawah. Karena itu: variabel di sini berawalan V2_, volume dan network diberi nama
+# eksplisit, dan Makefile memakai `-p olist-v2`. Jangan menjalankan compose ini tanpa `-p olist-v2` / `make`.
+#
+# PROFILES (hemat RAM; Docker Desktop hanya 7,8 GB):
+#   (tanpa profile) core   : postgres, minio, airflow
+#   spark                  : spark-master, spark-worker
+#   stream                 : kafka, kafka-ui
+#   bi                     : metabase
+#   lab                    : jupyter
+#   contract               : datacontract-editor
+# Nyalakan: make up | make up P="spark stream" | make up-all
+#
+# Catatan: JANGAN pakai `docker compose up --wait` — service sekali-jalan (airflow-init, minio-init) keluar dengan
+# kode 0 dan `--wait` menganggapnya gagal lalu menghentikan semuanya. Gunakan `up -d` lalu `make ps`.
+name: olist-v2
+
+x-airflow-common: &airflow-common
+  build: ./airflow
+  image: olist-v2/airflow:2.10.5
+  pull_policy: build            # image lokal: bangun, jangan coba `pull` (menghindari warning 'pull access denied')
+  user: "${V2_AIRFLOW_UID:-50000}:0"
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${V2_PG_USER}:${V2_PG_PASSWORD}@postgres:5432/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__WEBSERVER__WORKERS: "2"                       # hemat RAM (bawaan 4)
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "false"
+    AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: "30"
+    # dipakai DAG/job: tanpa kredensial di kode
+    MINIO_ENDPOINT: http://minio:9000
+    MINIO_ROOT_USER: ${V2_MINIO_ROOT_USER}
+    MINIO_ROOT_PASSWORD: ${V2_MINIO_ROOT_PASSWORD}
+    AWS_ACCESS_KEY_ID: ${V2_MINIO_ROOT_USER}               # dibaca S3A (Spark) dari environment
+    AWS_SECRET_ACCESS_KEY: ${V2_MINIO_ROOT_PASSWORD}
+    WAREHOUSE_DSN: postgresql://${V2_PG_USER}:${V2_PG_PASSWORD}@postgres:5432/olist_dw
+    KAFKA_BOOTSTRAP: kafka:9092
+    SPARK_MASTER: spark://spark-master:7077
+    SPARK_CONF_DIR: /opt/airflow/spark-conf
+    DBT_PROJECT_DIR: /opt/airflow/dbt
+    DBT_PROFILES_DIR: /opt/airflow/dbt
+    DBT_BIN: /opt/airflow/venvs/dbt/bin/dbt
+    DATACONTRACT_BIN: /opt/airflow/venvs/datacontract/bin/datacontract
+    DBT_PG_HOST: postgres
+    DBT_PG_USER: ${V2_PG_USER}
+    DBT_PG_PASSWORD: ${V2_PG_PASSWORD}
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/plugins:/opt/airflow/plugins
+    - ./dbt:/opt/airflow/dbt
+    - ./contracts:/opt/airflow/contracts:ro
+    - ./spark/jobs:/opt/airflow/spark-jobs:ro
+    - ./spark/conf:/opt/airflow/spark-conf:ro
+    - airflow_logs:/opt/airflow/logs
+    - ../data/raw:/opt/airflow/data/raw:ro                # CSV Olist dipakai ulang (read-only)
+  depends_on:
+    postgres: { condition: service_healthy }
+  networks: [v2]
+
+x-spark-common: &spark-common
+  build: ./spark
+  image: olist-v2/spark:3.5.3
+  pull_policy: build
+  environment:
+    AWS_ACCESS_KEY_ID: ${V2_MINIO_ROOT_USER}
+    AWS_SECRET_ACCESS_KEY: ${V2_MINIO_ROOT_PASSWORD}
+    SPARK_NO_DAEMONIZE: "true"
+  volumes:
+    - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+    - ./spark/jobs:/opt/spark/jobs:ro
+  networks: [v2]
+
+services:
+  # ---------------------------------------------------------------- core
+  postgres:
+    image: postgres:16-alpine
+    container_name: olist-v2-postgres
+    environment:
+      POSTGRES_USER: ${V2_PG_USER}
+      POSTGRES_PASSWORD: ${V2_PG_PASSWORD}
+      POSTGRES_DB: postgres
+    ports: ["${V2_PG_PORT:-15432}:5432"]
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro            # membuat database airflow, olist_dw, metabase + schema
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${V2_PG_USER} -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    deploy: { resources: { limits: { memory: 512M } } }
+    networks: [v2]
+
+  minio:
+    # Image resmi (sudah ada di mesin): API S3 di 9000 + object browser (web) di 9001. Bucket dibuat `minio-init`.
+    image: quay.io/minio/minio:latest   # RELEASE.2025-09-07 (digest minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e)
+    container_name: olist-v2-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${V2_MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${V2_MINIO_ROOT_PASSWORD}
+    ports:
+      - "${V2_MINIO_PORT:-19000}:9000"          # API S3
+      - "${V2_MINIO_CONSOLE_PORT:-19001}:9001"  # web console
+    volumes: [minio_data:/data]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    deploy: { resources: { limits: { memory: 512M } } }
+    networks: [v2]
+
+  minio-init:
+    image: quay.io/minio/minio:latest
+    container_name: olist-v2-minio-init
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        mc alias set local http://minio:9000 "${V2_MINIO_ROOT_USER}" "${V2_MINIO_ROOT_PASSWORD}" &&
+        for b in bronze silver gold; do mc mb --ignore-existing local/$$b; done
+    depends_on:
+      minio: { condition: service_healthy }
+    restart: "no"
+    networks: [v2]
+
+  airflow-init:
+    <<: *airflow-common
+    container_name: olist-v2-airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate &&
+        airflow users create --username "${V2_AIRFLOW_ADMIN_USER}" --password "${V2_AIRFLOW_ADMIN_PASSWORD}" \
+          --firstname Admin --lastname User --role Admin --email admin@example.com || true
+    restart: "no"
+
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: olist-v2-airflow-webserver
+    command: webserver
+    ports: ["${V2_AIRFLOW_PORT:-18080}:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    depends_on:
+      postgres: { condition: service_healthy }
+      airflow-init: { condition: service_completed_successfully }
+    deploy: { resources: { limits: { memory: 1536M } } }
+    restart: unless-stopped
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: olist-v2-airflow-scheduler
+    command: scheduler
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --hostname \"$${HOSTNAME}\""]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 40s
+    depends_on:
+      postgres: { condition: service_healthy }
+      airflow-init: { condition: service_completed_successfully }
+    deploy: { resources: { limits: { memory: 1536M } } }   # termasuk driver Spark (client mode) bila job dijalankan dari sini
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- spark
+  spark-master:
+    <<: *spark-common
+    profiles: [spark]
+    container_name: olist-v2-spark-master
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host spark-master --port 7077 --webui-port 8080
+    ports:
+      - "${V2_SPARK_MASTER_PORT:-17077}:7077"
+      - "${V2_SPARK_UI_PORT:-18090}:8080"
+    deploy: { resources: { limits: { memory: 512M } } }
+
+  spark-worker:
+    <<: *spark-common
+    profiles: [spark]
+    container_name: olist-v2-spark-worker
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077 --webui-port 8081 --cores 2 --memory 1g
+    ports: ["${V2_SPARK_WORKER_UI_PORT:-18091}:8081"]
+    depends_on: [spark-master]
+    deploy: { resources: { limits: { memory: 1536M } } }
+
+  # ---------------------------------------------------------------- stream (Kafka, KRaft satu node, tanpa Zookeeper)
+  kafka:
+    image: apache/kafka:3.9.0
+    profiles: [stream]
+    container_name: olist-v2-kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # PLAINTEXT untuk container lain (kafka:9092), PLAINTEXT_HOST untuk laptop (localhost:${V2_KAFKA_PORT})
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_HOST://:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:${V2_KAFKA_PORT:-19092}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: -Xmx512m -Xms512m
+      CLUSTER_ID: olistv2platform-000000000
+    ports: ["${V2_KAFKA_PORT:-19092}:29092"]
+    volumes: [kafka_data:/var/lib/kafka/data]
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    deploy: { resources: { limits: { memory: 1G } } }
+    networks: [v2]
+
+  kafka-ui:
+    image: kafbat/kafka-ui:v1.3.0
+    profiles: [stream]
+    container_name: olist-v2-kafka-ui
+    environment:
+      KAFKA_CLUSTERS_0_NAME: olist-v2
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      DYNAMIC_CONFIG_ENABLED: "false"
+    ports: ["${V2_KAFKA_UI_PORT:-18081}:8080"]
+    depends_on:
+      kafka: { condition: service_healthy }
+    deploy: { resources: { limits: { memory: 512M } } }
+    networks: [v2]
+
+  # ---------------------------------------------------------------- bi
+  metabase:
+    # Pin lewat digest (image sudah ada di mesin; tag :latest bisa berubah diam-diam). Punya tema gelap: Settings → Appearance.
+    image: metabase/metabase@sha256:ca6d63cbedfd0a66a3c0239ac79a9df5f7ef3f2455027ab97e3bb26cbf281999
+    profiles: [bi]
+    container_name: olist-v2-metabase
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: "5432"
+      MB_DB_USER: ${V2_PG_USER}
+      MB_DB_PASS: ${V2_PG_PASSWORD}
+      MB_DB_HOST: postgres
+      JAVA_OPTS: -Xmx768m
+    ports: ["${V2_METABASE_PORT:-13000}:3000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy: { resources: { limits: { memory: 1G } } }
+    networks: [v2]
+
+  # ---------------------------------------------------------------- lab
+  jupyter:
+    build: ./jupyter
+    image: olist-v2/jupyter:spark-3.5.3
+    pull_policy: build
+    profiles: [lab]
+    container_name: olist-v2-jupyter
+    environment:
+      JUPYTER_TOKEN: ${V2_JUPYTER_TOKEN:-olist}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${V2_MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${V2_MINIO_ROOT_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${V2_MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${V2_MINIO_ROOT_PASSWORD}
+      WAREHOUSE_DSN: postgresql://${V2_PG_USER}:${V2_PG_PASSWORD}@postgres:5432/olist_dw
+      KAFKA_BOOTSTRAP: kafka:9092
+      SPARK_MASTER: spark://spark-master:7077
+      SPARK_CONF_DIR: /home/jovyan/spark-conf
+    ports: ["${V2_JUPYTER_PORT:-18888}:8888"]
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./spark/conf:/home/jovyan/spark-conf:ro
+      - ../data/raw:/home/jovyan/data/raw:ro
+    deploy: { resources: { limits: { memory: 1G } } }
+    networks: [v2]
+
+  # ---------------------------------------------------------------- contract
+  datacontract-editor:
+    image: datacontract/editor@sha256:8d2aebcbc98e87a81c85e5bc107f405cb56155619134ed30bf68af02beaa018d
+    profiles: [contract]
+    container_name: olist-v2-datacontract-editor
+    ports: ["${V2_EDITOR_PORT:-18082}:80"]
+    deploy: { resources: { limits: { memory: 128M } } }
+    networks: [v2]
+
+networks:
+  v2:
+    name: olist_v2_net
+
+volumes:
+  pg_data: { name: olist-v2-pg-data }
+  minio_data: { name: olist-v2-minio-data }
+  kafka_data: { name: olist-v2-kafka-data }
+  airflow_logs: { name: olist-v2-airflow-logs }

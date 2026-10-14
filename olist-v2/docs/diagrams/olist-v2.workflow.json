@@ -1,0 +1,192 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "olist-v2 — DAG olist_v2_pipeline",
+    "output": "olist-v2.workflow.html",
+    "quality_profile": "showcase",
+    "locale": "en"
+  },
+  "lanes": [
+    {
+      "id": "tasks",
+      "label": "Airflow tasks"
+    },
+    {
+      "id": "stores",
+      "label": "Penyimpanan yang ditulis"
+    },
+    {
+      "id": "fail",
+      "label": "Kegagalan",
+      "variant": "exception"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "ingest",
+      "lane": "tasks",
+      "col": 0,
+      "type": "backend",
+      "label": "ingest_bronze",
+      "sublabel": "CSV → MinIO",
+      "width": 120
+    },
+    {
+      "id": "silver",
+      "lane": "tasks",
+      "col": 1,
+      "type": "backend",
+      "label": "spark_silver",
+      "sublabel": "bronze → Parquet",
+      "width": 120
+    },
+    {
+      "id": "gate",
+      "lane": "tasks",
+      "col": 2,
+      "type": "security",
+      "label": "contract_gate",
+      "sublabel": "datacontract test",
+      "width": 120
+    },
+    {
+      "id": "load",
+      "lane": "tasks",
+      "col": 3,
+      "type": "backend",
+      "label": "load_raw",
+      "sublabel": "silver → raw.*",
+      "width": 120
+    },
+    {
+      "id": "dbt",
+      "lane": "tasks",
+      "col": 4,
+      "type": "backend",
+      "label": "dbt_build",
+      "sublabel": "run + test",
+      "width": 120
+    },
+    {
+      "id": "publish",
+      "lane": "tasks",
+      "col": 5,
+      "type": "backend",
+      "label": "publish_gold",
+      "sublabel": "export + BI",
+      "width": 120
+    },
+    {
+      "id": "bronze",
+      "lane": "stores",
+      "col": 0,
+      "type": "cloud",
+      "label": "MinIO bronze",
+      "sublabel": "sha256 + manifest",
+      "width": 120
+    },
+    {
+      "id": "silverst",
+      "lane": "stores",
+      "col": 1,
+      "type": "cloud",
+      "label": "MinIO silver",
+      "sublabel": "Parquet bertipe",
+      "width": 120
+    },
+    {
+      "id": "raw",
+      "lane": "stores",
+      "col": 3,
+      "type": "database",
+      "label": "Postgres raw",
+      "sublabel": "TRUNCATE + COPY",
+      "width": 120
+    },
+    {
+      "id": "mart",
+      "lane": "stores",
+      "col": 4,
+      "type": "database",
+      "label": "dw + mart",
+      "sublabel": "dbt models",
+      "width": 120
+    },
+    {
+      "id": "stop",
+      "lane": "fail",
+      "col": 2,
+      "type": "security",
+      "label": "stop + laporan",
+      "sublabel": "tabel FAIL tidak dimuat",
+      "width": 140
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-ingest-silver",
+      "from": "ingest",
+      "to": "silver",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-silver-gate",
+      "from": "silver",
+      "to": "gate",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-gate-load",
+      "from": "gate",
+      "to": "load",
+      "label": "pass",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-load-dbt",
+      "from": "load",
+      "to": "dbt",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-dbt-publish",
+      "from": "dbt",
+      "to": "publish",
+      "variant": "emphasis"
+    },
+    {
+      "id": "w-bronze",
+      "from": "ingest",
+      "to": "bronze",
+      "variant": "dashed"
+    },
+    {
+      "id": "w-silver",
+      "from": "silver",
+      "to": "silverst",
+      "variant": "dashed"
+    },
+    {
+      "id": "w-raw",
+      "from": "load",
+      "to": "raw",
+      "variant": "dashed"
+    },
+    {
+      "id": "w-mart",
+      "from": "dbt",
+      "to": "mart",
+      "variant": "dashed"
+    },
+    {
+      "id": "e-gate-stop",
+      "from": "gate",
+      "to": "stop",
+      "label": "fail",
+      "variant": "security"
+    }
+  ]
+}
