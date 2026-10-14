@@ -38,7 +38,8 @@ x-airflow-common: &airflow-common
     AWS_SECRET_ACCESS_KEY: ${V2_MINIO_ROOT_PASSWORD}
     WAREHOUSE_DSN: postgresql://${V2_PG_USER}:${V2_PG_PASSWORD}@postgres:5432/olist_dw
     KAFKA_BOOTSTRAP: kafka:9092
-    SPARK_MASTER: spark://spark-master:7077
+    SPARK_MASTER: spark://spark-master:7077        # cluster (profil spark); dipakai nanti
+    SPARK_MASTER_URL: local[2]                      # mode Spark yang dipakai silver sekarang; ganti ke $SPARK_MASTER untuk cluster
     SPARK_CONF_DIR: /opt/airflow/spark-conf
     DBT_PROJECT_DIR: /opt/airflow/dbt
     DBT_PROFILES_DIR: /opt/airflow/dbt
@@ -180,7 +181,7 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       airflow-init: { condition: service_completed_successfully }
-    deploy: { resources: { limits: { memory: 1536M } } }   # termasuk driver Spark (client mode) bila job dijalankan dari sini
+    deploy: { resources: { limits: { memory: 3072M } } }   # driver Spark (mode lokal) berjalan DI DALAM scheduler: heap 1g + overhead + Airflow
     restart: unless-stopped
 
   # ---------------------------------------------------------------- spark

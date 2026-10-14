@@ -1,6 +1,6 @@
 # Langkah 4 — Silver: Spark dan gate kontrak ODCS
 
-**Status: rencana** (image Spark/Airflow sudah ditulis di `spark/` dan `airflow/`, belum dibangun). Tujuan: data bertipe sesuai kontrak, dengan aturan kualitas hard dan soft, baris bermasalah dikarantina, dan kontrak ODCS menjadi **gate** di DAG.
+**Status: 4a–4c ditulis dan terbukti end-to-end di host** (Spark lokal 3.5.3, bronze nyata di MinIO): 24 detik, 9 tabel `PASS`, 0 karantina; pelanggaran soft, flag, tipe, dan kode pos cocok dengan T0–T6. 42 test (33 tanpa Spark + 9 Spark lokal). **Belum**: dijalankan lewat Airflow/container (butuh `make build-core`), dan 4d (`contract_gate` = `datacontract test`) belum ditulis. Tujuan: data bertipe sesuai kontrak, dengan aturan kualitas hard dan soft, baris bermasalah dikarantina, dan kontrak ODCS menjadi **gate** di DAG.
 
 ## Pembagian peran
 | Alat | Tugas |
@@ -12,7 +12,10 @@
 ## Kontrak ODCS
 Mulai dari `contracts/olist_raw.odcs.yaml` milik T0–T6 (sudah lint-valid, 8 warning soft yang cocok dengan profil). Aturan hard = `severity: error`, soft = `warning`. Satu klausa `WHERE` yang sama dipakai di kontrak, Spark SQL, dan dbt test supaya tidak ada tiga versi aturan.
 
-## Keputusan terbuka (penting, harus diputuskan sebelum menulis job)
+## Keputusan: Spark MODE LOKAL dulu (`local[2]` di dalam task Airflow)
+Supaya logika silver dan gate hijau tanpa cluster (RAM 7,8 GB). Pindah ke cluster = mengganti `SPARK_MASTER_URL`. Kodenya: `olist_v2/silver.py` (transformasi murni Spark + I/O S3), `olist_v2/rules.py` (logika murni), aturan dan ambang dari kontrak ODCS.
+
+## Pilihan yang masih terbuka untuk nanti
 Image Airflow tidak punya Java, jadi cara Airflow menjalankan Spark harus dipilih:
 1. **`spark-submit` client mode dari Airflow** (yang saat ini ditulis di Dockerfile: JRE + pyspark 3.5): driver di container Airflow, executor di `spark-worker`. Butuh `spark.driver.host` yang bisa dijangkau worker dan versi pyspark = 3.5.3.
 2. **Spark Connect**: klien ringan tanpa Java, server di container Spark. Lebih ringan untuk laptop 7,8 GB, fiturnya terbatas pada DataFrame/SQL.

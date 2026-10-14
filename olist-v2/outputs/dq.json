@@ -1,0 +1,489 @@
+{
+  "stage": "silver",
+  "ran_at": "2026-10-14T02:45:46+00:00",
+  "engine": "spark 3.5.3 (local[2])",
+  "seconds": 24.01,
+  "tables": [
+    {
+      "table": "customers",
+      "source_rows": 99441,
+      "expected_rows": 99441,
+      "quarantined": 0,
+      "clean": 99441,
+      "quarantine_pct": 0.0,
+      "threshold_pct": 0.0,
+      "verdict": "PASS",
+      "fail_reasons": [],
+      "rules": [
+        {
+          "table": "customers",
+          "name": "row_count",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "customers",
+          "name": "key_unique(customer_id)",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "customers",
+          "name": "type_and_not_null",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "customers",
+          "name": "state_len2",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        }
+      ],
+      "source": {
+        "version": 1,
+        "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2"
+      }
+    },
+    {
+      "table": "geolocation",
+      "source_rows": 1000163,
+      "expected_rows": 1000163,
+      "quarantined": 0,
+      "clean": 1000163,
+      "quarantine_pct": 0.0,
+      "threshold_pct": 2.0,
+      "verdict": "PASS",
+      "fail_reasons": [],
+      "rules": [
+        {
+          "table": "geolocation",
+          "name": "row_count",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "geolocation",
+          "name": "type_and_not_null",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "geolocation",
+          "name": "lat_in_brazil",
+          "kind": "soft",
+          "action": "simpan + flag",
+          "violations": 31,
+          "pct": 0.0031
+        },
+        {
+          "table": "geolocation",
+          "name": "lng_in_brazil",
+          "kind": "soft",
+          "action": "simpan + flag",
+          "violations": 11682,
+          "pct": 1.168
+        }
+      ],
+      "source": {
+        "version": 1,
+        "sha256": "b514f6fc991b9566aeba02aa5d67e2c3630f034b60a0e05aa0d082a3b66d88d6"
+      }
+    },
+    {
+      "table": "products",
+      "source_rows": 32951,
+      "expected_rows": 32951,
+      "quarantined": 0,
+      "clean": 32951,
+      "quarantine_pct": 0.0,
+      "threshold_pct": 0.1,
+      "verdict": "PASS",
+      "fail_reasons": [],
+      "rules": [
+        {
+          "table": "products",
+          "name": "row_count",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "products",
+          "name": "key_unique(product_id)",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "products",
+          "name": "type_and_not_null",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "products",
+          "name": "weight_positive",
+          "kind": "soft",
+          "action": "simpan + flag",
+          "violations": 4,
+          "pct": 0.0121
+        }
+      ],
+      "source": {
+        "version": 1,
+        "sha256": "3e6569628a17fbc75fd206ee357b59e20364b9afa90f5b6cd5b4d624c58aa9cc"
+      }
+    },
+    {
+      "table": "sellers",
+      "source_rows": 3095,
+      "expected_rows": 3095,
+      "quarantined": 0,
+      "clean": 3095,
+      "quarantine_pct": 0.0,
+      "threshold_pct": 0.0,
+      "verdict": "PASS",
+      "fail_reasons": [],
+      "rules": [
+        {
+          "table": "sellers",
+          "name": "row_count",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "sellers",
+          "name": "key_unique(seller_id)",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "sellers",
+          "name": "type_and_not_null",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "sellers",
+          "name": "state_len2",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        }
+      ],
+      "source": {
+        "version": 1,
+        "sha256": "1f643d2b950373b85735e7794b20986f528d7a000432e7c6f9bcbb44d0846a0e"
+      }
+    },
+    {
+      "table": "product_category_translation",
+      "source_rows": 71,
+      "expected_rows": 71,
+      "quarantined": 0,
+      "clean": 71,
+      "quarantine_pct": 0.0,
+      "threshold_pct": 0.0,
+      "verdict": "PASS",
+      "fail_reasons": [],
+      "rules": [
+        {
+          "table": "product_category_translation",
+          "name": "row_count",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "product_category_translation",
+          "name": "key_unique(product_category_name)",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "product_category_translation",
+          "name": "type_and_not_null",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        }
+      ],
+      "source": {
+        "version": 1,
+        "sha256": "9da093e114e517534d7a6903b253b0d24a582830b99ea9e8ef48a90b79d60967"
+      }
+    },
+    {
+      "table": "orders",
+      "source_rows": 99441,
+      "expected_rows": 99441,
+      "quarantined": 0,
+      "clean": 99441,
+      "quarantine_pct": 0.0,
+      "threshold_pct": 0.1,
+      "verdict": "PASS",
+      "fail_reasons": [],
+      "rules": [
+        {
+          "table": "orders",
+          "name": "row_count",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "orders",
+          "name": "key_unique(order_id)",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "orders",
+          "name": "type_and_not_null",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "orders",
+          "name": "status_known",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "orders",
+          "name": "approved_after_purchase",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "orders",
+          "name": "delivered_has_date",
+          "kind": "soft",
+          "action": "simpan + flag",
+          "violations": 8,
+          "pct": 0.008
+        },
+        {
+          "table": "orders",
+          "name": "customer_after_carrier",
+          "kind": "soft",
+          "action": "simpan + flag",
+          "violations": 23,
+          "pct": 0.0231
+        }
+      ],
+      "source": {
+        "version": 1,
+        "sha256": "8df58ef3d2d7e9944010f7beecd9b75367f5588ec6e3c91cec19ae3345ef9ecf"
+      }
+    },
+    {
+      "table": "order_items",
+      "source_rows": 112650,
+      "expected_rows": 112650,
+      "quarantined": 0,
+      "clean": 112650,
+      "quarantine_pct": 0.0,
+      "threshold_pct": 0.0,
+      "verdict": "PASS",
+      "fail_reasons": [],
+      "rules": [
+        {
+          "table": "order_items",
+          "name": "row_count",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_items",
+          "name": "key_unique(order_id,order_item_id)",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_items",
+          "name": "type_and_not_null",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_items",
+          "name": "price_positive",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_items",
+          "name": "freight_nonneg",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        }
+      ],
+      "source": {
+        "version": 1,
+        "sha256": "0bc4d068c4fe38cbb01bd90e8746e3c613fe7b4baef75fab7b0e329701c3e279"
+      }
+    },
+    {
+      "table": "order_payments",
+      "source_rows": 103886,
+      "expected_rows": 103886,
+      "quarantined": 0,
+      "clean": 103886,
+      "quarantine_pct": 0.0,
+      "threshold_pct": 0.1,
+      "verdict": "PASS",
+      "fail_reasons": [],
+      "rules": [
+        {
+          "table": "order_payments",
+          "name": "row_count",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_payments",
+          "name": "key_unique(order_id,payment_sequential)",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_payments",
+          "name": "type_and_not_null",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_payments",
+          "name": "value_positive",
+          "kind": "soft",
+          "action": "simpan + flag",
+          "violations": 9,
+          "pct": 0.0087
+        },
+        {
+          "table": "order_payments",
+          "name": "type_known",
+          "kind": "soft",
+          "action": "simpan + flag",
+          "violations": 3,
+          "pct": 0.0029
+        },
+        {
+          "table": "order_payments",
+          "name": "installments_ge1",
+          "kind": "soft",
+          "action": "simpan + flag",
+          "violations": 2,
+          "pct": 0.0019
+        }
+      ],
+      "source": {
+        "version": 1,
+        "sha256": "4f713964f2815dbbaa40b9488268c55aac3627bfce5aa96cf58d1f3616de3cc0"
+      }
+    },
+    {
+      "table": "order_reviews",
+      "source_rows": 99224,
+      "expected_rows": 99224,
+      "quarantined": 0,
+      "clean": 99224,
+      "quarantine_pct": 0.0,
+      "threshold_pct": 0.5,
+      "verdict": "PASS",
+      "fail_reasons": [],
+      "rules": [
+        {
+          "table": "order_reviews",
+          "name": "row_count",
+          "kind": "hard",
+          "action": "batch berhenti",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_reviews",
+          "name": "type_and_not_null",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_reviews",
+          "name": "score_1_5",
+          "kind": "hard",
+          "action": "baris → karantina",
+          "violations": 0,
+          "pct": 0.0
+        },
+        {
+          "table": "order_reviews",
+          "name": "answer_after_creation",
+          "kind": "soft",
+          "action": "simpan + flag",
+          "violations": 0,
+          "pct": 0.0
+        }
+      ],
+      "source": {
+        "version": 1,
+        "sha256": "81336b6e5183133b632a3d9ed899428e33430987fa540926a6daa8b4a2157598"
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-"""DAG olist_v2_pipeline. Diperluas bertahap: sekarang `download_kaggle` → `ingest_bronze`; silver, gate, load, dbt, publish menyusul.
+"""DAG olist_v2_pipeline. Diperluas bertahap: sekarang `download_kaggle` → `ingest_bronze` → `spark_silver`; gate, gate, load, dbt, publish menyusul.
 Airflow hanya merangkai: logikanya ada di paket `olist_v2` (bisa dijalankan tanpa Airflow: `make bronze`)."""
 from datetime import datetime, timedelta
 
@@ -11,6 +11,28 @@ def download_kaggle():
 
     r = run_and_report()
     print(f"download: {r['status']} — {len(r['files'])} file cocok kontrak")
+
+
+def spark_silver():
+    from airflow.exceptions import AirflowException
+    from olist_v2.bronze import make_s3
+    from olist_v2.rules import SourceError
+    from olist_v2.silver import run_silver, spark_session, write_outputs
+    import os
+    from pathlib import Path
+
+    spark = spark_session()
+    try:
+        run = run_silver(make_s3(), spark)
+    except SourceError as e:
+        raise AirflowException(f"silver berhenti (tidak ada yang ditulis): {e}")   # kolom hilang / objek bronze rusak
+    finally:
+        spark.stop()
+    write_outputs(Path(os.environ.get("OLIST_OUTPUTS", "/opt/airflow/outputs")), run)
+    failed = [t["table"] for t in run["tables"] if t["verdict"] == "FAIL"]
+    if failed:
+        raise AirflowException(f"tabel FAIL (tidak diberi silver): {', '.join(failed)}")
+    print(f"silver selesai {run['seconds']} s: " + ", ".join(f"{t['table']}={t['verdict']}" for t in run["tables"]))
 
 
 def ingest_bronze():
@@ -33,4 +55,5 @@ with DAG(
 ) as dag:
     download = PythonOperator(task_id="download_kaggle", python_callable=download_kaggle, execution_timeout=timedelta(minutes=15))
     ingest = PythonOperator(task_id="ingest_bronze", python_callable=ingest_bronze, execution_timeout=timedelta(minutes=10))
-    download >> ingest
+    silver = PythonOperator(task_id="spark_silver", python_callable=spark_silver, execution_timeout=timedelta(minutes=20), retries=0)
+    download >> ingest >> silver

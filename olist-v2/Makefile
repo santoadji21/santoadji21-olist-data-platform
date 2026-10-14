@@ -8,7 +8,7 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: build-core download bronze test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: build-core download bronze silver test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
@@ -20,6 +20,9 @@ download: ## unduh dataset dari Kaggle ke data/raw (perlu .kaggle/kaggle.json)
 
 bronze: ## CSV -> MinIO bronze + manifest (perintah mandiri, tanpa UI Airflow)
 	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.bronze
+
+silver: ## bronze -> silver (Spark lokal) + gate + karantina -> outputs/dq_report.md
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.silver
 
 test: ## pytest tanpa Docker (venv lokal)
 	$(VENV)/bin/python -m pytest tests -q

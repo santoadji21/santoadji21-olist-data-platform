@@ -37,7 +37,7 @@ Status: **ada** = sudah dibuat dan diperiksa · **ditulis** = file ada, belum di
 | 1 | [Isolasi dan persiapan](steps/01-isolasi-dan-persiapan.md) | ada | branch, `.env`, venv dbt |
 | 2 | [Stack inti](steps/02-stack-inti.md) | ditulis | compose, Postgres, MinIO, Airflow |
 | 3 | [Bronze: unduh Kaggle + ingest ke MinIO](steps/03-bronze-ingest.md) | bronze **terverifikasi** di MinIO; unduhan Kaggle ditulis, 21 test lolos | `olist_v2/`, DAG `olist_v2_pipeline` |
-| 4 | [Silver: Spark + kontrak ODCS](steps/04-silver-spark-kontrak.md) | rencana (image ditulis) | `spark/`, `contracts/` |
+| 4 | [Silver: Spark + kontrak ODCS](steps/04-silver-spark-kontrak.md) | 4a–4c terbukti end-to-end di host (9 PASS, 24 s); belum lewat Airflow; 4d belum | `olist_v2/silver.py`, `rules.py` |
 | 5 | [Warehouse: dbt](steps/05-warehouse-dbt.md) | rencana (venv ada); **keputusan jalur A/B** | `dbt/` |
 | 6 | [Dashboard: notebook + Metabase](steps/06-dashboard-metabase.md) | rencana | profil `bi`, `notebooks/` |
 | 7 | [Stream: Kafka](steps/07-stream-kafka.md) | ditulis; **wajib (T3, 20 %)** | profil `stream` |

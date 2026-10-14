@@ -81,6 +81,8 @@ schema:
     value: customer_id
   - property: encoding
     value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.0
 - name: geolocation
   physicalName: geolocation
   physicalType: table
@@ -144,6 +146,10 @@ schema:
     value: none
   - property: encoding
     value: utf-8
+  - property: quarantineThresholdPct
+    value: 2.0
+  - property: softFlagColumn
+    value: is_outside_brazil
 - name: order_items
   physicalName: order_items
   physicalType: table
@@ -221,6 +227,10 @@ schema:
     value: order_id, order_item_id
   - property: encoding
     value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.0
+  - property: foreignKeys
+    value: "order_id->orders.order_id, product_id->products.product_id, seller_id->sellers.seller_id"
 - name: order_payments
   physicalName: order_payments
   physicalType: table
@@ -294,6 +304,12 @@ schema:
     value: order_id, payment_sequential
   - property: encoding
     value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.1
+  - property: foreignKeys
+    value: "order_id->orders.order_id"
+  - property: softFlagColumn
+    value: has_dq_warning
 - name: order_reviews
   physicalName: order_reviews
   physicalType: table
@@ -361,6 +377,12 @@ schema:
     value: none
   - property: encoding
     value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.5
+  - property: foreignKeys
+    value: "order_id->orders.order_id"
+  - property: softFlagColumn
+    value: has_dq_warning
 - name: orders
   physicalName: orders
   physicalType: table
@@ -446,6 +468,12 @@ schema:
     value: order_id
   - property: encoding
     value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.1
+  - property: foreignKeys
+    value: "customer_id->customers.customer_id"
+  - property: softFlagColumn
+    value: has_time_anomaly
 - name: products
   physicalName: products
   physicalType: table
@@ -518,6 +546,10 @@ schema:
     value: product_id
   - property: encoding
     value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.1
+  - property: softFlagColumn
+    value: has_dq_warning
 - name: sellers
   physicalName: sellers
   physicalType: table
@@ -571,6 +603,8 @@ schema:
     value: seller_id
   - property: encoding
     value: utf-8
+  - property: quarantineThresholdPct
+    value: 0.0
 - name: product_category_translation
   physicalName: product_category_translation
   physicalType: table
@@ -602,5 +636,7 @@ schema:
     value: product_category_name
   - property: encoding
     value: utf-8-sig
+  - property: quarantineThresholdPct
+    value: 0.0
 team:
   name: olist-data-platform
