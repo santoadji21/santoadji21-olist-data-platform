@@ -1,13 +1,13 @@
 {
   "stage": "bronze",
   "bucket": "bronze",
-  "ran_at": "2026-10-14T01:20:49+00:00",
-  "seconds": 2.04,
+  "ran_at": "2026-10-14T12:49:07+00:00",
+  "seconds": 1.54,
   "files": [
     {
       "table": "customers",
       "file": "olist_customers_dataset.csv",
-      "status": "uploaded",
+      "status": "unchanged",
       "version": 1,
       "object_key": "olist/customers/ingest_date=2026-10-14/sha256=983a422239e1/olist_customers_dataset.csv",
       "rows": 99441,
@@ -17,12 +17,12 @@
       "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2",
       "md5": "8a2c4244856aab4bde3b8ed81f8ca251",
       "ingested_at": "2026-10-14T01:20:47+00:00",
-      "seconds": 0.21
+      "seconds": 0.11
     },
     {
       "table": "geolocation",
       "file": "olist_geolocation_dataset.csv",
-      "status": "uploaded",
+      "status": "unchanged",
       "version": 1,
       "object_key": "olist/geolocation/ingest_date=2026-10-14/sha256=b514f6fc991b/olist_geolocation_dataset.csv",
       "rows": 1000163,
@@ -32,12 +32,12 @@
       "sha256": "b514f6fc991b9566aeba02aa5d67e2c3630f034b60a0e05aa0d082a3b66d88d6",
       "md5": "6d8464e41c8e2013955e437b6b4fafbd",
       "ingested_at": "2026-10-14T01:20:48+00:00",
-      "seconds": 0.91
+      "seconds": 0.68
     },
     {
       "table": "order_items",
       "file": "olist_order_items_dataset.csv",
-      "status": "uploaded",
+      "status": "unchanged",
       "version": 1,
       "object_key": "olist/order_items/ingest_date=2026-10-14/sha256=0bc4d068c4fe/olist_order_items_dataset.csv",
       "rows": 112650,
@@ -47,12 +47,12 @@
       "sha256": "0bc4d068c4fe38cbb01bd90e8746e3c613fe7b4baef75fab7b0e329701c3e279",
       "md5": "f4fa76976662e9cba0633f9e49ed2645",
       "ingested_at": "2026-10-14T01:20:48+00:00",
-      "seconds": 0.23
+      "seconds": 0.21
     },
     {
       "table": "order_payments",
       "file": "olist_order_payments_dataset.csv",
-      "status": "uploaded",
+      "status": "unchanged",
       "version": 1,
       "object_key": "olist/order_payments/ingest_date=2026-10-14/sha256=4f713964f281/olist_order_payments_dataset.csv",
       "rows": 103886,
@@ -62,27 +62,27 @@
       "sha256": "4f713964f2815dbbaa40b9488268c55aac3627bfce5aa96cf58d1f3616de3cc0",
       "md5": "75ce0c041d18e5f250c5cea9a8042944",
       "ingested_at": "2026-10-14T01:20:48+00:00",
-      "seconds": 0.12
+      "seconds": 0.1
     },
     {
       "table": "order_reviews",
       "file": "olist_order_reviews_dataset.csv",
-      "status": "uploaded",
-      "version": 1,
-      "object_key": "olist/order_reviews/ingest_date=2026-10-14/sha256=81336b6e5183/olist_order_reviews_dataset.csv",
+      "status": "unchanged",
+      "version": 2,
+      "object_key": "olist/order_reviews/ingest_date=2026-10-14/sha256=012b61c7593e/olist_order_reviews_dataset.csv",
       "rows": 99224,
       "expected_rows": 99224,
       "rows_match": true,
-      "size_bytes": 14346950,
-      "sha256": "81336b6e5183133b632a3d9ed899428e33430987fa540926a6daa8b4a2157598",
-      "md5": "9e65c97804e7ec65b2c0c7fd6848529d",
-      "ingested_at": "2026-10-14T01:20:49+00:00",
-      "seconds": 0.23
+      "size_bytes": 14451670,
+      "sha256": "012b61c7593e34f51fa614efdf802b9c7056ce6aae5307ddb93236e7cfc797d7",
+      "md5": "914066be00d2db0c3d857f071cff1688",
+      "ingested_at": "2026-10-14T12:33:21+00:00",
+      "seconds": 0.19
     },
     {
       "table": "orders",
       "file": "olist_orders_dataset.csv",
-      "status": "uploaded",
+      "status": "unchanged",
       "version": 1,
       "object_key": "olist/orders/ingest_date=2026-10-14/sha256=8df58ef3d2d7/olist_orders_dataset.csv",
       "rows": 99441,
@@ -92,12 +92,12 @@
       "sha256": "8df58ef3d2d7e9944010f7beecd9b75367f5588ec6e3c91cec19ae3345ef9ecf",
       "md5": "8bd60e55c1ca229d9f70b62f3e72f22c",
       "ingested_at": "2026-10-14T01:20:49+00:00",
-      "seconds": 0.25
+      "seconds": 0.21
     },
     {
       "table": "products",
       "file": "olist_products_dataset.csv",
-      "status": "uploaded",
+      "status": "unchanged",
       "version": 1,
       "object_key": "olist/products/ingest_date=2026-10-14/sha256=3e6569628a17/olist_products_dataset.csv",
       "rows": 32951,
@@ -107,12 +107,12 @@
       "sha256": "3e6569628a17fbc75fd206ee357b59e20364b9afa90f5b6cd5b4d624c58aa9cc",
       "md5": "e935401104a3669223b83c9a01fdf5ca",
       "ingested_at": "2026-10-14T01:20:49+00:00",
-      "seconds": 0.06
+      "seconds": 0.03
     },
     {
       "table": "sellers",
       "file": "olist_sellers_dataset.csv",
-      "status": "uploaded",
+      "status": "unchanged",
       "version": 1,
       "object_key": "olist/sellers/ingest_date=2026-10-14/sha256=1f643d2b9503/olist_sellers_dataset.csv",
       "rows": 3095,
@@ -122,22 +122,22 @@
       "sha256": "1f643d2b950373b85735e7794b20986f528d7a000432e7c6f9bcbb44d0846a0e",
       "md5": "5b22c02facdf842d6c0aea36e1849018",
       "ingested_at": "2026-10-14T01:20:49+00:00",
-      "seconds": 0.03
+      "seconds": 0.0
     },
     {
       "table": "product_category_translation",
       "file": "product_category_name_translation.csv",
-      "status": "uploaded",
-      "version": 1,
-      "object_key": "olist/product_category_translation/ingest_date=2026-10-14/sha256=9da093e114e5/product_category_name_translation.csv",
+      "status": "unchanged",
+      "version": 2,
+      "object_key": "olist/product_category_translation/ingest_date=2026-10-14/sha256=a81f0d1f27b2/product_category_name_translation.csv",
       "rows": 71,
       "expected_rows": 71,
       "rows_match": true,
-      "size_bytes": 2542,
-      "sha256": "9da093e114e517534d7a6903b253b0d24a582830b99ea9e8ef48a90b79d60967",
-      "md5": "ad04db99f17c99cdf07ef259ca5ae6ff",
-      "ingested_at": "2026-10-14T01:20:49+00:00",
-      "seconds": 0.02
+      "size_bytes": 2613,
+      "sha256": "a81f0d1f27b27e7293f761bc79e3ce8f348ee39c4b3ed3e49bde38f478586278",
+      "md5": "4196d142e8f2b9697521fc50c97f626b",
+      "ingested_at": "2026-10-14T12:33:21+00:00",
+      "seconds": 0.0
     }
   ]
 }

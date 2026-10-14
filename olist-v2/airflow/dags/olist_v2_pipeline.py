@@ -1,4 +1,4 @@
-"""DAG olist_v2_pipeline. Diperluas bertahap: sekarang `download_kaggle` → `ingest_bronze` → `spark_silver` → `contract_gate`; load, gate, load, dbt, publish menyusul.
+"""DAG olist_v2_pipeline. Diperluas bertahap: sekarang `download_kaggle` → `ingest_bronze` → `spark_silver` → `contract_gate` → `load_raw`; dbt, gate, load, dbt, publish menyusul.
 Airflow hanya merangkai: logikanya ada di paket `olist_v2` (bisa dijalankan tanpa Airflow: `make bronze`)."""
 from datetime import datetime, timedelta
 
@@ -44,8 +44,31 @@ def contract_gate():
     s = run_gate()
     write_outputs(Path(os.environ.get("OLIST_OUTPUTS", "/opt/airflow/outputs")), s)
     if s["failed"] or s["result"] in ("failed", "error"):
-        raise AirflowException(f"gate kontrak GAGAL: {[x['name'] for x in s['failed']][:5]}")   # DAG berhenti: tidak ada load_raw
+        for x in s["failed"][:5]:
+            print(f"GAGAL: {x['model']} | {x['name']} | {x['reason']}")
+        why = "; ".join(f"{x['name']}: {x['reason']}" for x in s["failed"][:3])
+        raise AirflowException(f"gate kontrak GAGAL — {why}")   # DAG berhenti: tidak ada load_raw
     print(f"gate: {s['result']} — {s['passed']}/{s['checks']} lolos, {len(s['soft_violations'])} soft")
+
+
+def load_raw():
+    import os
+    from pathlib import Path
+
+    import psycopg2
+    from airflow.exceptions import AirflowException
+    from olist_v2.bronze import make_s3
+    from olist_v2.load import run_load, write_outputs
+
+    conn = psycopg2.connect(os.environ["WAREHOUSE_DSN"], connect_timeout=5)
+    try:
+        run = run_load(make_s3(), conn)      # satu transaksi: gagal di tengah = rollback
+    finally:
+        conn.close()
+    write_outputs(Path(os.environ.get("OLIST_OUTPUTS", "/opt/airflow/outputs")), run)
+    if run["skipped_fail"]:
+        raise AirflowException(f"tabel tidak dimuat (FAIL): {', '.join(run['skipped_fail'])}")
+    print(f"load selesai {run['seconds']} s: " + ", ".join(f"{t['table']}={t['loaded']:,}" for t in run["tables"]))
 
 
 def ingest_bronze():
@@ -70,4 +93,5 @@ with DAG(
     ingest = PythonOperator(task_id="ingest_bronze", python_callable=ingest_bronze, execution_timeout=timedelta(minutes=10))
     silver = PythonOperator(task_id="spark_silver", python_callable=spark_silver, execution_timeout=timedelta(minutes=20), retries=0)
     gate = PythonOperator(task_id="contract_gate", python_callable=contract_gate, execution_timeout=timedelta(minutes=10), retries=0)
-    download >> ingest >> silver >> gate
+    load = PythonOperator(task_id="load_raw", python_callable=load_raw, execution_timeout=timedelta(minutes=10), retries=0)
+    download >> ingest >> silver >> gate >> load

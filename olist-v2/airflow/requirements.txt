@@ -6,3 +6,4 @@ apache-airflow-providers-amazon            # S3Hook/boto3 untuk MinIO
 pyspark>=3.5.3,<3.6                        # klien spark-submit; HARUS satu minor dengan cluster Spark 3.5.3
 kafka-python-ng==2.2.3                     # admin/producer ringan dari DAG (sama dengan proyek T0–T6)
 # astronomer-cosmos                        # opsional: render model dbt sebagai task Airflow (uji kompatibilitas dulu)
+pyarrow                                     # membaca Parquet silver untuk load_raw (versi ditentukan constraints Airflow)

@@ -8,7 +8,7 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: build-core download bronze silver gate test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
@@ -26,6 +26,16 @@ silver: ## bronze -> silver (Spark lokal) + gate + karantina -> outputs/dq_repor
 
 gate: ## datacontract test terhadap silver di MinIO -> outputs/contract_gate.md
 	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.gate
+
+load: ## silver -> raw.* di Postgres (TRUNCATE+COPY, satu transaksi) -> outputs/load_report.md
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.load
+
+dag-test: ## jalankan SELURUH DAG di proses sendiri, log tercetak di layar (tidak bergantung pada file log Airflow)
+	$(COMPOSE) exec -T airflow-scheduler airflow dags test olist_v2_pipeline
+
+task-test: ## satu task di layar: make task-test T=contract_gate
+	@test -n "$(T)" || { echo "pakai: make task-test T=<task_id>"; exit 2; }
+	$(COMPOSE) exec -T airflow-scheduler airflow tasks test olist_v2_pipeline $(T) $$(date -u +%Y-%m-%d)
 
 test: ## pytest tanpa Docker (venv lokal)
 	$(VENV)/bin/python -m pytest tests -q
@@ -55,8 +65,28 @@ up-all: init ## nyalakan SEMUA profil (butuh RAM besar; Docker saat ini 7,8 GB)
 down: ## matikan (volume tetap)
 	$(COMPOSE) $(ALL) down
 
-reset: ## matikan DAN hapus volume olist-v2 saja (olist-v2-*); proyek lain tidak tersentuh
+# ---- reset bertingkat (semua meminta konfirmasi; lewati dengan YES=1) --------------------------------------------
+define CONFIRM
+	@if [ "$(YES)" != "1" ]; then printf "$(1) Lanjut? [y/N] "; read a; [ "$$a" = "y" ] || { echo "dibatalkan"; exit 1; }; fi
+endef
+
+reset-layers: ## [ringan] kosongkan bucket bronze/silver/gold + schema raw/staging/dw/mart; stack TETAP hidup
+	$(call CONFIRM,Mengosongkan SEMUA objek di bucket bronze/silver/gold dan schema raw/staging/dw/mart di olist_dw.)
+	@$(COMPOSE) exec -T minio sh -c 'mc alias set local http://localhost:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" >/dev/null && for b in bronze silver gold; do mc rm --recursive --force local/$$b >/dev/null 2>&1 || true; done'
+	@$(COMPOSE) exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$$POSTGRES_USER" -d olist_dw -c "DROP SCHEMA IF EXISTS raw CASCADE; DROP SCHEMA IF EXISTS staging CASCADE; DROP SCHEMA IF EXISTS dw CASCADE; DROP SCHEMA IF EXISTS mart CASCADE; CREATE SCHEMA raw; CREATE SCHEMA staging; CREATE SCHEMA dw; CREATE SCHEMA mart;"'
+	@echo "layer dikosongkan. Hilang: objek bronze (beserta riwayat versi manifest), silver, gold, dan isi raw/staging/dw/mart. Tetap: CSV di data/raw, riwayat run Airflow, kode, .env."
+
+reset: ## [sedang] matikan DAN hapus volume olist-v2-* (Postgres, MinIO, Kafka, log Airflow); CSV data/raw tetap
+	$(call CONFIRM,Menghapus SEMUA volume olist-v2 (Postgres termasuk database airflow/metabase, MinIO, Kafka, log Airflow).)
 	$(COMPOSE) $(ALL) down -v
+	@echo "volume dihapus. Tetap: CSV di data/raw, kode, .env, outputs/. Mulai lagi: make up"
+
+reset-all: ## [penuh] reset + hapus CSV unduhan di data/raw (unduh ulang dari Kaggle saat run berikutnya)
+	$(call CONFIRM,Menghapus semua volume olist-v2 DAN CSV hasil unduhan di data/raw.)
+	$(COMPOSE) $(ALL) down -v
+	rm -f data/raw/*.csv data/raw/*.zip
+	rm -rf data/raw/.dl-*
+	@echo "semuanya dihapus. Tetap: kode, .env, .kaggle/, outputs/. Mulai lagi: make up lalu jalankan DAG (akan mengunduh dari Kaggle)."
 
 ps: ## status
 	$(COMPOSE) $(ALL) ps -a

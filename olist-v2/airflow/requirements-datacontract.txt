@@ -1,3 +1,3 @@
 # venv datacontract: /opt/airflow/venvs/datacontract  (dipanggil lewat $DATACONTRACT_BIN)
-# Tambahkan extras ([s3], [postgres]) bila `datacontract test` langsung ke MinIO/Postgres. Versi sama dengan proyek T0–T6.
-datacontract-cli>=1.2,<2
+# [s3] WAJIB: tanpanya `datacontract test` ke MinIO gagal dengan "The 's3' backend is not installed". Tambah [postgres] bila menguji Postgres.
+datacontract-cli[s3]>=1.2,<2

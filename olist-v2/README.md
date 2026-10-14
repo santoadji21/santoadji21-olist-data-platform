@@ -19,6 +19,26 @@ make ps                      # status (JANGAN pakai `up --wait`)
 make reset                   # hapus volume olist-v2-* saja
 ```
 
+## Reset (tiga tingkat; semuanya meminta konfirmasi, lewati dengan `YES=1`)
+
+| Perintah | Menghapus | Tetap ada | Untuk apa |
+|---|---|---|---|
+| `make reset-layers` | objek di bucket `bronze`/`silver`/`gold` (termasuk manifest dan riwayat versi) dan isi schema `raw`/`staging`/`dw`/`mart` | container, volume, riwayat run Airflow, `data/raw`, kode | mengulang pipeline dari awal dengan cepat, tanpa membangun ulang stack |
+| `make reset` | **semua volume olist-v2** (Postgres termasuk database `airflow`/`metabase`, MinIO, Kafka, log Airflow) | CSV di `data/raw`, kode, `.env`, `outputs/` | mulai dari stack kosong; `make up` lagi sesudahnya |
+| `make reset-all` | seperti `reset` **plus** CSV unduhan di `data/raw` | kode, `.env`, `.kaggle/`, `outputs/` | menguji unduhan Kaggle dari nol |
+
+`make down` hanya mematikan container (volume tetap). Semua perintah memakai `-p olist-v2`, jadi proyek lain (T0–T6, v1) tidak tersentuh.
+
+## Bila log task di UI Airflow terpotong
+Di mesin ini log task yang dijalankan **scheduler** hanya berisi 8 baris (tanpa keluaran kode kita dan tanpa penutup), padahal task yang sama dijalankan **manual** menghasilkan log lengkap. Penyebabnya **belum ditemukan**. Sudah dikesampingkan: versi Airflow, izin file, bagian `[logging]` di konfigurasi, dan `execute_tasks_new_python_interpreter=True` (dicoba, tidak berpengaruh, sudah dihapus). Tidak menghalangi: semua task hijau dan hasilnya tertulis ke `outputs/` dan MinIO/Postgres. Jalur debug yang tidak bergantung pada file log itu:
+
+| Perintah | Guna |
+|---|---|
+| `make task-test T=<task_id>` | satu task, log dan traceback langsung di layar |
+| `make dag-test` | seluruh DAG berurutan di layar |
+| `make silver` / `make gate` / `make load` | tahap yang sama tanpa Airflow |
+| `outputs/*_report.md`, `outputs/*.json` | hasil dan alasan gagal tahap, ditulis kode kita sendiri |
+
 ## Jebakan yang sudah terjadi di mesin ini
 - Shell mengekspor `COMPOSE_PROJECT_NAME=olist`, `MINIO_*`, `POSTGRES_*`: itu **mengalahkan `.env` dan `name:` compose**. Akibatnya compose v2 pernah menggantikan container `olist-postgres`/`olist-minio` milik T0–T6 dan memakai volume mereka. Penangkalnya sudah ada: `make` memakai `-p olist-v2`, variabel berawalan `V2_`, volume/network bernama eksplisit (`olist-v2-*`). **Selalu jalankan lewat `make`.**
 - `docker compose up --wait` menghentikan semuanya karena service sekali-jalan keluar dengan kode 0.

@@ -1,0 +1,98 @@
+{
+  "stage": "load",
+  "ran_at": "2026-10-14T12:49:56+00:00",
+  "seconds": 6.66,
+  "tables": [
+    {
+      "table": "customers",
+      "source_rows": 99441,
+      "quarantined": 0,
+      "expected": 99441,
+      "loaded": 99441,
+      "match": true,
+      "table_ddl": "ok",
+      "seconds": 1.67
+    },
+    {
+      "table": "geolocation",
+      "source_rows": 1000163,
+      "quarantined": 0,
+      "expected": 1000163,
+      "loaded": 1000163,
+      "match": true,
+      "table_ddl": "ok",
+      "seconds": 3.38
+    },
+    {
+      "table": "order_items",
+      "source_rows": 112650,
+      "quarantined": 0,
+      "expected": 112650,
+      "loaded": 112650,
+      "match": true,
+      "table_ddl": "ok",
+      "seconds": 0.38
+    },
+    {
+      "table": "order_payments",
+      "source_rows": 103886,
+      "quarantined": 0,
+      "expected": 103886,
+      "loaded": 103886,
+      "match": true,
+      "table_ddl": "ok",
+      "seconds": 0.12
+    },
+    {
+      "table": "order_reviews",
+      "source_rows": 99224,
+      "quarantined": 0,
+      "expected": 99224,
+      "loaded": 99224,
+      "match": true,
+      "table_ddl": "ok",
+      "seconds": 0.37
+    },
+    {
+      "table": "orders",
+      "source_rows": 99441,
+      "quarantined": 0,
+      "expected": 99441,
+      "loaded": 99441,
+      "match": true,
+      "table_ddl": "ok",
+      "seconds": 0.63
+    },
+    {
+      "table": "products",
+      "source_rows": 32951,
+      "quarantined": 0,
+      "expected": 32951,
+      "loaded": 32951,
+      "match": true,
+      "table_ddl": "ok",
+      "seconds": 0.05
+    },
+    {
+      "table": "sellers",
+      "source_rows": 3095,
+      "quarantined": 0,
+      "expected": 3095,
+      "loaded": 3095,
+      "match": true,
+      "table_ddl": "ok",
+      "seconds": 0.01
+    },
+    {
+      "table": "product_category_translation",
+      "source_rows": 71,
+      "quarantined": 0,
+      "expected": 71,
+      "loaded": 71,
+      "match": true,
+      "table_ddl": "ok",
+      "seconds": 0.01
+    }
+  ],
+  "skipped_fail": []
+}
