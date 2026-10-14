@@ -44,6 +44,12 @@ x-airflow-common: &airflow-common
     DBT_PROFILES_DIR: /opt/airflow/dbt
     DBT_BIN: /opt/airflow/venvs/dbt/bin/dbt
     DATACONTRACT_BIN: /opt/airflow/venvs/datacontract/bin/datacontract
+    PYTHONPATH: /opt/airflow
+    KAGGLE_CONFIG_DIR: /home/airflow/.kaggle
+    KAGGLE_BIN: /opt/airflow/venvs/kaggle/bin/kaggle
+    OLIST_RAW_DIR: /opt/airflow/data/raw
+    OLIST_CONTRACT: /opt/airflow/contracts/olist_raw.odcs.yaml
+    OLIST_OUTPUTS: /opt/airflow/outputs
     DBT_PG_HOST: postgres
     DBT_PG_USER: ${V2_PG_USER}
     DBT_PG_PASSWORD: ${V2_PG_PASSWORD}
@@ -52,10 +58,13 @@ x-airflow-common: &airflow-common
     - ./airflow/plugins:/opt/airflow/plugins
     - ./dbt:/opt/airflow/dbt
     - ./contracts:/opt/airflow/contracts:ro
+    - ./olist_v2:/opt/airflow/olist_v2:ro
+    - ./outputs:/opt/airflow/outputs
     - ./spark/jobs:/opt/airflow/spark-jobs:ro
     - ./spark/conf:/opt/airflow/spark-conf:ro
     - airflow_logs:/opt/airflow/logs
-    - ../data/raw:/opt/airflow/data/raw:ro                # CSV Olist dipakai ulang (read-only)
+    - ./data/raw:/opt/airflow/data/raw                    # CSV Olist milik v2: ditulis `download_kaggle`, dibaca `ingest_bronze`
+    - ./.kaggle:/home/airflow/.kaggle:ro                  # kredensial Kaggle (di-ignore git), read-only
   depends_on:
     postgres: { condition: service_healthy }
   networks: [v2]
@@ -284,7 +293,8 @@ services:
     volumes:
       - ./notebooks:/home/jovyan/work
       - ./spark/conf:/home/jovyan/spark-conf:ro
-      - ../data/raw:/home/jovyan/data/raw:ro
+      - ./data/raw:/home/jovyan/data/raw:ro
+      - ./contracts:/home/jovyan/contracts:ro
     deploy: { resources: { limits: { memory: 1G } } }
     networks: [v2]
 

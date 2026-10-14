@@ -24,6 +24,8 @@ node $A deliver dataflow     docs/diagrams/olist-v2.dataflow.json     docs/diagr
 node $A deliver workflow     docs/diagrams/olist-v2.workflow.json     docs/diagrams/olist-v2.workflow.html     --quality showcase
 ```
 
+**Catatan cakupan:** diagram DAG dimulai dari `ingest_bronze`; task `download_kaggle` (yang mendahuluinya) tidak muat di diagram itu (skema workflow hanya 6 kolom, semuanya terpakai), jadi ia tergambar sebagai sumber di diagram aliran data dan dijelaskan di [langkah 3](steps/03-bronze-ingest.md).
+
 Ketiganya lolos 9 dari 9 pemeriksaan showcase dan pemeriksaan keterkungkungan layar 1440–2048 px (terang dan gelap). Catatan visual jujur: di diagram DAG, panah `ingest_bronze → MinIO bronze` dan `fail → stop` mengambil jalur tidak langsung. Keduanya valid dan tidak menimpa node, tetapi bukan jalur terpendek.
 
 ## Langkah demi langkah
@@ -34,7 +36,7 @@ Status: **ada** = sudah dibuat dan diperiksa · **ditulis** = file ada, belum di
 |---|---|---|---|
 | 1 | [Isolasi dan persiapan](steps/01-isolasi-dan-persiapan.md) | ada | branch, `.env`, venv dbt |
 | 2 | [Stack inti](steps/02-stack-inti.md) | ditulis | compose, Postgres, MinIO, Airflow |
-| 3 | [Bronze: ingest ke MinIO](steps/03-bronze-ingest.md) | rencana | DAG task `ingest_bronze` |
+| 3 | [Bronze: unduh Kaggle + ingest ke MinIO](steps/03-bronze-ingest.md) | bronze **terverifikasi** di MinIO; unduhan Kaggle ditulis, 21 test lolos | `olist_v2/`, DAG `olist_v2_pipeline` |
 | 4 | [Silver: Spark + kontrak ODCS](steps/04-silver-spark-kontrak.md) | rencana (image ditulis) | `spark/`, `contracts/` |
 | 5 | [Warehouse: dbt](steps/05-warehouse-dbt.md) | rencana (venv ada); **keputusan jalur A/B** | `dbt/` |
 | 6 | [Dashboard: notebook + Metabase](steps/06-dashboard-metabase.md) | rencana | profil `bi`, `notebooks/` |

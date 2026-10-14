@@ -8,7 +8,7 @@ RUN apt-get update \
 ENV JAVA_HOME=/usr/lib/jvm/default-java
 
 USER airflow
-COPY requirements.txt requirements-dbt.txt requirements-datacontract.txt /tmp/req/
+COPY requirements.txt requirements-dbt.txt requirements-datacontract.txt requirements-kaggle.txt /tmp/req/
 
 # 1) lingkungan utama Airflow: dipasang dengan constraints resmi agar tidak merusak dependensi Airflow
 RUN pip install --no-cache-dir -r /tmp/req/requirements.txt \
@@ -19,3 +19,5 @@ RUN python -m venv /opt/airflow/venvs/dbt \
  && /opt/airflow/venvs/dbt/bin/pip install --no-cache-dir -r /tmp/req/requirements-dbt.txt
 RUN python -m venv /opt/airflow/venvs/datacontract \
  && /opt/airflow/venvs/datacontract/bin/pip install --no-cache-dir -r /tmp/req/requirements-datacontract.txt
+RUN python -m venv /opt/airflow/venvs/kaggle \
+ && /opt/airflow/venvs/kaggle/bin/pip install --no-cache-dir -r /tmp/req/requirements-kaggle.txt

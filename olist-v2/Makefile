@@ -8,11 +8,21 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: build-core download bronze test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
 	@echo; echo "  profil: spark | stream (kafka) | bi (metabase) | lab (jupyter) | contract (editor ODCS)"
+
+download: ## unduh dataset dari Kaggle ke data/raw (perlu .kaggle/kaggle.json)
+	@test -f .kaggle/kaggle.json || { echo "taruh kaggle.json di olist-v2/.kaggle/ dulu (salin dari ~/.kaggle/kaggle.json)"; exit 1; }
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.download
+
+bronze: ## CSV -> MinIO bronze + manifest (perintah mandiri, tanpa UI Airflow)
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.bronze
+
+test: ## pytest tanpa Docker (venv lokal)
+	$(VENV)/bin/python -m pytest tests -q
 
 venv: ## venv lokal untuk IDE/plugin dbt (versi sama dengan image Airflow)
 	uv venv $(VENV) --python 3.11 && uv pip install --python $(VENV)/bin/python -r requirements-dev.txt
@@ -24,7 +34,10 @@ init: ## buat .env dari .env.example
 config: init ## validasi compose (semua profil), tanpa menyalakan apa pun
 	$(COMPOSE) $(ALL) config -q && echo "compose valid"
 
-build: init ## build image kustom (airflow, spark, jupyter) — pertama kali beberapa menit
+build-core: init ## build HANYA image Airflow (cukup untuk fase inti; Spark/Jupyter belum perlu)
+	$(COMPOSE) build airflow-webserver
+
+build: init ## build SEMUA image kustom (airflow, spark, jupyter) — pertama kali beberapa menit
 	$(COMPOSE) $(ALL) build
 
 up: init ## nyalakan inti (+ profil di P=), TANPA --wait; lihat make ps

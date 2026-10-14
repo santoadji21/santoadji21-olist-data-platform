@@ -1,2 +1,4 @@
 # Lingkungan lokal untuk IDE (mis. plugin dbt): versi SAMA dengan image Airflow, dari satu sumber.
 -r airflow/requirements-dbt.txt
+pytest>=8,<9
+pyyaml>=6,<7

@@ -32,8 +32,8 @@
     {
       "id": "csv",
       "type": "external",
-      "label": "CSV Olist",
-      "sublabel": "9 file, 99.441 order",
+      "label": "Kaggle CSV",
+      "sublabel": "download_kaggle · 9 file",
       "stage": 0,
       "row": 1,
       "height": 64
