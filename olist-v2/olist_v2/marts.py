@@ -67,6 +67,25 @@ def run_checks(conn, dbt_dir: Path) -> list[dict]:
     return run_test_sql(conn, dbt_dir / "tests" / "mart_checks.sql")
 
 
+DW_TABLES = ("dim_date", "dim_geo", "dim_customer", "dim_seller", "dim_product", "fact_order", "fact_order_item", "fact_payment", "fact_review")
+
+
+def dw_summary(conn, dbt_dir: Path) -> dict:
+    """Besaran dw untuk laporan bukti: baris tiap tabel, 28 pemeriksaan integritas, angka cek tugas (dibaca dari DB, bukan diketik)."""
+    rows = {t: fetch(conn, f"SELECT count(*) AS n FROM dw.{t}")[0]["n"] for t in DW_TABLES}
+    key = fetch(conn, """SELECT (SELECT count(*) FROM dw.dim_customer) AS unique_people,
+        (SELECT count(*) FROM dw.fact_order WHERE NOT has_items) AS orders_without_items,
+        (SELECT count(*) FROM dw.fact_order WHERE NOT has_payment) AS orders_without_payment,
+        (SELECT count(*) FROM dw.fact_order WHERE order_status = 'delivered') AS delivered,
+        (SELECT count(*) FROM dw.fact_order WHERE is_late IS NOT NULL) AS delivered_with_date,
+        (SELECT round(100.0 * count(*) FILTER (WHERE is_late) / count(*), 2) FROM dw.fact_order WHERE is_late IS NOT NULL) AS late_rate_pct,
+        (SELECT count(DISTINCT year_month) FROM dw.dim_date WHERE is_complete_month) AS complete_months,
+        (SELECT count(*) FROM pg_constraint c JOIN pg_namespace n ON n.oid = c.connamespace WHERE n.nspname = 'dw' AND c.contype = 'p') AS primary_keys,
+        (SELECT count(*) FROM pg_constraint c JOIN pg_namespace n ON n.oid = c.connamespace WHERE n.nspname = 'dw' AND c.contype = 'f') AS foreign_keys""")[0]
+    return {"stage": "dw", "ran_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "rows": {k: int(v) for k, v in rows.items()},
+            "checks": run_test_sql(conn, dbt_dir / "tests" / "dw_integrity.sql"), "key_numbers": key}
+
+
 def export_gold(s3, conn) -> list[dict]:
     import pandas as pd
 
@@ -144,11 +163,13 @@ def main(env=os.environ) -> int:
             return 1
         exported = export_gold(make_s3(env), conn)
         md, run = build_report(conn, checks, exported, round(time.time() - t0, 2))
+        dw = dw_summary(conn, dbt_dir)
     finally:
         conn.close()
     out = Path(env.get("OLIST_OUTPUTS", REPO / "outputs"))
     out.mkdir(parents=True, exist_ok=True)
     (out / "marts_report.md").write_text(md, encoding="utf-8")
+    (out / "dw.json").write_text(json.dumps(dw, indent=2, default=str), encoding="utf-8")
     (out / "marts.json").write_text(json.dumps(run, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
     print(f"  {len(checks)} pemeriksaan = 0 · gold: {sum(e['rows'] for e in exported):,} baris di {len(exported)} mart → outputs/marts_report.md")
     return 0

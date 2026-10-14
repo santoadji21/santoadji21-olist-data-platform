@@ -1,6 +1,6 @@
 # Laporan Mart (T5)
 
-Dibangun 2026-10-14T13:52:49+00:00 · 3.28 s · 17/17 pemeriksaan mart = 0 (`dbt/tests/mart_checks.sql`). Setiap bagian di bawah memakai query dan kalimat insight yang SAMA dengan kartu di dashboard Metabase (`olist_v2/questions.py`); hanya **bulan lengkap** yang ditampilkan.
+Dibangun 2026-10-14T22:11:13+00:00 · 3.47 s · 17/17 pemeriksaan mart = 0 (`dbt/tests/mart_checks.sql`). Setiap bagian di bawah memakai query dan kalimat insight yang SAMA dengan kartu di dashboard Metabase (`olist_v2/questions.py`); hanya **bulan lengkap** yang ditampilkan.
 
 ## Q1 · Pendapatan vs uang terbayar per bulan
 
@@ -151,27 +151,27 @@ _35 baris lain tidak ditampilkan._
 
 ## Freshness stream · p50/p95 per batch consumer
 
-**Insight:** Dari 219 batch (p95 tertinggi 3.520 ms), p50 batch awal 177 ms → batch akhir 1.837 ms: lag tumbuh selama replay.
+**Insight:** Dari 216 batch (p95 tertinggi 3.147 ms), p50 batch awal 177 ms → batch akhir 1.774 ms: lag tumbuh selama replay.
 
 | batch_no | consumed_at | n_messages | n_new | n_duplicate | n_out_of_order | n_dlq | fresh_p50_ms | fresh_p95_ms |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 2026-10-14 13:51:58.776182+00:00 | 700 | 683 | 15 | 0 | 2 | 42,50 | 50,30 |
-| 2 | 2026-10-14 13:51:58.857693+00:00 | 638 | 614 | 18 | 4 | 6 | 91 | 116,30 |
-| 3 | 2026-10-14 13:51:58.892656+00:00 | 720 | 700 | 17 | 0 | 3 | 97 | 120 |
-| 4 | 2026-10-14 13:51:58.949650+00:00 | 1.054 | 1.016 | 30 | 0 | 8 | 113,70 | 123,20 |
-| 5 | 2026-10-14 13:51:58.998952+00:00 | 1.047 | 1.015 | 30 | 2 | 2 | 113,50 | 121,80 |
-| 6 | 2026-10-14 13:51:59.052893+00:00 | 1.415 | 1.360 | 45 | 4 | 10 | 101,90 | 128 |
-| 7 | 2026-10-14 13:51:59.121864+00:00 | 1.342 | 1.303 | 34 | 2 | 5 | 128 | 137,90 |
-| 8 | 2026-10-14 13:51:59.184970+00:00 | 1.018 | 979 | 33 | 7 | 6 | 136,80 | 144 |
-| 9 | 2026-10-14 13:51:59.242398+00:00 | 2.000 | 1.935 | 62 | 18 | 3 | 120,60 | 156,50 |
-| 10 | 2026-10-14 13:51:59.327782+00:00 | 804 | 780 | 22 | 3 | 2 | 143 | 170,60 |
-| 11 | 2026-10-14 13:51:59.369441+00:00 | 1.598 | 1.541 | 50 | 15 | 7 | 137,60 | 191 |
-| 12 | 2026-10-14 13:51:59.434399+00:00 | 142 | 137 | 5 | 1 | 0 | 158,20 | 159,40 |
-| 13 | 2026-10-14 13:51:59.451540+00:00 | 1.803 | 1.734 | 55 | 14 | 14 | 73,90 | 104,40 |
-| 14 | 2026-10-14 13:51:59.530891+00:00 | 593 | 581 | 8 | 6 | 4 | 105,70 | 109,80 |
-| 15 | 2026-10-14 13:51:59.569572+00:00 | 1.139 | 1.108 | 28 | 14 | 3 | 114,80 | 123,50 |
+| 1 | 2026-10-14 22:10:21.720941+00:00 | 711 | 693 | 15 | 0 | 3 | 61,40 | 68,60 |
+| 2 | 2026-10-14 22:10:21.830785+00:00 | 2.000 | 1.933 | 54 | 4 | 13 | 112,10 | 141,70 |
+| 3 | 2026-10-14 22:10:21.916344+00:00 | 402 | 388 | 11 | 0 | 3 | 160,70 | 172,50 |
+| 4 | 2026-10-14 22:10:21.950573+00:00 | 2.000 | 1.928 | 66 | 4 | 6 | 120,60 | 145,80 |
+| 5 | 2026-10-14 22:10:22.054236+00:00 | 865 | 840 | 18 | 4 | 7 | 146,30 | 201,20 |
+| 6 | 2026-10-14 22:10:22.120168+00:00 | 2.000 | 1.932 | 58 | 7 | 10 | 139,70 | 208,70 |
+| 7 | 2026-10-14 22:10:22.210679+00:00 | 996 | 963 | 32 | 10 | 1 | 154,60 | 198 |
+| 8 | 2026-10-14 22:10:22.265786+00:00 | 2.000 | 1.933 | 63 | 18 | 4 | 140,60 | 227,10 |
+| 9 | 2026-10-14 22:10:22.351891+00:00 | 627 | 607 | 18 | 4 | 2 | 177,60 | 203,50 |
+| 10 | 2026-10-14 22:10:22.391625+00:00 | 1.622 | 1.565 | 46 | 9 | 11 | 168,40 | 194 |
+| 11 | 2026-10-14 22:10:22.463969+00:00 | 700 | 667 | 28 | 6 | 5 | 119,10 | 136,40 |
+| 12 | 2026-10-14 22:10:22.508184+00:00 | 2.000 | 1.948 | 42 | 24 | 10 | 107,40 | 137,80 |
+| 13 | 2026-10-14 22:10:22.591588+00:00 | 678 | 658 | 18 | 10 | 2 | 120,80 | 155,20 |
+| 14 | 2026-10-14 22:10:22.634021+00:00 | 2.000 | 1.935 | 58 | 26 | 7 | 112,80 | 177,10 |
+| 15 | 2026-10-14 22:10:22.724519+00:00 | 1.146 | 1.111 | 31 | 19 | 4 | 143,10 | 177 |
 
-_204 baris lain tidak ditampilkan._
+_201 baris lain tidak ditampilkan._
 
 ## Pemeriksaan mart
 
@@ -200,13 +200,13 @@ _204 baris lain tidak ditampilkan._
 | Mart | Baris | Parquet (byte) |
 |---|---:|---:|
 | s3://gold/olist/mart/sales_monthly | 11,805 | 210,419 |
-| s3://gold/olist/mart/revenue_vs_paid_monthly | 24 | 5,441 |
+| s3://gold/olist/mart/revenue_vs_paid_monthly | 24 | 5,444 |
 | s3://gold/olist/mart/delivery_monthly | 556 | 30,394 |
 | s3://gold/olist/mart/seller_scorecard | 3,095 | 178,367 |
 | s3://gold/olist/mart/customer_rfm | 94,983 | 3,496,852 |
-| s3://gold/olist/mart/reconciliation | 99,441 | 4,041,815 |
-| s3://gold/olist/mart/stream_freshness | 2 | 6,769 |
-| s3://gold/olist/mart/stream_freshness_batch | 219 | 14,537 |
+| s3://gold/olist/mart/reconciliation | 99,441 | 4,042,120 |
+| s3://gold/olist/mart/stream_freshness | 1 | 6,697 |
+| s3://gold/olist/mart/stream_freshness_batch | 216 | 14,278 |
 
 ## Penelusuran angka (mart → model dbt → fakta)
 

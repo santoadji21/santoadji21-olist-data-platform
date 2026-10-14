@@ -1,8 +1,8 @@
 {
   "stage": "silver",
-  "ran_at": "2026-10-14T13:51:49+00:00",
+  "ran_at": "2026-10-14T22:09:59+00:00",
   "engine": "spark 3.5.4 (local[2])",
-  "seconds": 23.35,
+  "seconds": 21.81,
   "tables": [
     {
       "table": "customers",

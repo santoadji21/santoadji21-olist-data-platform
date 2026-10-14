@@ -1,8 +1,8 @@
 {
   "stage": "bronze",
   "bucket": "bronze",
-  "ran_at": "2026-10-14T13:50:21+00:00",
-  "seconds": 1.45,
+  "ran_at": "2026-10-14T22:09:33+00:00",
+  "seconds": 1.69,
   "files": [
     {
       "table": "customers",
@@ -17,7 +17,7 @@
       "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2",
       "md5": "8a2c4244856aab4bde3b8ed81f8ca251",
       "ingested_at": "2026-10-14T13:46:02+00:00",
-      "seconds": 0.1
+      "seconds": 0.15
     },
     {
       "table": "geolocation",
@@ -32,7 +32,7 @@
       "sha256": "b514f6fc991b9566aeba02aa5d67e2c3630f034b60a0e05aa0d082a3b66d88d6",
       "md5": "6d8464e41c8e2013955e437b6b4fafbd",
       "ingested_at": "2026-10-14T01:20:48+00:00",
-      "seconds": 0.71
+      "seconds": 0.88
     },
     {
       "table": "order_items",
@@ -47,7 +47,7 @@
       "sha256": "0bc4d068c4fe38cbb01bd90e8746e3c613fe7b4baef75fab7b0e329701c3e279",
       "md5": "f4fa76976662e9cba0633f9e49ed2645",
       "ingested_at": "2026-10-14T01:20:48+00:00",
-      "seconds": 0.17
+      "seconds": 0.19
     },
     {
       "table": "order_payments",
@@ -62,7 +62,7 @@
       "sha256": "4f713964f2815dbbaa40b9488268c55aac3627bfce5aa96cf58d1f3616de3cc0",
       "md5": "75ce0c041d18e5f250c5cea9a8042944",
       "ingested_at": "2026-10-14T01:20:48+00:00",
-      "seconds": 0.07
+      "seconds": 0.08
     },
     {
       "table": "order_reviews",
