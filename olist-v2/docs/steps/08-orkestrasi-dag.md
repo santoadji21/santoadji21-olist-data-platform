@@ -1,6 +1,6 @@
 # Langkah 8 — Orkestrasi: DAG ujung ke ujung
 
-**Status: ada dan terbukti per task.** Diagram: [olist-v2.workflow.html](../diagrams/olist-v2.workflow.html) (diagram ini masih berhenti di `load_raw`; belum menggambar `dbt_build` dan `marts_report`). Airflow hanya mengatur urutan; logika ada di Spark, dbt, dan datacontract, dan tiap tahap punya perintah mandiri (`make bronze`, …) yang jalan tanpa UI.
+**Status: ada dan terbukti per task.** Diagram: [olist-v2.workflow.html](../diagrams/olist-v2.workflow.html) (menggambar tujuh task, penyimpanan yang ditulis, dan jalur gagal). Siapa menjalankan apa: [olist-v2.run.html](../diagrams/olist-v2.run.html). Airflow hanya mengatur urutan; logika ada di Spark, dbt, dan datacontract, dan tiap tahap punya perintah mandiri (`make bronze`, …) yang jalan tanpa UI.
 
 ## Task dan urutan (DAG `olist_v2_pipeline`)
 `download_kaggle → ingest_bronze → spark_silver → contract_gate → load_raw → dbt_build → marts_report`

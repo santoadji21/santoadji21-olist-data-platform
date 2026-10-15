@@ -54,5 +54,5 @@ Gejala dan pemulihan: [RUNBOOK.md](RUNBOOK.md). Rancangan dan langkah: [docs/REA
 - `make all YES=1` dari nol termasuk build image (batas tugas 15 menit): run tanpa reset 122 detik; run dari nol belum dijalankan.
 - Spark cluster (profil `spark`, image 3.5.3) belum dipakai dan versinya belum diselaraskan dengan pyspark klien 3.5.4; silver berjalan di `local[2]`.
 - Jupyter (profil `lab`) dan editor ODCS (profil `contract`) belum dijalankan.
-- Stream belum menjadi task DAG; diagram belum menggambar dbt, mart, dan stream.
+- Stream belum menjadi task DAG (jalan lewat `make stream`).
 - Iceberg, observability/lineage, dan uji beban (k6) belum.

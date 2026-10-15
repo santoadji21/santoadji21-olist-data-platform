@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "olist-v2 — siapa menjalankan apa (make all)",
+    "output": "olist-v2.run.html",
+    "quality_profile": "showcase",
+    "locale": "en",
+    "viewBox": [
+      1080,
+      540
+    ],
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "make",
+      "type": "external",
+      "label": "Laptop",
+      "sublabel": "make · dbt"
+    },
+    {
+      "id": "scheduler",
+      "type": "backend",
+      "label": "Scheduler",
+      "sublabel": "olist_v2.*"
+    },
+    {
+      "id": "minio",
+      "type": "cloud",
+      "label": "MinIO",
+      "sublabel": "bronze · silver"
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "raw · dw · mart"
+    },
+    {
+      "id": "kafka",
+      "type": "messagebus",
+      "label": "Kafka",
+      "sublabel": "order events"
+    },
+    {
+      "id": "metabase",
+      "type": "frontend",
+      "label": "Metabase",
+      "sublabel": "dashboard"
+    }
+  ],
+  "segments": [
+    {
+      "from": 158,
+      "to": 306,
+      "label": "Batch masuk"
+    },
+    {
+      "from": 313,
+      "to": 368,
+      "label": "Stream"
+    },
+    {
+      "from": 375,
+      "to": 462,
+      "label": "Mart dan dashboard"
+    }
+  ],
+  "messages": [
+    {
+      "id": "download",
+      "from": "make",
+      "to": "scheduler",
+      "y": 170,
+      "label": "make download",
+      "variant": "default"
+    },
+    {
+      "id": "bronze",
+      "from": "scheduler",
+      "to": "minio",
+      "y": 201,
+      "label": "make bronze",
+      "variant": "default"
+    },
+    {
+      "id": "silver",
+      "from": "scheduler",
+      "to": "minio",
+      "y": 232,
+      "label": "make silver (Spark)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gate",
+      "from": "scheduler",
+      "to": "minio",
+      "y": 263,
+      "label": "make gate (ODCS)",
+      "variant": "security"
+    },
+    {
+      "id": "load",
+      "from": "scheduler",
+      "to": "postgres",
+      "y": 294,
+      "label": "make load (COPY)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "produce",
+      "from": "scheduler",
+      "to": "kafka",
+      "y": 325,
+      "label": "make stream: producer",
+      "variant": "dashed"
+    },
+    {
+      "id": "consume",
+      "from": "kafka",
+      "to": "postgres",
+      "y": 356,
+      "label": "consumer → stream.*",
+      "variant": "dashed"
+    },
+    {
+      "id": "dbt",
+      "from": "make",
+      "to": "postgres",
+      "y": 387,
+      "label": "make dbt-build",
+      "variant": "emphasis"
+    },
+    {
+      "id": "marts",
+      "from": "scheduler",
+      "to": "postgres",
+      "y": 418,
+      "label": "make marts: 17 cek + gold",
+      "variant": "default"
+    },
+    {
+      "id": "dash",
+      "from": "make",
+      "to": "metabase",
+      "y": 449,
+      "label": "make dashboard",
+      "variant": "default"
+    }
+  ]
+}

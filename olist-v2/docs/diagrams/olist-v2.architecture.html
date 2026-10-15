@@ -5039,10 +5039,10 @@
         <path data-edge-from="postgres" data-edge-to="metabase" data-edge-label="mart" data-edge-key="3" data-edge-id="postgres-to-metabase" data-composition-points="1000,322;1120,322" d="M 1000 322 L 1120 322" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="airflow" data-edge-to="contract" data-edge-label="test" data-edge-key="4" data-edge-id="airflow-to-contract" data-composition-points="580,92;460,92" d="M 580 92 L 460 92" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="airflow" data-edge-to="dbt" data-edge-label="build" data-edge-key="5" data-edge-id="airflow-to-dbt" data-composition-points="730,92;850,92" d="M 730 92 L 850 92" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="airflow" data-edge-to="spark" data-edge-label="spark-submit" data-edge-key="6" data-edge-id="airflow-to-spark" data-composition-points="655,124;655,290" d="M 655 124 L 655 290" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="airflow" data-edge-to="spark" data-edge-label="silver" data-edge-key="6" data-edge-id="airflow-to-spark" data-composition-points="655,124;655,290" d="M 655 124 L 655 290" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="contract" data-edge-to="minio" data-edge-label="gate silver" data-edge-key="7" data-edge-id="contract-to-minio" data-composition-points="385,124;385,290" d="M 385 124 L 385 290" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         <path data-edge-from="dbt" data-edge-to="postgres" data-edge-label="transform" data-edge-key="8" data-edge-id="dbt-to-postgres" data-composition-points="925,124;925,290" d="M 925 124 L 925 290" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="kafka" data-edge-to="spark" data-edge-label="stream" data-edge-key="9" data-edge-id="kafka-to-spark" data-composition-points="655,520;655,354" d="M 655 520 L 655 354" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="postgres" data-edge-to="kafka" data-edge-label="producer + consumer" data-edge-key="9" data-edge-id="postgres-kafka" data-composition-points="925,354;925,520" d="M 925 354 L 925 520" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
 
         <!-- Components -->
         <g id="node-contract" data-node-id="contract" data-node-label="datacontract" tabindex="0" role="button" aria-label="Focus datacontract, kontrak ODCS (gate), Architecture component" aria-pressed="false" data-node-kind="security" data-node-sublabel="kontrak ODCS (gate)" data-node-context="Architecture component">
@@ -5057,15 +5057,15 @@
         <text data-detail="context" x="385" y="106" class="t-muted" font-size="9" text-anchor="middle">kontrak ODCS (gate)</text>
         </g>
 
-        <g id="node-airflow" data-node-id="airflow" data-node-label="Airflow 2.10" tabindex="0" role="button" aria-label="Focus Airflow 2.10, orkestrasi saja, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="orkestrasi saja" data-node-tag="LocalExecutor" data-node-context="Architecture component">
-          <title>Airflow 2.10 · orkestrasi saja · Architecture component · LocalExecutor</title>
+        <g id="node-airflow" data-node-id="airflow" data-node-label="Airflow 2.10" tabindex="0" role="button" aria-label="Focus Airflow 2.10, orkestrasi + Spark local[2], Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="orkestrasi + Spark local[2]" data-node-tag="LocalExecutor" data-node-context="Architecture component">
+          <title>Airflow 2.10 · orkestrasi + Spark local[2] · Architecture component · LocalExecutor</title>
           <rect x="580" y="60" width="150" height="64" rx="6" class="c-mask"/>
           <rect x="580" y="60" width="150" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(586 66) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="655" y="90" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Airflow 2.10</text>
-        <text data-detail="context" x="655" y="106" class="t-muted" font-size="9" text-anchor="middle">orkestrasi saja</text>
+        <text data-detail="context" x="655" y="106" class="t-muted" font-size="8.7" text-anchor="middle">orkestrasi + Spark local[2]</text>
         <text data-detail="fine" x="655" y="116" class="t-backend" font-size="7" text-anchor="middle">LocalExecutor</text>
         </g>
 
@@ -5104,19 +5104,19 @@
         <text data-detail="fine" x="385" y="346" class="t-cloud" font-size="7" text-anchor="middle">web :19001</text>
         </g>
 
-        <g id="node-spark" data-node-id="spark" data-node-label="Spark 3.5" tabindex="0" role="button" aria-label="Focus Spark 3.5, master + worker, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="master + worker" data-node-context="Architecture component">
-          <title>Spark 3.5 · master + worker · Architecture component</title>
+        <g id="node-spark" data-node-id="spark" data-node-label="Spark 3.5" tabindex="0" role="button" aria-label="Focus Spark 3.5, silver (di scheduler), Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="silver (di scheduler)" data-node-context="Architecture component">
+          <title>Spark 3.5 · silver (di scheduler) · Architecture component</title>
           <rect x="580" y="290" width="150" height="64" rx="6" class="c-mask"/>
           <rect x="580" y="290" width="150" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(586 296) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="655" y="320" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Spark 3.5</text>
-        <text data-detail="context" x="655" y="336" class="t-muted" font-size="9" text-anchor="middle">master + worker</text>
+        <text data-detail="context" x="655" y="336" class="t-muted" font-size="9" text-anchor="middle">silver (di scheduler)</text>
         </g>
 
-        <g id="node-postgres" data-node-id="postgres" data-node-label="PostgreSQL 16" tabindex="0" role="button" aria-label="Focus PostgreSQL 16, raw · staging · dw · mart, Architecture component" aria-pressed="false" data-node-kind="database" data-node-sublabel="raw · staging · dw · mart" data-node-context="Architecture component">
-          <title>PostgreSQL 16 · raw · staging · dw · mart · Architecture component</title>
+        <g id="node-postgres" data-node-id="postgres" data-node-label="PostgreSQL 16" tabindex="0" role="button" aria-label="Focus PostgreSQL 16, raw · dw · mart · stream, Architecture component" aria-pressed="false" data-node-kind="database" data-node-sublabel="raw · dw · mart · stream" data-node-context="Architecture component">
+          <title>PostgreSQL 16 · raw · dw · mart · stream · Architecture component</title>
           <rect x="850" y="290" width="150" height="64" rx="6" class="c-mask"/>
           <rect x="850" y="290" width="150" height="64" rx="6" class="c-database" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(856 296) scale(0.6875)">
@@ -5124,11 +5124,11 @@
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="925" y="320" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">PostgreSQL 16</text>
-        <text data-detail="context" x="925" y="336" class="t-muted" font-size="9" text-anchor="middle">raw · staging · dw · mart</text>
+        <text data-detail="context" x="925" y="336" class="t-muted" font-size="9" text-anchor="middle">raw · dw · mart · stream</text>
         </g>
 
-        <g id="node-metabase" data-node-id="metabase" data-node-label="Metabase" tabindex="0" role="button" aria-label="Focus Metabase, dashboard, Architecture component" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="dashboard" data-node-context="Architecture component">
-          <title>Metabase · dashboard · Architecture component</title>
+        <g id="node-metabase" data-node-id="metabase" data-node-label="Metabase" tabindex="0" role="button" aria-label="Focus Metabase, dashboard + insight, Architecture component" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="dashboard + insight" data-node-context="Architecture component">
+          <title>Metabase · dashboard + insight · Architecture component</title>
           <rect x="1120" y="290" width="150" height="64" rx="6" class="c-mask"/>
           <rect x="1120" y="290" width="150" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(1126 296) scale(0.6875)">
@@ -5138,22 +5138,22 @@
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="1195" y="320" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Metabase</text>
-        <text data-detail="context" x="1195" y="336" class="t-muted" font-size="9" text-anchor="middle">dashboard</text>
+        <text data-detail="context" x="1195" y="336" class="t-muted" font-size="9" text-anchor="middle">dashboard + insight</text>
         </g>
 
-        <g id="node-kafka" data-node-id="kafka" data-node-label="Kafka" tabindex="0" role="button" aria-label="Focus Kafka, profil stream (T3), Architecture component" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="profil stream (T3)" data-node-tag="KRaft" data-node-context="Architecture component">
-          <title>Kafka · profil stream (T3) · Architecture component · KRaft</title>
-          <rect x="580" y="520" width="150" height="64" rx="6" class="c-mask"/>
-          <rect x="580" y="520" width="150" height="64" rx="6" class="c-messagebus" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(586 526) scale(0.6875)">
+        <g id="node-kafka" data-node-id="kafka" data-node-label="Kafka" tabindex="0" role="button" aria-label="Focus Kafka, order events + DLQ, Architecture component" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="order events + DLQ" data-node-tag="KRaft" data-node-context="Architecture component">
+          <title>Kafka · order events + DLQ · Architecture component · KRaft</title>
+          <rect x="850" y="520" width="150" height="64" rx="6" class="c-mask"/>
+          <rect x="850" y="520" width="150" height="64" rx="6" class="c-messagebus" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(856 526) scale(0.6875)">
             <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
             <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
             <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
             <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="655" y="550" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Kafka</text>
-        <text data-detail="context" x="655" y="566" class="t-muted" font-size="9" text-anchor="middle">profil stream (T3)</text>
-        <text data-detail="fine" x="655" y="576" class="t-messagebus" font-size="7" text-anchor="middle">KRaft</text>
+          <text data-node-label="" data-detail-anchor="" x="925" y="550" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Kafka</text>
+        <text data-detail="context" x="925" y="566" class="t-muted" font-size="9" text-anchor="middle">order events + DLQ</text>
+        <text data-detail="fine" x="925" y="576" class="t-messagebus" font-size="7" text-anchor="middle">KRaft</text>
         </g>
 
         <!-- Connection labels -->
@@ -5181,9 +5181,9 @@
           <rect x="773" y="72" width="34" height="14" rx="3" class="c-mask"/>
           <text x="790" y="82" class="t-muted" font-size="8" text-anchor="middle">build</text>
         </g>
-        <g data-detail="context" data-edge-from="airflow" data-edge-to="spark" data-edge-label="spark-submit" data-edge-key="6" data-edge-id="airflow-to-spark">
-          <rect x="621.2" y="128" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="655" y="138" class="t-muted" font-size="8" text-anchor="middle">spark-submit</text>
+        <g data-detail="context" data-edge-from="airflow" data-edge-to="spark" data-edge-label="silver" data-edge-key="6" data-edge-id="airflow-to-spark">
+          <rect x="635.6" y="128" width="38.8" height="14" rx="3" class="c-mask"/>
+          <text x="655" y="138" class="t-muted" font-size="8" text-anchor="middle">silver</text>
         </g>
         <g data-detail="context" data-edge-from="contract" data-edge-to="minio" data-edge-label="gate silver" data-edge-key="7" data-edge-id="contract-to-minio">
           <rect x="353.6" y="128" width="62.8" height="14" rx="3" class="c-mask"/>
@@ -5193,9 +5193,9 @@
           <rect x="898.4" y="128" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
           <text x="925" y="138" class="t-muted" font-size="8" text-anchor="middle">transform</text>
         </g>
-        <g data-detail="context" data-edge-from="kafka" data-edge-to="spark" data-edge-label="stream" data-edge-key="9" data-edge-id="kafka-to-spark">
-          <rect x="635.6" y="500" width="38.8" height="14" rx="3" class="c-mask"/>
-          <text x="655" y="510" class="t-messagebus" font-size="8" text-anchor="middle">stream</text>
+        <g data-detail="context" data-edge-from="postgres" data-edge-to="kafka" data-edge-label="producer + consumer" data-edge-key="9" data-edge-id="postgres-kafka">
+          <rect x="874.4" y="358" width="101.2" height="14" rx="3" class="c-mask"/>
+          <text x="925" y="368" class="t-messagebus" font-size="8" text-anchor="middle">producer + consumer</text>
         </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
