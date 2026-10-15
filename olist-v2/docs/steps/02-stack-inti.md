@@ -1,6 +1,6 @@
 # Langkah 2 — Stack inti: Postgres, MinIO, Airflow
 
-**Status: ditulis, belum terverifikasi penuh.** Compose valid (`make config`). Pada percobaan pertama, console MinIO menjawab (HTTP 200) dan ketiga bucket terbentuk, tetapi Airflow gagal terhubung ke Postgres karena tabrakan volume (lihat langkah 1). Penyebabnya sudah ditutup di konfigurasi, tetapi **belum dijalankan ulang**.
+**Status: selesai dan terbukti.** Compose valid, ketiga image kustom terbangun, dan seluruh inti (Postgres, MinIO, Airflow) sehat; bucket dan schema terbentuk, `olist_v2_healthcheck` hijau. Tabrakan volume dengan T0–T6 (langkah 1) sudah ditutup di konfigurasi.
 
 ## Isi inti
 | Service | Peran | Catatan |
@@ -24,5 +24,6 @@ Buka: Airflow `http://localhost:18080` (admin / admin dari `.env`), MinIO `http:
 3. DAG **`olist_v2_healthcheck`** di UI dijalankan manual dan kedua task-nya hijau: `check_minio` lalu `check_warehouse`.
 
 ## Risiko
-- RAM Docker hanya **7,8 GB**. Inti kira-kira 3 GB (perkiraan, belum diukur). Ukur dengan `docker stats` sebelum menyalakan profil lain.
-- Build `airflow/Dockerfile` mengunduh constraints Airflow dari GitHub dan memasang dbt/datacontract di venv terpisah: butuh internet dan bisa gagal pada pin versi (belum pernah dibangun).
+- RAM Docker hanya **7,8 GB**. Terukur (`docker stats`, dengan profil `stream` dan `bi` menyala): webserver ±1,1 GB, scheduler ±0,4 GB (batas 3 GB karena Spark berjalan di dalamnya), Kafka ±0,4 GB, Metabase ±1 GB (batas 1 GB, mepet), Postgres ±0,2 GB, MinIO ±0,1 GB.
+- Build `airflow/Dockerfile` mengunduh constraints Airflow dari GitHub dan memasang dbt/datacontract/kaggle di venv terpisah serta jar S3A ke pyspark: butuh internet. Sudah berhasil dibangun (`make build-core`).
+- Compose: jangan `up --wait` (service sekali-jalan keluar dengan kode 0); pakai `make up` lalu `make ps`.

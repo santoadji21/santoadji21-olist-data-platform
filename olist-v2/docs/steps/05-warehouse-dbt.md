@@ -1,17 +1,16 @@
 # Langkah 5 — Warehouse: dbt
 
-> **Status: `dw` selesai dan terbukti** (staging + 9 model dw, 56/56 lulus: 38 test termasuk 28 pemeriksaan integritas dan angka cek; 9 PK + 13 FK nyata; jumlah baris dan late rate 6,77 % sama dengan T0–T6; build ±9 s dan idempoten). **Mart belum** (langkah berikutnya). Dijalankan dari laptop; task `dbt_build` di DAG ditulis, belum dijalankan lewat Airflow.
+> **Status: selesai dan terbukti.** dbt 1.8.9 + dbt-postgres 1.8.2: 9 view staging, 9 model dw, 8 mart, **65/65 lulus** (≈10 s, idempoten). 9 PK + 13 FK nyata di Postgres; jumlah baris dan late rate 6,77 % sama dengan T0–T6; `dbt_build` hijau di Airflow. Mart: lihat [langkah 6](06-dashboard-metabase.md).
 >
-> v2 tidak dinilai, jadi dbt **dipakai penuh** (aturan §9 tugas tidak mengikat). Ketentuan T4 tetap berlaku: **PK dan FK terpasang** (di dbt lewat *model contracts* dengan `constraints`, bukan bawaan), `outputs/dw_report.md` yang dibangkitkan, test database, dan 9 tabel dw dengan nama yang diminta. Lihat [ALIGNMENT.md](../ALIGNMENT.md) dan [PRODUCTION-GRADE.md](../PRODUCTION-GRADE.md).
+> v2 tidak dinilai, jadi dbt **dipakai penuh** (aturan §9 tugas tidak mengikat). Ketentuan T4 tetap: **PK dan FK terpasang**, test database, dan 9 tabel dw dengan nama yang diminta. Lihat [ALIGNMENT.md](../ALIGNMENT.md) dan [PRODUCTION-GRADE.md](../PRODUCTION-GRADE.md).
 
-**Status: rencana.** venv dbt sudah ada (`make venv`; `dbt-core 1.8.9`, `dbt-postgres 1.8.2`); folder `dbt/` masih kosong. Tujuan: `raw → staging → dw → mart` sebagai model dbt dengan test dan dokumentasi, menggantikan `sql/dw`, `sql/mart`, dan `sql/checks` di T0–T6.
-
-## Yang perlu dibuat
-- `dbt/dbt_project.yml` dan `dbt/profiles.yml`. **Koneksi dari `env_var` dengan default**, supaya satu berkas dipakai di laptop dan di Airflow:
-  - laptop (IDE/plugin): host `localhost`, port `15432`, database `olist_dw`
-  - dalam container Airflow: host `postgres`, port `5432` (env `DBT_PG_*` sudah diset di compose)
-- `models/staging/` (view atas `raw.*`), `models/dw/` (dim dan fact), `models/mart/`.
-- `sources` untuk `raw.*` dengan `freshness` bila relevan.
+## Struktur (`dbt/`)
+- `dbt_project.yml`, `profiles.yml`: koneksi dari `env_var` dengan default, satu berkas untuk laptop (`localhost:15432`) dan container (`postgres:5432`; env `DBT_PG_*` di compose).
+- `macros/generate_schema_name.sql`: model mendarat persis di schema `staging`/`dw`/`mart`.
+- `models/staging/` (view atas `raw.*`, `_sources.yml` juga mendeklarasikan `stream.batch_metrics`), `models/dw/` (dim + fact), `models/mart/` (8 mart).
+- PK dan FK dipasang lewat `post_hook` (`alter table … add primary key/foreign key`), dengan komentar `-- depends_on` agar urutan build benar. **Selalu `dbt build` seluruh proyek**: menjalankan satu dim saja menghapus FK pada fact (cascade).
+- Uji: `unique`/`not_null`/`relationships` di `_dw.yml`, plus uji singular `dw_integrity` (28 pemeriksaan), `dw_check_numbers` (96.096 / 112.650 / 99.441 / 775 / 1 …), `mart_checks` (17).
+- Menjalankan: `make dbt-build` (laptop) atau task `dbt_build` di DAG.
 
 ## Logika yang dibawa dari T4/T5 (sudah terbukti)
 | Aturan | Sumber |
@@ -26,8 +25,8 @@
 ## Test dbt = pemeriksaan integritas
 `unique`, `not_null`, dan `relationships` menggantikan `sql/checks/dw_integrity.sql`; test `singular` untuk angka cek (96.096 orang, 112.650 item, 99.441 order).
 
-## Kriteria selesai
-`dbt build` hijau; angka cek sama dengan T0–T6 (96.096 / 112.650 / 99.441, late rate 6,77 %); `dbt docs generate` menghasilkan lineage.
+## Kriteria selesai (tercapai)
+`dbt build` hijau; angka cek sama dengan T0–T6; `make dbt-docs` menghasilkan lineage.
 
 ## Jebakan
 Nama berkas model = nama tabel yang tampil di Metabase. Hindari awalan seperti `ex_`; pisahkan lewat schema, bukan lewat nama.

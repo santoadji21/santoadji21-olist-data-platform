@@ -34,15 +34,18 @@ Status: **ada** = sudah dibuat dan diperiksa · **ditulis** = file ada, belum di
 
 | # | Langkah | Status | Berkas |
 |---|---|---|---|
-| 1 | [Isolasi dan persiapan](steps/01-isolasi-dan-persiapan.md) | ada | branch, `.env`, venv dbt |
-| 2 | [Stack inti](steps/02-stack-inti.md) | ditulis | compose, Postgres, MinIO, Airflow |
-| 3 | [Bronze: unduh Kaggle + ingest ke MinIO](steps/03-bronze-ingest.md) | bronze **terverifikasi** di MinIO; unduhan Kaggle ditulis, 21 test lolos | `olist_v2/`, DAG `olist_v2_pipeline` |
-| 4 | [Silver, gate, dan load raw](steps/04-silver-spark-kontrak.md) | silver, gate, dan `load_raw` terbukti end-to-end di host; belum lewat Airflow | `olist_v2/silver.py`, `gate.py`, `load.py` |
-| 5 | [Warehouse: dbt](steps/05-warehouse-dbt.md) | **dw terbukti (56/56)**; mart belum; belum lewat Airflow | `dbt/` |
-| 6 | [Dashboard: notebook + Metabase](steps/06-dashboard-metabase.md) | rencana | profil `bi`, `notebooks/` |
-| 7 | [Stream: Kafka](steps/07-stream-kafka.md) | ditulis; **wajib (T3, 20 %)** | profil `stream` |
-| 8 | [Orkestrasi: DAG ujung ke ujung](steps/08-orkestrasi-dag.md) | rencana | `airflow/dags/` |
-| 9 | [Verifikasi dan bukti](steps/09-verifikasi.md) | rencana | smoke, test, failure injection |
+| 1 | [Isolasi dan persiapan](steps/01-isolasi-dan-persiapan.md) | **ada** | branch, `.env`, venv dbt |
+| 2 | [Stack inti](steps/02-stack-inti.md) | **ada** | compose, Postgres, MinIO, Airflow |
+| 3 | [Bronze: unduh Kaggle + ingest ke MinIO](steps/03-bronze-ingest.md) | **ada** | `olist_v2/download.py`, `bronze.py` |
+| 4 | [Silver, gate, dan load raw](steps/04-silver-spark-kontrak.md) | **ada** | `silver.py`, `gate.py`, `load.py` |
+| 5 | [Warehouse: dbt](steps/05-warehouse-dbt.md) | **ada** (65/65) | `dbt/` |
+| 6 | [Mart dan dashboard (Metabase)](steps/06-dashboard-metabase.md) | **ada** | `dbt/models/mart/`, `questions.py`, `metabase.py`, `marts.py` |
+| 7 | [Stream: Kafka](steps/07-stream-kafka.md) | **ada** (replay penuh 35 s) | `stream_cli.py`, `producer.py`, `consumer.py` |
+| 8 | [Orkestrasi: DAG ujung ke ujung](steps/08-orkestrasi-dag.md) | **ada** (stream belum di DAG) | `airflow/dags/` |
+| 9 | [Verifikasi dan bukti (T6)](steps/09-verifikasi.md) | **ada** (6/6 kasus) | `failures.py`, `smoke.py`, `evidence.py`, `RUNBOOK.md` |
+| 10 | [Benchmark silver: Spark vs DuckDB](steps/10-benchmark.md) | **ada** | `bench.py` |
+
+Belum: Iceberg di silver, observability/lineage, uji beban (k6) untuk Metabase, run `make all YES=1` dari nol (termasuk build image), dan diagram yang diperbarui untuk stream/dbt/mart.
 
 ## Port (dari host)
 
