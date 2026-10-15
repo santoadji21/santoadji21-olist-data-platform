@@ -1,44 +1,44 @@
 # EVALUATION_EVIDENCE — olist-v2
 
-> Dibangkitkan oleh `make report` pada 2026-10-14T22:11:27+00:00 dari `outputs/*.json`. Jangan edit angka di sini dengan tangan.
+> Dibangkitkan oleh `make report` pada 2026-10-15T21:36:07+00:00 dari `outputs/*.json`. Jangan edit angka di sini dengan tangan.
 
 ## 1. Lingkungan & durasi tiap tahap
 
 - Mesin: macOS-26.5.1-arm64-arm-64bit, arm64; Python 3.11.13; Docker version 29.8.2, build 7fc2dff
 - Stack: PostgreSQL 16, MinIO, Kafka 3.9 (satu broker, KRaft), Airflow 2.10 (LocalExecutor), Spark (lokal di scheduler), dbt, Metabase, datacontract (ODCS)
 
-Run `make all` dimulai 2026-10-14T22:09:21+00:00, tanpa reset (stack dibiarkan): **121.9 detik (2.0 menit)** untuk 10 perintah (batas tugas: ≤ 15 menit, ≤ 10 perintah) — SELESAI.
+Run `make all` dimulai 2026-10-14T22:14:57+00:00, setelah `make reset` (down -v; CSV di data/raw dipertahankan): **161.7 detik (2.7 menit)** untuk 10 perintah (batas tugas: ≤ 15 menit, ≤ 10 perintah) — SELESAI.
 
 | Tahap | Perintah | Durasi (detik) | Exit |
 |---|---|---:|---:|
-| up | `make up P=stream bi` | 6.7 | 0 |
-| download | `make download` | 1.9 | 0 |
-| bronze | `make bronze` | 3.2 | 0 |
-| silver | `make silver` | 26.8 | 0 |
-| gate | `make gate` | 6.9 | 0 |
-| load | `make load` | 6.8 | 0 |
-| stream | `make stream` | 43.0 | 0 |
-| dbt | `make dbt-build` | 12.5 | 0 |
-| marts | `make marts` | 8.1 | 0 |
-| dashboard | `make dashboard` | 6.0 | 0 |
+| up | `make up P=stream bi` | 34.3 | 0 |
+| download | `make download` | 2.4 | 0 |
+| bronze | `make bronze` | 6.3 | 0 |
+| silver | `make silver` | 31.9 | 0 |
+| gate | `make gate` | 6.8 | 0 |
+| load | `make load` | 6.3 | 0 |
+| stream | `make stream` | 47.2 | 0 |
+| dbt | `make dbt-build` | 12.4 | 0 |
+| marts | `make marts` | 7.4 | 0 |
+| dashboard | `make dashboard` | 6.7 | 0 |
 
 ## 2. Data & kualitas (T0–T2)
 
-- Bronze (run terakhir): unchanged = 9 dari 9 file; ingest 1.69 s.
+- Bronze (run terakhir): uploaded = 9 dari 9 file; ingest 2.84 s.
 
 | Tabel | Baris | Ukuran (MB) | Versi | sha256 (12) |
 |---|---:|---:|---:|---|
-| customers | 99,441 | 9.0 | 5 | 983a422239e1 |
+| customers | 99,441 | 9.0 | 1 | 983a422239e1 |
 | geolocation | 1,000,163 | 61.3 | 1 | b514f6fc991b |
 | order_items | 112,650 | 15.4 | 1 | 0bc4d068c4fe |
 | order_payments | 103,886 | 5.8 | 1 | 4f713964f281 |
-| order_reviews | 99,224 | 14.5 | 2 | 012b61c7593e |
+| order_reviews | 99,224 | 14.5 | 1 | 012b61c7593e |
 | orders | 99,441 | 17.7 | 1 | 8df58ef3d2d7 |
 | products | 32,951 | 2.4 | 1 | 3e6569628a17 |
 | sellers | 3,095 | 0.2 | 1 | 1f643d2b9503 |
-| product_category_translation | 71 | 0.0 | 2 | a81f0d1f27b2 |
+| product_category_translation | 71 | 0.0 | 1 | a81f0d1f27b2 |
 
-Gate kualitas silver (`outputs/dq.json`, mesin spark 3.5.4 (local[2]), 21.8 s):
+Gate kualitas silver (`outputs/dq.json`, mesin spark 3.5.4 (local[2]), 26.0 s):
 
 | Tabel | Sumber | Karantina | Silver | Verdict |
 |---|---:|---:|---:|---|
@@ -54,7 +54,7 @@ Gate kualitas silver (`outputs/dq.json`, mesin spark 3.5.4 (local[2]), 21.8 s):
 
 32 aturan hard dan 9 aturan soft (minimal 10 dan 8); 11,762 pelanggaran soft dicatat dan dipertahankan dengan flag; 0 pelanggaran hard (karantina).
 - Gate kontrak ODCS (`datacontract test`): **warning** — 189 pemeriksaan, 129 lolos, 0 gagal, 8 peringatan soft, 52 pemeriksaan tipe belum didukung datacontract-cli untuk Parquet (keterbatasan alat, tidak menghentikan DAG).
-- Load `raw.*`: customers 99,441, geolocation 1,000,163, order_items 112,650, order_payments 103,886, order_reviews 99,224, orders 99,441, products 32,951, sellers 3,095, product_category_translation 71; 5.1 s, semua cocok dengan sumber − karantina: True.
+- Load `raw.*`: customers 99,441, geolocation 1,000,163, order_items 112,650, order_payments 103,886, order_reviews 99,224, orders 99,441, products 32,951, sellers 3,095, product_category_translation 71; 5.0 s, semua cocok dengan sumber − karantina: True.
 
 ## 3. Stream (T3)
 
@@ -68,8 +68,8 @@ Gate kualitas silver (`outputs/dq.json`, mesin spark 3.5.4 (local[2]), 21.8 s):
 | Pesan gagal terkirim | 0 | — |
 
 - Status terkini = `raw.orders.order_status`: **99,441 dari 99,441**; pemeriksaan producer vs consumer lulus 4/4.
-- Ujung ke ujung 23.9 s (batas 5 menit).
-- Freshness: p50 = 718.1 ms, p95 = 2041.0 ms, maks = 3150.0 ms.
+- Ujung ke ujung 28.1 s (batas 5 menit).
+- Freshness: p50 = 841.1 ms, p95 = 5471.5 ms, maks = 7538.8 ms.
 
 ## 4. Warehouse & mart (T4–T5)
 
@@ -99,9 +99,9 @@ Jawaban ringkas (kalimat dibangkitkan dari mart; sama dengan dashboard Metabase,
 - **q4_segments** — Dari 94.983 pembeli, segmen terbesar "Baru" berisi 36.757 orang (38,70 %); hanya 1.858 orang yang setia.
 - **q4_frequency** — 97,0 % pembeli (92.096 dari 94.983) hanya membeli satu kali.
 - **recon** — 98,91 % order (98.362) nilai pesanannya cocok dengan uang terbayar (syarat ≥ 98 %); sisanya dijelaskan: tanpa_item 775, cicilan 246, tidak_dijelaskan 50, voucher 7, tanpa_pembayaran 1.
-- **fresh_batch** — Dari 216 batch (p95 tertinggi 3.147 ms), p50 batch awal 177 ms → batch akhir 1.774 ms: lag tumbuh selama replay.
+- **fresh_batch** — Dari 211 batch (p95 tertinggi 7.528 ms), p50 batch awal 231 ms → batch akhir 3.272 ms: lag tumbuh selama replay.
 
-Mart di gold: sales_monthly 11,805, revenue_vs_paid_monthly 24, delivery_monthly 556, seller_scorecard 3,095, customer_rfm 94,983, reconciliation 99,441, stream_freshness 1, stream_freshness_batch 216; 17/17 pemeriksaan mart = 0.
+Mart di gold: sales_monthly 11,805, revenue_vs_paid_monthly 24, delivery_monthly 556, seller_scorecard 3,095, customer_rfm 94,983, reconciliation 99,441, stream_freshness 2, stream_freshness_batch 211; 17/17 pemeriksaan mart = 0.
 
 Rekonsiliasi nilai pesanan vs dibayar (toleransi 0,01 BRL):
 

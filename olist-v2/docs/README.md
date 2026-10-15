@@ -65,7 +65,7 @@ Status: **ada** = sudah dibuat dan diperiksa · **ditulis** = file ada, belum di
 | 9 | [Verifikasi dan bukti (T6)](steps/09-verifikasi.md) | **ada** (6/6 kasus) | `failures.py`, `smoke.py`, `evidence.py`, `RUNBOOK.md` |
 | 10 | [Benchmark silver: Spark vs DuckDB](steps/10-benchmark.md) | **ada** | `bench.py` |
 
-Belum: Iceberg di silver, observability/lineage, uji beban (k6) untuk Metabase, dan run `make all YES=1` dari nol (termasuk build image).
+Belum: Iceberg di silver, observability/lineage, uji beban (k6) untuk Metabase, dan pengukuran `make all` dari nol yang termasuk build image dan unduhan Kaggle (tanpa keduanya sudah 161,7 detik).
 
 ## Port (dari host)
 

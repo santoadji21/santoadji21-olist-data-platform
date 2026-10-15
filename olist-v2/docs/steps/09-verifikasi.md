@@ -23,5 +23,7 @@
 
 Perusak sungguhan: proses dimatikan lewat exit code, broker lewat `docker stop`, sumber lewat salinan sementara (data asli tidak diubah). Dijalankan dari laptop (`olist_v2/failures.py`); tahap pipeline lewat `docker compose exec`.
 
-## Belum diukur
-Batas 15 menit dari `down -v` (`make all YES=1`): run tanpa reset 122 detik; run dari nol termasuk build image belum dijalankan.
+## Batas 15 menit dan 10 perintah (T6)
+`make all YES=1` (reset = `down -v`, lalu 10 perintah): **161,7 detik (2,7 menit)**, semua exit 0 (`outputs/run_all.json`). Syarat tugas: ≤ 15 menit dan ≤ 10 perintah.
+
+Batasan yang jujur: image kustom sudah terbangun (tahap `up` 34 s tanpa build) dan CSV di `data/raw` dipertahankan (tahap `download` 2,4 s, bukan unduhan Kaggle). Build image dari nol dan unduhan penuh menambah waktu; keduanya belum diukur dan dijalankan sekali saja (`make reset-all` lalu `make build`).
