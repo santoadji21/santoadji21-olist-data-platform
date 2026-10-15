@@ -8,7 +8,7 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: all report smoke inject restore stream stream-small stream-report stream-reset marts dashboard dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: benchmark all report smoke inject restore stream stream-small stream-report stream-reset marts dashboard dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
@@ -36,6 +36,9 @@ dbt-build: ## raw -> staging -> dw -> mart (dbt build: model + 65 uji) dari lapt
 
 all: ## SATU PERINTAH dari nol: [reset (YES=1)] -> up -> download -> bronze -> silver -> gate -> load -> stream -> dbt-build -> marts -> dashboard; waktu per tahap -> outputs/run_all.json
 	$(VENV)/bin/python -m olist_v2.run_all $(if $(filter 1,$(YES)),--fresh,)
+
+benchmark: ## Spark vs DuckDB pada silver, skala 1x (3 ulangan), 5x, 10x -> outputs/benchmark_report.md (beberapa menit; Spark bisa gagal di 10x = hasil)
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.bench suite $(if $(SCALES),--scales $(SCALES),)
 
 report: ## EVALUATION_EVIDENCE.md dibangkitkan dari outputs/*.json (tanpa angka ketikan tangan)
 	$(VENV)/bin/python -m olist_v2.evidence
