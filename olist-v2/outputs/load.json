@@ -1,7 +1,7 @@
 {
   "stage": "load",
-  "ran_at": "2026-10-14T22:10:13+00:00",
-  "seconds": 5.07,
+  "ran_at": "2026-10-14T22:16:34+00:00",
+  "seconds": 5.01,
   "tables": [
     {
       "table": "customers",
@@ -10,8 +10,8 @@
       "expected": 99441,
       "loaded": 99441,
       "match": true,
-      "table_ddl": "ok",
-      "seconds": 0.91
+      "table_ddl": "created",
+      "seconds": 1.18
     },
     {
       "table": "geolocation",
@@ -20,8 +20,8 @@
       "expected": 1000163,
       "loaded": 1000163,
       "match": true,
-      "table_ddl": "ok",
-      "seconds": 2.86
+      "table_ddl": "created",
+      "seconds": 2.65
     },
     {
       "table": "order_items",
@@ -30,8 +30,8 @@
       "expected": 112650,
       "loaded": 112650,
       "match": true,
-      "table_ddl": "ok",
-      "seconds": 0.41
+      "table_ddl": "created",
+      "seconds": 0.25
     },
     {
       "table": "order_payments",
@@ -40,8 +40,8 @@
       "expected": 103886,
       "loaded": 103886,
       "match": true,
-      "table_ddl": "ok",
-      "seconds": 0.13
+      "table_ddl": "created",
+      "seconds": 0.11
     },
     {
       "table": "order_reviews",
@@ -50,8 +50,8 @@
       "expected": 99224,
       "loaded": 99224,
       "match": true,
-      "table_ddl": "ok",
-      "seconds": 0.25
+      "table_ddl": "created",
+      "seconds": 0.33
     },
     {
       "table": "orders",
@@ -60,8 +60,8 @@
       "expected": 99441,
       "loaded": 99441,
       "match": true,
-      "table_ddl": "ok",
-      "seconds": 0.38
+      "table_ddl": "created",
+      "seconds": 0.39
     },
     {
       "table": "products",
@@ -70,7 +70,7 @@
       "expected": 32951,
       "loaded": 32951,
       "match": true,
-      "table_ddl": "ok",
+      "table_ddl": "created",
       "seconds": 0.06
     },
     {
@@ -80,7 +80,7 @@
       "expected": 3095,
       "loaded": 3095,
       "match": true,
-      "table_ddl": "ok",
+      "table_ddl": "created",
       "seconds": 0.02
     },
     {
@@ -90,8 +90,8 @@
       "expected": 71,
       "loaded": 71,
       "match": true,
-      "table_ddl": "ok",
-      "seconds": 0.01
+      "table_ddl": "created",
+      "seconds": 0.02
     }
   ],
   "skipped_fail": []

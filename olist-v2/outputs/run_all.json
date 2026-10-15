@@ -1,71 +1,71 @@
 {
-  "started_at": "2026-10-14T22:09:21+00:00",
-  "fresh": false,
-  "reset_seconds": null,
+  "started_at": "2026-10-14T22:14:57+00:00",
+  "fresh": true,
+  "reset_seconds": 10.2,
   "stages": [
     {
       "stage": "up",
       "command": "make up P=stream bi",
-      "seconds": 6.7,
+      "seconds": 34.3,
       "exit": 0
     },
     {
       "stage": "download",
       "command": "make download",
-      "seconds": 1.9,
+      "seconds": 2.4,
       "exit": 0
     },
     {
       "stage": "bronze",
       "command": "make bronze",
-      "seconds": 3.2,
+      "seconds": 6.3,
       "exit": 0
     },
     {
       "stage": "silver",
       "command": "make silver",
-      "seconds": 26.8,
+      "seconds": 31.9,
       "exit": 0
     },
     {
       "stage": "gate",
       "command": "make gate",
-      "seconds": 6.9,
+      "seconds": 6.8,
       "exit": 0
     },
     {
       "stage": "load",
       "command": "make load",
-      "seconds": 6.8,
+      "seconds": 6.3,
       "exit": 0
     },
     {
       "stage": "stream",
       "command": "make stream",
-      "seconds": 43.0,
+      "seconds": 47.2,
       "exit": 0
     },
     {
       "stage": "dbt",
       "command": "make dbt-build",
-      "seconds": 12.5,
+      "seconds": 12.4,
       "exit": 0
     },
     {
       "stage": "marts",
       "command": "make marts",
-      "seconds": 8.1,
+      "seconds": 7.4,
       "exit": 0
     },
     {
       "stage": "dashboard",
       "command": "make dashboard",
-      "seconds": 6.0,
+      "seconds": 6.7,
       "exit": 0
     }
   ],
-  "total_seconds": 121.9,
-  "wall_seconds": 122.1,
+  "total_seconds": 161.7,
+  "wall_seconds": 171.9,
   "commands": 10,
   "ok": true
 }

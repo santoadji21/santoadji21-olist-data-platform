@@ -1,8 +1,8 @@
 {
   "stage": "silver",
-  "ran_at": "2026-10-14T22:09:59+00:00",
+  "ran_at": "2026-10-14T22:16:20+00:00",
   "engine": "spark 3.5.4 (local[2])",
-  "seconds": 21.81,
+  "seconds": 26.02,
   "tables": [
     {
       "table": "customers",
@@ -49,7 +49,7 @@
         }
       ],
       "source": {
-        "version": 5,
+        "version": 1,
         "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2"
       }
     },
@@ -237,7 +237,7 @@
         }
       ],
       "source": {
-        "version": 2,
+        "version": 1,
         "sha256": "a81f0d1f27b27e7293f761bc79e3ce8f348ee39c4b3ed3e49bde38f478586278"
       }
     },
@@ -481,7 +481,7 @@
         }
       ],
       "source": {
-        "version": 2,
+        "version": 1,
         "sha256": "012b61c7593e34f51fa614efdf802b9c7056ce6aae5307ddb93236e7cfc797d7"
       }
     }
