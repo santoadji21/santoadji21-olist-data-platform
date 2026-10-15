@@ -1,6 +1,6 @@
 # Laporan Gate Kontrak (datacontract test)
 
-Dijalankan 2026-10-14T13:50:54+00:00 · server `silver-minio` (silver di MinIO)
+Dijalankan 2026-10-14T22:16:28+00:00 · server `silver-minio` (silver di MinIO)
 
 **Hasil: `warning`** — 189 pemeriksaan: 129 lolos, 0 gagal, 8 peringatan soft, 52 pemeriksaan tipe tidak didukung.
 

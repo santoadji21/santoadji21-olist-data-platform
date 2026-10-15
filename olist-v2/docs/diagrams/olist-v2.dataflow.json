@@ -2,13 +2,13 @@
   "schema_version": 1,
   "diagram_type": "dataflow",
   "meta": {
-    "title": "olist-v2 — aliran data (medallion)",
+    "title": "olist-v2 — aliran data (medallion + stream)",
     "output": "olist-v2.dataflow.html",
     "quality_profile": "showcase",
     "locale": "en",
     "viewBox": [
       1070,
-      520
+      640
     ]
   },
   "stages": [
@@ -39,24 +39,14 @@
       "height": 64
     },
     {
-      "id": "kafka",
-      "type": "messagebus",
-      "label": "Kafka",
-      "sublabel": "event order (T3)",
-      "stage": 0,
-      "row": 2,
-      "tag": "stream",
-      "height": 64
-    },
-    {
       "id": "bronze",
       "type": "cloud",
       "label": "MinIO bronze",
       "sublabel": "apa adanya + manifest",
       "stage": 1,
       "row": 1,
-      "tag": "sha256",
-      "height": 64
+      "height": 64,
+      "tag": "sha256"
     },
     {
       "id": "silver",
@@ -86,12 +76,31 @@
       "height": 64
     },
     {
+      "id": "kafka",
+      "type": "messagebus",
+      "label": "Kafka",
+      "sublabel": "event order + DLQ",
+      "stage": 3,
+      "row": 3,
+      "height": 64,
+      "tag": "stream"
+    },
+    {
       "id": "metabase",
       "type": "frontend",
       "label": "Metabase",
-      "sublabel": "dashboard",
+      "sublabel": "dashboard + insight",
       "stage": 4,
       "row": 1,
+      "height": 64
+    },
+    {
+      "id": "streamdb",
+      "type": "database",
+      "label": "stream.*",
+      "sublabel": "events · current · DLQ",
+      "stage": 4,
+      "row": 3,
       "height": 64
     },
     {
@@ -112,13 +121,6 @@
       "label": "ingest",
       "variant": "emphasis",
       "route": "straight"
-    },
-    {
-      "id": "kafka-bronze",
-      "from": "kafka",
-      "to": "bronze",
-      "label": "events",
-      "variant": "dashed"
     },
     {
       "id": "bronze-silver",
@@ -146,6 +148,23 @@
       "from": "warehouse",
       "to": "metabase",
       "label": "mart",
+      "route": "straight"
+    },
+    {
+      "id": "warehouse-kafka",
+      "from": "warehouse",
+      "to": "kafka",
+      "label": "producer",
+      "variant": "dashed",
+      "route": "straight",
+      "labelDy": 24
+    },
+    {
+      "id": "kafka-streamdb",
+      "from": "kafka",
+      "to": "streamdb",
+      "label": "consumer",
+      "variant": "dashed",
       "route": "straight"
     },
     {

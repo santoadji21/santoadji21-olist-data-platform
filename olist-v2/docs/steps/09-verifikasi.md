@@ -1,20 +1,29 @@
-# Langkah 9 — Verifikasi dan bukti
+# Langkah 9 — Verifikasi dan bukti (T6)
 
-**Status: rencana.** Pola dari T6: platform harus bisa **ditunjukkan** benar, bukan hanya diklaim.
+**Status: selesai.** Platform bisa **ditunjukkan** benar, bukan hanya diklaim.
 
-## Yang perlu dibangun
-| Bukti | Cara | Dari |
+| Bukti | Perintah | Hasil |
 |---|---|---|
-| Kesehatan semua lapisan | `make smoke`: service healthy, jumlah baris per lapisan, `dbt test`, `datacontract test`, DAG terakhir sukses | `olist/smoke.py` (T6) |
-| Angka cek | 96.096 orang, 112.650 item, 99.441 order, late rate 6,77 %, rekonsiliasi 98,91 % | T4/T5 |
-| Idempoten | jalankan seluruh DAG dua kali tanpa perubahan; semua jumlah baris dan jumlah uang identik | kasus (e) T6 |
-| Gate tertangkap | hapus kolom di salinan CSV → `contract_gate` berhenti dengan pesan kolomnya | kasus (a) T6 |
-| Integritas bronze | ubah satu byte objek bronze → terdeteksi lewat sha256 | kasus (f) T6 |
-| Evidence | dokumen yang dibangkitkan dari file hasil, bukan diketik | `olist/evidence.py` (T6) |
+| Kesehatan semua lapisan | `make smoke` | service healthy, bronze 9 manifest, raw = sumber − karantina, 28 pemeriksaan dw, angka cek tugas, 17 pemeriksaan mart, stream 4/4 |
+| Failure injection (6 kasus) | `make inject` (±7 menit; `ONLY=a,c` sebagian) | 6/6 TERTANGKAP, stack pulih → `outputs/failure_tests.md` |
+| Satu pintu dari nol | `make all YES=1` | 10 perintah, waktu per tahap → `outputs/run_all.json` |
+| Laporan bukti | `make report` | `EVALUATION_EVIDENCE.md` dari `outputs/*.json`, tanpa angka ketikan tangan |
+| Runbook | [RUNBOOK.md](../../RUNBOOK.md) | 11 gejala: penyebab, cek, pemulihan |
+| Unit test tanpa Docker | `make test` | 79 lulus, 1 dilewati (Spark tidak ada di venv) |
 
-## Pembanding yang menarik
-- **Spark vs DuckDB** untuk silver pada tabel terbesar (geolokasi ±1 juta baris): durasi dan memori puncak.
-- **dbt vs SQL mentah** (T0–T6): jumlah baris dan angka harus sama.
+## Kasus failure injection
+| # | Kasus | Hasil |
+|---|---|---|
+| a | Kolom hilang di sumber | silver berhenti sebelum menulis; silver dan `raw` tidak berubah |
+| b | Producer dijalankan dua kali | event tersimpan tetap = event unik |
+| c | Consumer mati sebelum commit offset (exit 137) | pesan diproses ulang, hasil akhir sama |
+| d | Broker Kafka mati | outage pendek terserap; outage panjang: producer naif kehilangan event tanpa error, producer yang memeriksa melaporkan kegagalan |
+| e | Seluruh jalur batch dijalankan ulang | semua file `unchanged`, 26 besaran identik |
+| f | Satu byte objek bronze diubah | sha256 tidak cocok dengan manifest, silver menolak |
 
-## Kriteria selesai
-Satu perintah menghasilkan laporan yang menyatakan lulus/gagal per bukti di atas, dan hasilnya sama di mesin bersih (`make reset` lalu bangun ulang).
+Perusak sungguhan: proses dimatikan lewat exit code, broker lewat `docker stop`, sumber lewat salinan sementara (data asli tidak diubah). Dijalankan dari laptop (`olist_v2/failures.py`); tahap pipeline lewat `docker compose exec`.
+
+## Batas 15 menit dan 10 perintah (T6)
+`make all YES=1` (reset = `down -v`, lalu 10 perintah): **161,7 detik (2,7 menit)**, semua exit 0 (`outputs/run_all.json`). Syarat tugas: ≤ 15 menit dan ≤ 10 perintah.
+
+Batasan yang jujur: image kustom sudah terbangun (tahap `up` 34 s tanpa build) dan CSV di `data/raw` dipertahankan (tahap `download` 2,4 s, bukan unduhan Kaggle). Build image dari nol dan unduhan penuh menambah waktu; keduanya belum diukur dan dijalankan sekali saja (`make reset-all` lalu `make build`).

@@ -1,7 +1,7 @@
 {
   "stage": "marts",
-  "ran_at": "2026-10-14T13:52:49+00:00",
-  "seconds": 3.28,
+  "ran_at": "2026-10-14T22:17:38+00:00",
+  "seconds": 2.95,
   "checks": [
     {
       "check": "sales_revenue_equals_fact_items",
@@ -101,7 +101,7 @@
     {
       "table": "reconciliation",
       "rows": 99441,
-      "parquet_bytes": 4041815
+      "parquet_bytes": 4041553
     },
     {
       "table": "stream_freshness",
@@ -110,8 +110,8 @@
     },
     {
       "table": "stream_freshness_batch",
-      "rows": 219,
-      "parquet_bytes": 14537
+      "rows": 211,
+      "parquet_bytes": 14030
     }
   ],
   "insights": {
@@ -124,7 +124,7 @@
     "q4_segments": "Dari 94.983 pembeli, segmen terbesar \"Baru\" berisi 36.757 orang (38,70 %); hanya 1.858 orang yang setia.",
     "q4_frequency": "97,0 % pembeli (92.096 dari 94.983) hanya membeli satu kali.",
     "recon": "98,91 % order (98.362) nilai pesanannya cocok dengan uang terbayar (syarat ≥ 98 %); sisanya dijelaskan: tanpa_item 775, cicilan 246, tidak_dijelaskan 50, voucher 7, tanpa_pembayaran 1.",
-    "fresh_batch": "Dari 219 batch (p95 tertinggi 3.520 ms), p50 batch awal 177 ms → batch akhir 1.837 ms: lag tumbuh selama replay."
+    "fresh_batch": "Dari 211 batch (p95 tertinggi 7.528 ms), p50 batch awal 231 ms → batch akhir 3.272 ms: lag tumbuh selama replay."
   },
   "answers": {
     "q1_monthly": [

@@ -1,6 +1,6 @@
 # Laporan Stream (T3)
 
-Producer: 1 run, 20.4 s · consumer: 219 batch · ujung ke ujung 23.4 s
+Producer: 1 run, 20.8 s · consumer: 211 batch · ujung ke ujung 28.1 s
 
 ## Producer (kunci jawaban) vs consumer
 
@@ -25,4 +25,4 @@ Producer: 1 run, 20.4 s · consumer: 219 batch · ujung ke ujung 23.4 s
 
 ## Freshness (`consumed_at − produced_at`, event baru)
 
-p50 = 617.7 ms · p95 = 2868.9 ms · maks = 3544.6 ms
+p50 = 841.1 ms · p95 = 5471.5 ms · maks = 7538.8 ms

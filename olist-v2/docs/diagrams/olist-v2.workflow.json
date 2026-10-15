@@ -9,24 +9,32 @@
   },
   "lanes": [
     {
-      "id": "tasks",
-      "label": "Airflow tasks"
+      "id": "in",
+      "label": "Masuk dan kualitas"
+    },
+    {
+      "id": "wh",
+      "label": "Warehouse dan mart"
     },
     {
       "id": "stores",
       "label": "Penyimpanan yang ditulis"
-    },
-    {
-      "id": "fail",
-      "label": "Kegagalan",
-      "variant": "exception"
     }
   ],
   "nodes": [
     {
-      "id": "ingest",
-      "lane": "tasks",
+      "id": "download",
+      "lane": "in",
       "col": 0,
+      "type": "external",
+      "label": "download_kaggle",
+      "sublabel": "Kaggle → data/raw",
+      "width": 120
+    },
+    {
+      "id": "ingest",
+      "lane": "in",
+      "col": 1,
       "type": "backend",
       "label": "ingest_bronze",
       "sublabel": "CSV → MinIO",
@@ -34,8 +42,8 @@
     },
     {
       "id": "silver",
-      "lane": "tasks",
-      "col": 1,
+      "lane": "in",
+      "col": 2,
       "type": "backend",
       "label": "spark_silver",
       "sublabel": "bronze → Parquet",
@@ -43,8 +51,8 @@
     },
     {
       "id": "gate",
-      "lane": "tasks",
-      "col": 2,
+      "lane": "in",
+      "col": 3,
       "type": "security",
       "label": "contract_gate",
       "sublabel": "datacontract test",
@@ -52,7 +60,7 @@
     },
     {
       "id": "load",
-      "lane": "tasks",
+      "lane": "wh",
       "col": 3,
       "type": "backend",
       "label": "load_raw",
@@ -61,26 +69,26 @@
     },
     {
       "id": "dbt",
-      "lane": "tasks",
+      "lane": "wh",
       "col": 4,
       "type": "backend",
       "label": "dbt_build",
-      "sublabel": "run + test",
+      "sublabel": "65 uji",
       "width": 120
     },
     {
-      "id": "publish",
-      "lane": "tasks",
+      "id": "marts",
+      "lane": "wh",
       "col": 5,
       "type": "backend",
-      "label": "publish_gold",
-      "sublabel": "export + BI",
+      "label": "marts_report",
+      "sublabel": "17 cek + gold",
       "width": 120
     },
     {
       "id": "bronze",
       "lane": "stores",
-      "col": 0,
+      "col": 1,
       "type": "cloud",
       "label": "MinIO bronze",
       "sublabel": "sha256 + manifest",
@@ -89,7 +97,7 @@
     {
       "id": "silverst",
       "lane": "stores",
-      "col": 1,
+      "col": 2,
       "type": "cloud",
       "label": "MinIO silver",
       "sublabel": "Parquet bertipe",
@@ -110,13 +118,22 @@
       "col": 4,
       "type": "database",
       "label": "dw + mart",
-      "sublabel": "dbt models",
+      "sublabel": "model dbt",
+      "width": 120
+    },
+    {
+      "id": "gold",
+      "lane": "stores",
+      "col": 5,
+      "type": "cloud",
+      "label": "MinIO gold",
+      "sublabel": "Parquet + CSV",
       "width": 120
     },
     {
       "id": "stop",
-      "lane": "fail",
-      "col": 2,
+      "lane": "in",
+      "col": 4,
       "type": "security",
       "label": "stop + laporan",
       "sublabel": "tabel FAIL tidak dimuat",
@@ -125,36 +142,40 @@
   ],
   "edges": [
     {
-      "id": "e-ingest-silver",
-      "from": "ingest",
-      "to": "silver",
-      "variant": "emphasis",
-      "fromSide": "right",
-      "toSide": "left"
+      "id": "e1",
+      "from": "download",
+      "to": "ingest",
+      "variant": "emphasis"
     },
     {
-      "id": "e-silver-gate",
+      "id": "e2",
+      "from": "ingest",
+      "to": "silver",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e3",
       "from": "silver",
       "to": "gate",
       "variant": "emphasis"
     },
     {
-      "id": "e-gate-load",
+      "id": "e4",
       "from": "gate",
       "to": "load",
       "label": "pass",
       "variant": "emphasis"
     },
     {
-      "id": "e-load-dbt",
+      "id": "e5",
       "from": "load",
       "to": "dbt",
       "variant": "emphasis"
     },
     {
-      "id": "e-dbt-publish",
+      "id": "e6",
       "from": "dbt",
-      "to": "publish",
+      "to": "marts",
       "variant": "emphasis"
     },
     {
@@ -182,7 +203,13 @@
       "variant": "dashed"
     },
     {
-      "id": "e-gate-stop",
+      "id": "w-gold",
+      "from": "marts",
+      "to": "gold",
+      "variant": "dashed"
+    },
+    {
+      "id": "e-stop",
       "from": "gate",
       "to": "stop",
       "label": "fail",

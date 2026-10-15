@@ -8,7 +8,7 @@ ALL      = --profile spark --profile stream --profile bi --profile lab --profile
 .DEFAULT_GOAL := help
 
 VENV ?= .venv
-.PHONY: smoke inject restore stream stream-small stream-report stream-reset marts dashboard dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
+.PHONY: benchmark all report smoke inject restore stream stream-small stream-report stream-reset marts dashboard dbt-build dbt-docs dag-test task-test reset-layers reset-all build-core download bronze silver gate load test venv help init build up up-all down reset ps logs psql minio-ls kafka-topics notebook-token config
 
 help: ## daftar target
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-13s %s\n", $$1, $$2}'
@@ -30,8 +30,18 @@ gate: ## datacontract test terhadap silver di MinIO -> outputs/contract_gate.md
 load: ## silver -> raw.* di Postgres (TRUNCATE+COPY, satu transaksi) -> outputs/load_report.md
 	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.load
 
-dbt-build: ## raw -> staging -> dw (dbt run + test) dari laptop (venv lokal; Postgres di localhost:15432)
+dbt-build: ## raw -> staging -> dw -> mart (dbt build: model + 65 uji) dari laptop (venv lokal; Postgres di localhost:15432)
+	@$(COMPOSE) exec -T airflow-scheduler python -c "from olist_v2.stream_cli import connect; connect().close()"   # skema stream.* (sumber mart freshness) harus ada
 	@set -a; . ./.env; set +a; DBT_PG_PASSWORD=$$V2_PG_PASSWORD DBT_PG_USER=$$V2_PG_USER DBT_PG_PORT=$$V2_PG_PORT $(VENV)/bin/dbt build --project-dir dbt --profiles-dir dbt
+
+all: ## SATU PERINTAH dari nol: [reset (YES=1)] -> up -> download -> bronze -> silver -> gate -> load -> stream -> dbt-build -> marts -> dashboard; waktu per tahap -> outputs/run_all.json
+	$(VENV)/bin/python -m olist_v2.run_all $(if $(filter 1,$(YES)),--fresh,)
+
+benchmark: ## Spark vs DuckDB pada silver, skala 1x (3 ulangan), 5x, 10x -> outputs/benchmark_report.md (beberapa menit; Spark bisa gagal di 10x = hasil)
+	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.bench suite $(if $(SCALES),--scales $(SCALES),)
+
+report: ## EVALUATION_EVIDENCE.md dibangkitkan dari outputs/*.json (tanpa angka ketikan tangan)
+	$(VENV)/bin/python -m olist_v2.evidence
 
 smoke: ## pemeriksaan menyeluruh: service sehat, tiap lapisan konsisten, stream benar (exit != 0 bila ada gagal)
 	$(VENV)/bin/python -m olist_v2.failures smoke

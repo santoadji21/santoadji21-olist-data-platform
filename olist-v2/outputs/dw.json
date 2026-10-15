@@ -1,0 +1,140 @@
+{
+  "stage": "dw",
+  "ran_at": "2026-10-14T22:17:38+00:00",
+  "rows": {
+    "dim_date": 800,
+    "dim_geo": 18677,
+    "dim_customer": 96096,
+    "dim_seller": 3095,
+    "dim_product": 32951,
+    "fact_order": 99441,
+    "fact_order_item": 112650,
+    "fact_payment": 103886,
+    "fact_review": 98673
+  },
+  "checks": [
+    {
+      "check": "fk_dim_customer_geo",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_dim_seller_geo",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_fact_order_customer",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_fact_order_purchase_date",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_fact_order_delivered_date",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_fact_order_estimated_date",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_item_order",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_item_product",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_item_seller",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_payment_order",
+      "bad_rows": 0
+    },
+    {
+      "check": "fk_review_order",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_dim_customer_vs_unique_people",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_fact_order_vs_raw_orders",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_fact_order_item_vs_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_fact_payment_vs_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_fact_review_vs_orders_with_review",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_dim_geo_vs_distinct_zip",
+      "bad_rows": 0
+    },
+    {
+      "check": "grain_dim_product_vs_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "sum_item_price_matches_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "sum_payment_matches_raw",
+      "bad_rows": 0
+    },
+    {
+      "check": "fact_order_item_count_matches_header",
+      "bad_rows": 0
+    },
+    {
+      "check": "is_late_not_null_for_non_delivered",
+      "bad_rows": 0
+    },
+    {
+      "check": "is_late_null_for_delivered_with_date",
+      "bad_rows": 0
+    },
+    {
+      "check": "has_items_flag_consistent",
+      "bad_rows": 0
+    },
+    {
+      "check": "review_count_ge_1",
+      "bad_rows": 0
+    },
+    {
+      "check": "dim_product_no_null_category_en",
+      "bad_rows": 0
+    },
+    {
+      "check": "dim_geo_no_point_outside_brazil",
+      "bad_rows": 0
+    },
+    {
+      "check": "dim_geo_single_unknown_row",
+      "bad_rows": 0
+    }
+  ],
+  "key_numbers": {
+    "unique_people": 96096,
+    "orders_without_items": 775,
+    "orders_without_payment": 1,
+    "delivered": 96478,
+    "delivered_with_date": 96470,
+    "late_rate_pct": 6.77,
+    "complete_months": 20,
+    "primary_keys": 9,
+    "foreign_keys": 13
+  }
+}

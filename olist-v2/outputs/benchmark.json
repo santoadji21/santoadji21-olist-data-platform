@@ -1,0 +1,1269 @@
+{
+  "runs": [
+    {
+      "engine_key": "duckdb",
+      "scale": 1,
+      "engine": "duckdb 1.5.5 threads=2",
+      "session_seconds": 0.0,
+      "seconds": 2.16,
+      "peak_rss_mb": 480.4,
+      "tables": {
+        "customers": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(customer_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 1000163,
+          "quarantined": 0,
+          "clean": 1000163,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 31,
+            "lng_in_brazil": 11682
+          }
+        },
+        "products": {
+          "source_rows": 32951,
+          "quarantined": 0,
+          "clean": 32951,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_id)": 0,
+            "type_and_not_null": 0,
+            "weight_positive": 4
+          }
+        },
+        "sellers": {
+          "source_rows": 3095,
+          "quarantined": 0,
+          "clean": 3095,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(seller_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 71,
+          "quarantined": 0,
+          "clean": 71,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_category_name)": 0,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id)": 0,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 8,
+            "customer_after_carrier": 23
+          }
+        },
+        "order_items": {
+          "source_rows": 112650,
+          "quarantined": 0,
+          "clean": 112650,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,order_item_id)": 0,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 103886,
+          "quarantined": 0,
+          "clean": 103886,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,payment_sequential)": 0,
+            "type_and_not_null": 0,
+            "value_positive": 9,
+            "type_known": 3,
+            "installments_ge1": 2
+          }
+        },
+        "order_reviews": {
+          "source_rows": 99224,
+          "quarantined": 0,
+          "clean": 99224,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 55.6,
+      "status": "ok",
+      "input_mb": 126.2
+    },
+    {
+      "engine_key": "spark",
+      "scale": 1,
+      "engine": "spark 3.5.4 local[2]",
+      "driver_memory": "1g",
+      "session_seconds": 2.06,
+      "seconds": 15.98,
+      "peak_rss_mb": 1353.1,
+      "tables": {
+        "customers": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(customer_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 1000163,
+          "quarantined": 0,
+          "clean": 1000163,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 31,
+            "lng_in_brazil": 11682
+          }
+        },
+        "products": {
+          "source_rows": 32951,
+          "quarantined": 0,
+          "clean": 32951,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_id)": 0,
+            "type_and_not_null": 0,
+            "weight_positive": 4
+          }
+        },
+        "sellers": {
+          "source_rows": 3095,
+          "quarantined": 0,
+          "clean": 3095,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(seller_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 71,
+          "quarantined": 0,
+          "clean": 71,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_category_name)": 0,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id)": 0,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 8,
+            "customer_after_carrier": 23
+          }
+        },
+        "order_items": {
+          "source_rows": 112650,
+          "quarantined": 0,
+          "clean": 112650,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,order_item_id)": 0,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 103886,
+          "quarantined": 0,
+          "clean": 103886,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,payment_sequential)": 0,
+            "type_and_not_null": 0,
+            "value_positive": 9,
+            "type_known": 3,
+            "installments_ge1": 2
+          }
+        },
+        "order_reviews": {
+          "source_rows": 99224,
+          "quarantined": 0,
+          "clean": 99224,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 56.9,
+      "status": "ok",
+      "input_mb": 126.2
+    },
+    {
+      "engine_key": "duckdb",
+      "scale": 1,
+      "engine": "duckdb 1.5.5 threads=2",
+      "session_seconds": 0.0,
+      "seconds": 2.0,
+      "peak_rss_mb": 493.1,
+      "tables": {
+        "customers": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(customer_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 1000163,
+          "quarantined": 0,
+          "clean": 1000163,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 31,
+            "lng_in_brazil": 11682
+          }
+        },
+        "products": {
+          "source_rows": 32951,
+          "quarantined": 0,
+          "clean": 32951,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_id)": 0,
+            "type_and_not_null": 0,
+            "weight_positive": 4
+          }
+        },
+        "sellers": {
+          "source_rows": 3095,
+          "quarantined": 0,
+          "clean": 3095,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(seller_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 71,
+          "quarantined": 0,
+          "clean": 71,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_category_name)": 0,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id)": 0,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 8,
+            "customer_after_carrier": 23
+          }
+        },
+        "order_items": {
+          "source_rows": 112650,
+          "quarantined": 0,
+          "clean": 112650,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,order_item_id)": 0,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 103886,
+          "quarantined": 0,
+          "clean": 103886,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,payment_sequential)": 0,
+            "type_and_not_null": 0,
+            "value_positive": 9,
+            "type_known": 3,
+            "installments_ge1": 2
+          }
+        },
+        "order_reviews": {
+          "source_rows": 99224,
+          "quarantined": 0,
+          "clean": 99224,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 55.6,
+      "status": "ok",
+      "input_mb": 126.2
+    },
+    {
+      "engine_key": "spark",
+      "scale": 1,
+      "engine": "spark 3.5.4 local[2]",
+      "driver_memory": "1g",
+      "session_seconds": 1.65,
+      "seconds": 14.98,
+      "peak_rss_mb": 1247.5,
+      "tables": {
+        "customers": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(customer_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 1000163,
+          "quarantined": 0,
+          "clean": 1000163,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 31,
+            "lng_in_brazil": 11682
+          }
+        },
+        "products": {
+          "source_rows": 32951,
+          "quarantined": 0,
+          "clean": 32951,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_id)": 0,
+            "type_and_not_null": 0,
+            "weight_positive": 4
+          }
+        },
+        "sellers": {
+          "source_rows": 3095,
+          "quarantined": 0,
+          "clean": 3095,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(seller_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 71,
+          "quarantined": 0,
+          "clean": 71,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_category_name)": 0,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id)": 0,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 8,
+            "customer_after_carrier": 23
+          }
+        },
+        "order_items": {
+          "source_rows": 112650,
+          "quarantined": 0,
+          "clean": 112650,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,order_item_id)": 0,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 103886,
+          "quarantined": 0,
+          "clean": 103886,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,payment_sequential)": 0,
+            "type_and_not_null": 0,
+            "value_positive": 9,
+            "type_known": 3,
+            "installments_ge1": 2
+          }
+        },
+        "order_reviews": {
+          "source_rows": 99224,
+          "quarantined": 0,
+          "clean": 99224,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 56.9,
+      "status": "ok",
+      "input_mb": 126.2
+    },
+    {
+      "engine_key": "duckdb",
+      "scale": 1,
+      "engine": "duckdb 1.5.5 threads=2",
+      "session_seconds": 0.0,
+      "seconds": 2.12,
+      "peak_rss_mb": 485.5,
+      "tables": {
+        "customers": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(customer_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 1000163,
+          "quarantined": 0,
+          "clean": 1000163,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 31,
+            "lng_in_brazil": 11682
+          }
+        },
+        "products": {
+          "source_rows": 32951,
+          "quarantined": 0,
+          "clean": 32951,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_id)": 0,
+            "type_and_not_null": 0,
+            "weight_positive": 4
+          }
+        },
+        "sellers": {
+          "source_rows": 3095,
+          "quarantined": 0,
+          "clean": 3095,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(seller_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 71,
+          "quarantined": 0,
+          "clean": 71,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_category_name)": 0,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id)": 0,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 8,
+            "customer_after_carrier": 23
+          }
+        },
+        "order_items": {
+          "source_rows": 112650,
+          "quarantined": 0,
+          "clean": 112650,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,order_item_id)": 0,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 103886,
+          "quarantined": 0,
+          "clean": 103886,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,payment_sequential)": 0,
+            "type_and_not_null": 0,
+            "value_positive": 9,
+            "type_known": 3,
+            "installments_ge1": 2
+          }
+        },
+        "order_reviews": {
+          "source_rows": 99224,
+          "quarantined": 0,
+          "clean": 99224,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 55.6,
+      "status": "ok",
+      "input_mb": 126.2
+    },
+    {
+      "engine_key": "spark",
+      "scale": 1,
+      "engine": "spark 3.5.4 local[2]",
+      "driver_memory": "1g",
+      "session_seconds": 1.83,
+      "seconds": 15.46,
+      "peak_rss_mb": 1212.9,
+      "tables": {
+        "customers": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(customer_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 1000163,
+          "quarantined": 0,
+          "clean": 1000163,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 31,
+            "lng_in_brazil": 11682
+          }
+        },
+        "products": {
+          "source_rows": 32951,
+          "quarantined": 0,
+          "clean": 32951,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_id)": 0,
+            "type_and_not_null": 0,
+            "weight_positive": 4
+          }
+        },
+        "sellers": {
+          "source_rows": 3095,
+          "quarantined": 0,
+          "clean": 3095,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(seller_id)": 0,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 71,
+          "quarantined": 0,
+          "clean": 71,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(product_category_name)": 0,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 99441,
+          "quarantined": 0,
+          "clean": 99441,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id)": 0,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 8,
+            "customer_after_carrier": 23
+          }
+        },
+        "order_items": {
+          "source_rows": 112650,
+          "quarantined": 0,
+          "clean": 112650,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,order_item_id)": 0,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 103886,
+          "quarantined": 0,
+          "clean": 103886,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "key_unique(order_id,payment_sequential)": 0,
+            "type_and_not_null": 0,
+            "value_positive": 9,
+            "type_known": 3,
+            "installments_ge1": 2
+          }
+        },
+        "order_reviews": {
+          "source_rows": 99224,
+          "quarantined": 0,
+          "clean": 99224,
+          "verdict": "PASS",
+          "rules": {
+            "row_count": 0,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 56.9,
+      "status": "ok",
+      "input_mb": 126.2
+    },
+    {
+      "engine_key": "duckdb",
+      "scale": 5,
+      "engine": "duckdb 1.5.5 threads=2",
+      "session_seconds": 0.0,
+      "seconds": 7.97,
+      "peak_rss_mb": 1836.9,
+      "tables": {
+        "customers": {
+          "source_rows": 497205,
+          "quarantined": 0,
+          "clean": 497205,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 397764,
+            "key_unique(customer_id)": 497205,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 5000815,
+          "quarantined": 0,
+          "clean": 5000815,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 4000652,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 155,
+            "lng_in_brazil": 58410
+          }
+        },
+        "products": {
+          "source_rows": 164755,
+          "quarantined": 0,
+          "clean": 164755,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 131804,
+            "key_unique(product_id)": 164755,
+            "type_and_not_null": 0,
+            "weight_positive": 20
+          }
+        },
+        "sellers": {
+          "source_rows": 15475,
+          "quarantined": 0,
+          "clean": 15475,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 12380,
+            "key_unique(seller_id)": 15475,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 355,
+          "quarantined": 0,
+          "clean": 355,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 284,
+            "key_unique(product_category_name)": 355,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 497205,
+          "quarantined": 0,
+          "clean": 497205,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 397764,
+            "key_unique(order_id)": 497205,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 40,
+            "customer_after_carrier": 115
+          }
+        },
+        "order_items": {
+          "source_rows": 563250,
+          "quarantined": 0,
+          "clean": 563250,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 450600,
+            "key_unique(order_id,order_item_id)": 563250,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 519430,
+          "quarantined": 0,
+          "clean": 519430,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 415544,
+            "key_unique(order_id,payment_sequential)": 519430,
+            "type_and_not_null": 0,
+            "value_positive": 45,
+            "type_known": 15,
+            "installments_ge1": 10
+          }
+        },
+        "order_reviews": {
+          "source_rows": 496120,
+          "quarantined": 0,
+          "clean": 496120,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 396896,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 277.5,
+      "status": "ok",
+      "input_mb": 630.9
+    },
+    {
+      "engine_key": "spark",
+      "scale": 5,
+      "engine": "spark 3.5.4 local[2]",
+      "driver_memory": "1g",
+      "session_seconds": 1.82,
+      "seconds": 35.58,
+      "peak_rss_mb": 1664.2,
+      "tables": {
+        "customers": {
+          "source_rows": 497205,
+          "quarantined": 0,
+          "clean": 497205,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 397764,
+            "key_unique(customer_id)": 497205,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 5000815,
+          "quarantined": 0,
+          "clean": 5000815,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 4000652,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 155,
+            "lng_in_brazil": 58410
+          }
+        },
+        "products": {
+          "source_rows": 164755,
+          "quarantined": 0,
+          "clean": 164755,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 131804,
+            "key_unique(product_id)": 164755,
+            "type_and_not_null": 0,
+            "weight_positive": 20
+          }
+        },
+        "sellers": {
+          "source_rows": 15475,
+          "quarantined": 0,
+          "clean": 15475,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 12380,
+            "key_unique(seller_id)": 15475,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 355,
+          "quarantined": 0,
+          "clean": 355,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 284,
+            "key_unique(product_category_name)": 355,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 497205,
+          "quarantined": 0,
+          "clean": 497205,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 397764,
+            "key_unique(order_id)": 497205,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 40,
+            "customer_after_carrier": 115
+          }
+        },
+        "order_items": {
+          "source_rows": 563250,
+          "quarantined": 0,
+          "clean": 563250,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 450600,
+            "key_unique(order_id,order_item_id)": 563250,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 519430,
+          "quarantined": 0,
+          "clean": 519430,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 415544,
+            "key_unique(order_id,payment_sequential)": 519430,
+            "type_and_not_null": 0,
+            "value_positive": 45,
+            "type_known": 15,
+            "installments_ge1": 10
+          }
+        },
+        "order_reviews": {
+          "source_rows": 496120,
+          "quarantined": 0,
+          "clean": 496120,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 396896,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 208.0,
+      "status": "ok",
+      "input_mb": 630.9
+    },
+    {
+      "engine_key": "duckdb",
+      "scale": 10,
+      "engine": "duckdb 1.5.5 threads=2",
+      "session_seconds": 0.0,
+      "seconds": 19.07,
+      "peak_rss_mb": 2411.7,
+      "tables": {
+        "customers": {
+          "source_rows": 994410,
+          "quarantined": 0,
+          "clean": 994410,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 894969,
+            "key_unique(customer_id)": 994410,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 10001630,
+          "quarantined": 0,
+          "clean": 10001630,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 9001467,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 310,
+            "lng_in_brazil": 116820
+          }
+        },
+        "products": {
+          "source_rows": 329510,
+          "quarantined": 0,
+          "clean": 329510,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 296559,
+            "key_unique(product_id)": 329510,
+            "type_and_not_null": 0,
+            "weight_positive": 40
+          }
+        },
+        "sellers": {
+          "source_rows": 30950,
+          "quarantined": 0,
+          "clean": 30950,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 27855,
+            "key_unique(seller_id)": 30950,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 710,
+          "quarantined": 0,
+          "clean": 710,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 639,
+            "key_unique(product_category_name)": 710,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 994410,
+          "quarantined": 0,
+          "clean": 994410,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 894969,
+            "key_unique(order_id)": 994410,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 80,
+            "customer_after_carrier": 230
+          }
+        },
+        "order_items": {
+          "source_rows": 1126500,
+          "quarantined": 0,
+          "clean": 1126500,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 1013850,
+            "key_unique(order_id,order_item_id)": 1126500,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 1038860,
+          "quarantined": 0,
+          "clean": 1038860,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 934974,
+            "key_unique(order_id,payment_sequential)": 1038860,
+            "type_and_not_null": 0,
+            "value_positive": 90,
+            "type_known": 30,
+            "installments_ge1": 20
+          }
+        },
+        "order_reviews": {
+          "source_rows": 992240,
+          "quarantined": 0,
+          "clean": 992240,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 893016,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 554.6,
+      "status": "ok",
+      "input_mb": 1261.9
+    },
+    {
+      "engine_key": "spark",
+      "scale": 10,
+      "engine": "spark 3.5.4 local[2]",
+      "driver_memory": "1g",
+      "session_seconds": 2.57,
+      "seconds": 72.22,
+      "peak_rss_mb": 1659.1,
+      "tables": {
+        "customers": {
+          "source_rows": 994410,
+          "quarantined": 0,
+          "clean": 994410,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 894969,
+            "key_unique(customer_id)": 994410,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "geolocation": {
+          "source_rows": 10001630,
+          "quarantined": 0,
+          "clean": 10001630,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 9001467,
+            "type_and_not_null": 0,
+            "lat_in_brazil": 310,
+            "lng_in_brazil": 116820
+          }
+        },
+        "products": {
+          "source_rows": 329510,
+          "quarantined": 0,
+          "clean": 329510,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 296559,
+            "key_unique(product_id)": 329510,
+            "type_and_not_null": 0,
+            "weight_positive": 40
+          }
+        },
+        "sellers": {
+          "source_rows": 30950,
+          "quarantined": 0,
+          "clean": 30950,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 27855,
+            "key_unique(seller_id)": 30950,
+            "type_and_not_null": 0,
+            "state_len2": 0
+          }
+        },
+        "product_category_translation": {
+          "source_rows": 710,
+          "quarantined": 0,
+          "clean": 710,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 639,
+            "key_unique(product_category_name)": 710,
+            "type_and_not_null": 0
+          }
+        },
+        "orders": {
+          "source_rows": 994410,
+          "quarantined": 0,
+          "clean": 994410,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 894969,
+            "key_unique(order_id)": 994410,
+            "type_and_not_null": 0,
+            "status_known": 0,
+            "approved_after_purchase": 0,
+            "delivered_has_date": 80,
+            "customer_after_carrier": 230
+          }
+        },
+        "order_items": {
+          "source_rows": 1126500,
+          "quarantined": 0,
+          "clean": 1126500,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 1013850,
+            "key_unique(order_id,order_item_id)": 1126500,
+            "type_and_not_null": 0,
+            "price_positive": 0,
+            "freight_nonneg": 0
+          }
+        },
+        "order_payments": {
+          "source_rows": 1038860,
+          "quarantined": 0,
+          "clean": 1038860,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 934974,
+            "key_unique(order_id,payment_sequential)": 1038860,
+            "type_and_not_null": 0,
+            "value_positive": 90,
+            "type_known": 30,
+            "installments_ge1": 20
+          }
+        },
+        "order_reviews": {
+          "source_rows": 992240,
+          "quarantined": 0,
+          "clean": 992240,
+          "verdict": "FAIL",
+          "rules": {
+            "row_count": 893016,
+            "type_and_not_null": 0,
+            "score_1_5": 0,
+            "answer_after_creation": 0
+          }
+        }
+      },
+      "output_mb": 319.7,
+      "status": "ok",
+      "input_mb": 1261.9
+    }
+  ]
+}

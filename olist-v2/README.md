@@ -38,5 +38,21 @@ Jalur debug yang tidak bergantung pada file log tetap tersedia: `make task-test 
 - Shell mengekspor `COMPOSE_PROJECT_NAME=olist`, `MINIO_*`, `POSTGRES_*`: itu **mengalahkan `.env` dan `name:` compose**. Akibatnya compose v2 pernah menggantikan container `olist-postgres`/`olist-minio` milik T0–T6 dan memakai volume mereka. Penangkalnya sudah ada: `make` memakai `-p olist-v2`, variabel berawalan `V2_`, volume/network bernama eksplisit (`olist-v2-*`). **Selalu jalankan lewat `make`.**
 - `docker compose up --wait` menghentikan semuanya karena service sekali-jalan keluar dengan kode 0.
 
-## Belum diverifikasi (ditulis, belum dijalankan)
-Build ketiga image kustom, versi pin dbt (`dbt-core 1.8.9`, `dbt-postgres 1.8.2`), tag `apache/spark:3.5.3-scala2.12-java17-python3-ubuntu`, konektor S3A, dan driver Spark client-mode dari Airflow/Jupyter.
+## Alur sehari-hari (semua lewat `make`; `make help` untuk daftar)
+```bash
+make venv                          # sekali: venv lokal (dbt, pytest, kafka-python, ...)
+make all YES=1                     # dari nol: reset -> up -> download -> bronze -> silver -> gate -> load -> stream -> dbt-build -> marts -> dashboard
+make smoke                         # pemeriksaan menyeluruh semua lapisan
+make inject                        # failure injection T6 (6 kasus) -> outputs/failure_tests.md
+make benchmark                     # Spark vs DuckDB -> outputs/benchmark_report.md
+make report                        # EVALUATION_EVIDENCE.md dari outputs/*.json
+make test                          # pytest tanpa Docker
+```
+Gejala dan pemulihan: [RUNBOOK.md](RUNBOOK.md). Rancangan dan langkah: [docs/README.md](docs/README.md).
+
+## Belum diverifikasi / belum dikerjakan
+- `make all YES=1` dari nol terukur 161,7 detik (batas tugas 15 menit), tetapi dengan image sudah terbangun dan CSV sudah ada; build image dari nol dan unduhan Kaggle penuh belum diukur.
+- Spark cluster (profil `spark`, image 3.5.3) belum dipakai dan versinya belum diselaraskan dengan pyspark klien 3.5.4; silver berjalan di `local[2]`.
+- Jupyter (profil `lab`) dan editor ODCS (profil `contract`) belum dijalankan.
+- Stream belum menjadi task DAG (jalan lewat `make stream`).
+- Iceberg, observability/lineage, dan uji beban (k6) belum.

@@ -26,7 +26,7 @@
       "id": "airflow",
       "type": "backend",
       "label": "Airflow 2.10",
-      "sublabel": "orkestrasi saja",
+      "sublabel": "orkestrasi + Spark local[2]",
       "pos": [
         580,
         60
@@ -84,7 +84,7 @@
       "id": "spark",
       "type": "backend",
       "label": "Spark 3.5",
-      "sublabel": "master + worker",
+      "sublabel": "silver (di scheduler)",
       "pos": [
         580,
         290
@@ -98,7 +98,7 @@
       "id": "postgres",
       "type": "database",
       "label": "PostgreSQL 16",
-      "sublabel": "raw · staging · dw · mart",
+      "sublabel": "raw · dw · mart · stream",
       "pos": [
         850,
         290
@@ -112,7 +112,7 @@
       "id": "metabase",
       "type": "frontend",
       "label": "Metabase",
-      "sublabel": "dashboard",
+      "sublabel": "dashboard + insight",
       "pos": [
         1120,
         290
@@ -126,9 +126,9 @@
       "id": "kafka",
       "type": "messagebus",
       "label": "Kafka",
-      "sublabel": "profil stream (T3)",
+      "sublabel": "order events + DLQ",
       "pos": [
-        580,
+        850,
         520
       ],
       "size": [
@@ -181,7 +181,7 @@
       "id": "airflow-to-spark",
       "from": "airflow",
       "to": "spark",
-      "label": "spark-submit",
+      "label": "silver",
       "labelDy": 24
     },
     {
@@ -200,11 +200,12 @@
       "labelDy": 24
     },
     {
-      "id": "kafka-to-spark",
-      "from": "kafka",
-      "to": "spark",
-      "label": "stream",
-      "variant": "dashed"
+      "id": "postgres-kafka",
+      "from": "postgres",
+      "to": "kafka",
+      "label": "producer + consumer",
+      "variant": "dashed",
+      "labelDy": 24
     }
   ]
 }
