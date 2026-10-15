@@ -119,14 +119,16 @@ reset-layers: ## [ringan] kosongkan bucket bronze/silver/gold + schema raw/stagi
 	@$(COMPOSE) exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$$POSTGRES_USER" -d olist_dw -c "DROP SCHEMA IF EXISTS raw CASCADE; DROP SCHEMA IF EXISTS staging CASCADE; DROP SCHEMA IF EXISTS dw CASCADE; DROP SCHEMA IF EXISTS mart CASCADE; CREATE SCHEMA raw; CREATE SCHEMA staging; CREATE SCHEMA dw; CREATE SCHEMA mart;"'
 	@echo "layer dikosongkan. Hilang: objek bronze (beserta riwayat versi manifest), silver, gold, dan isi raw/staging/dw/mart. Tetap: CSV di data/raw, riwayat run Airflow, kode, .env."
 
-reset: ## [sedang] matikan DAN hapus volume olist-v2-* (Postgres, MinIO, Kafka, log Airflow); CSV data/raw tetap
-	$(call CONFIRM,Menghapus SEMUA volume olist-v2 (Postgres termasuk database airflow/metabase, MinIO, Kafka, log Airflow).)
+reset: ## [sedang] matikan DAN hapus volume olist-v2-* (Postgres, MinIO, Kafka) dan isi airflow/logs/; CSV data/raw tetap
+	$(call CONFIRM,Menghapus SEMUA volume olist-v2 (Postgres termasuk database airflow/metabase, MinIO, Kafka) dan isi airflow/logs/.)
 	$(COMPOSE) $(ALL) down -v
-	@echo "volume dihapus. Tetap: CSV di data/raw, kode, .env, outputs/. Mulai lagi: make up"
+	rm -rf airflow/logs/*
+	@echo "volume dan log Airflow (airflow/logs/) dihapus. Tetap: CSV di data/raw, kode, .env, outputs/. Mulai lagi: make up"
 
 reset-all: ## [penuh] reset + hapus CSV unduhan di data/raw (unduh ulang dari Kaggle saat run berikutnya)
-	$(call CONFIRM,Menghapus semua volume olist-v2 DAN CSV hasil unduhan di data/raw.)
+	$(call CONFIRM,Menghapus semua volume olist-v2, isi airflow/logs/, DAN CSV hasil unduhan di data/raw.)
 	$(COMPOSE) $(ALL) down -v
+	rm -rf airflow/logs/*
 	rm -f data/raw/*.csv data/raw/*.zip
 	rm -rf data/raw/.dl-*
 	@echo "semuanya dihapus. Tetap: kode, .env, .kaggle/, outputs/. Mulai lagi: make up lalu jalankan DAG (akan mengunduh dari Kaggle)."

@@ -24,7 +24,7 @@ make reset                   # hapus volume olist-v2-* saja
 | Perintah | Menghapus | Tetap ada | Untuk apa |
 |---|---|---|---|
 | `make reset-layers` | objek di bucket `bronze`/`silver`/`gold` (termasuk manifest dan riwayat versi) dan isi schema `raw`/`staging`/`dw`/`mart` | container, volume, riwayat run Airflow, `data/raw`, kode | mengulang pipeline dari awal dengan cepat, tanpa membangun ulang stack |
-| `make reset` | **semua volume olist-v2** (Postgres termasuk database `airflow`/`metabase`, MinIO, Kafka); log Airflow ada di `airflow/logs/` dan TIDAK ikut terhapus | CSV di `data/raw`, kode, `.env`, `outputs/` | mulai dari stack kosong; `make up` lagi sesudahnya |
+| `make reset` | **semua volume olist-v2** (Postgres termasuk database `airflow`/`metabase`, MinIO, Kafka) **dan isi `airflow/logs/`** (log hidup di bind mount, bukan volume, jadi dihapus terpisah; riwayat run di database Airflow sudah hilang bersama volume, jadi log lama tidak lagi menunjuk ke run apa pun) | CSV di `data/raw`, kode, `.env`, `outputs/` | mulai dari stack kosong; `make up` lagi sesudahnya |
 | `make reset-all` | seperti `reset` **plus** CSV unduhan di `data/raw` | kode, `.env`, `.kaggle/`, `outputs/` | menguji unduhan Kaggle dari nol |
 
 `make down` hanya mematikan container (volume tetap). Semua perintah memakai `-p olist-v2`, jadi proyek lain (T0–T6, v1) tidak tersentuh.
