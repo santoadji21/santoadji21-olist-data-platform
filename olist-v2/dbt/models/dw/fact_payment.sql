@@ -7,6 +7,6 @@
     ]
 ) }}
 
--- fact_payment: grain = satu baris per PEMBAYARAN, PK (order_id, payment_sequential).
+-- fact_payment: grain = satu baris per pembayaran, PK (order_id, payment_sequential).
 SELECT order_id, payment_sequential, payment_type, payment_installments, payment_value
 FROM {{ ref('stg_order_payments') }}

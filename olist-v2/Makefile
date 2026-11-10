@@ -1,5 +1,5 @@
-# olist-v2 — pembungkus docker compose. Jalankan dari folder olist-v2/.
-# `-p olist-v2` MENGALAHKAN COMPOSE_PROJECT_NAME yang mungkin diekspor shell (proyek lain memakai `olist`).
+# olist-v2: pembungkus docker compose. Jalankan dari folder olist-v2/.
+# `-p olist-v2` mengalahkan COMPOSE_PROJECT_NAME yang mungkin diekspor shell (proyek lain memakai `olist`).
 COMPOSE ?= docker compose -p olist-v2
 P       ?=                       # profil tambahan, mis. make up P="spark stream"
 PROFILES = $(foreach p,$(P),--profile $(p))
@@ -31,7 +31,7 @@ load: ## silver -> raw.* di Postgres (TRUNCATE+COPY, satu transaksi) -> outputs/
 	$(COMPOSE) exec -T airflow-scheduler python -m olist_v2.load
 
 dbt-build: ## raw -> staging -> dw -> mart (dbt build: model + 65 uji) dari laptop (venv lokal; Postgres di localhost:15432)
-	@$(COMPOSE) exec -T airflow-scheduler python -c "from olist_v2.stream_cli import connect; connect().close()"   # skema stream.* (sumber mart freshness) harus ada
+	@$(COMPOSE) exec -T airflow-scheduler python -c "from olist_v2.stream_cli import connect; connect().close()"   # skema stream.* (sumber mart freshness) harus sudah ada
 	@set -a; . ./.env; set +a; DBT_PG_PASSWORD=$$V2_PG_PASSWORD DBT_PG_USER=$$V2_PG_USER DBT_PG_PORT=$$V2_PG_PORT $(VENV)/bin/dbt build --project-dir dbt --profiles-dir dbt
 
 all: ## SATU PERINTAH dari nol: [reset (YES=1)] -> up -> download -> bronze -> silver -> gate -> load -> stream -> dbt-build -> marts -> dashboard; waktu per tahap -> outputs/run_all.json
@@ -96,7 +96,7 @@ config: init ## validasi compose (semua profil), tanpa menyalakan apa pun
 build-core: init ## build HANYA image Airflow (cukup untuk fase inti; Spark/Jupyter belum perlu)
 	$(COMPOSE) build airflow-webserver
 
-build: init ## build SEMUA image kustom (airflow, spark, jupyter) — pertama kali beberapa menit
+build: init ## build semua image kustom (airflow, spark, jupyter); pertama kali butuh beberapa menit
 	$(COMPOSE) $(ALL) build
 
 up: init ## nyalakan inti (+ profil di P=), TANPA --wait; lihat make ps

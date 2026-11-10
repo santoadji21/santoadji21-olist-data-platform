@@ -1,4 +1,4 @@
-"""T3 — satu pintu perintah stream: reset | produce | consume | report | run (replay penuh).
+"""T3: satu pintu perintah stream: reset | produce | consume | report | run (replay penuh).
 
   python -m olist_v2.stream_cli run [--limit N] [--speed S] [--seed 42] ...
 

@@ -7,7 +7,7 @@
 
 -- dim_date: satu baris per tanggal kalender dari tanggal terawal sampai terakhir di semua kolom tanggal fakta.
 -- is_complete_month: false bila jumlah order bulan itu < 10% median bulanan (bulan sparse awal/akhir dataset;
--- TIDAK dibuang, hanya diberi flag agar mart dan dashboard bisa memilih). Bulan tanpa order sama sekali
+-- tidak dibuang, hanya diberi flag agar mart dan dashboard bisa memilih). Bulan tanpa order sama sekali
 -- (mis. 2016-11) juga false.
 WITH bounds AS (
     SELECT min(d)::date AS d0, max(d)::date AS d1

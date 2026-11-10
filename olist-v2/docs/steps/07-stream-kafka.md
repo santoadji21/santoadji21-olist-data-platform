@@ -1,6 +1,6 @@
-# Langkah 7 — Stream: Kafka (T3)
+# Langkah 7: Stream dengan Kafka (T3)
 
-**Status: selesai dan terbukti** pada replay penuh 99.441 order (35 detik). Service `kafka` (KRaft) dan `kafka-ui` di profil `stream`: `make up P=stream`, Kafka UI `http://localhost:18081`. Profil hanya memisahkan penyalaan demi RAM; perilaku T3 utuh.
+Status: selesai dan terbukti pada replay penuh 99.441 order (35 detik). Service `kafka` (KRaft) dan `kafka-ui` di profil `stream`: `make up P=stream`, Kafka UI `http://localhost:18081`. Profil hanya memisahkan penyalaan demi RAM; perilaku T3 utuh.
 
 ## Perintah
 | Perintah | Melakukan |
@@ -25,12 +25,12 @@ Status terkini = `raw.orders.order_status` pada 99.441 dari 99.441 order. Freshn
 ## Desain (dibawa dari T3)
 - `event_id` deterministik `<order_id>:<status>` = PK `stream.order_events`; status hanya naik (`canceled`/`unavailable` terminal).
 - Producer memberi gangguan terkontrol (±3 % dobel, ±2 % terlambat, ±0,5 % rusak, key = `order_id`); jumlahnya dicatat ke `outputs/stream_truth.json` (kunci jawaban).
-- Consumer: consumer group, satu transaksi Postgres per batch, DLQ ke topic **dan** tabel, `enable_auto_commit=False`; urutan commit Postgres → DLQ → offset.
+- Consumer: consumer group, satu transaksi Postgres per batch, DLQ ke topic dan tabel, `enable_auto_commit=False`; urutan commit Postgres → DLQ → offset.
 - Producer memeriksa hasil `send()` (errback + `flush` + `SendFailure`); producer naif kehilangan event tanpa error saat broker mati lama (failure test d).
 - Consumer di-port ke psycopg2 (`with conn` = satu transaksi); logika lain sama dengan T0–T6. Tabel `stream.*` dibuat oleh `olist_v2/sql/10_stream.sql` (idempoten), juga sebelum `dbt build`.
 
 ## Keputusan yang diambil
-Consumer tetap **Python** (bukan Spark Structured Streaming): sudah terbukti benar dan crash-safe, dan hemat RAM di laptop 7,8 GB. Kafka ±420 MB, scheduler ±430 MB saat replay.
+Consumer tetap memakai Python, bukan Spark Structured Streaming, karena sudah terbukti benar dan crash-safe serta hemat RAM di laptop 7,8 GB. Kafka ±420 MB, scheduler ±430 MB saat replay.
 
 ## Belum
 Stream belum menjadi task di DAG `olist_v2_pipeline` (DAG hanya jalur batch). Stream dijalankan lewat `make stream` dan ikut `make all`.

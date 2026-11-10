@@ -7,9 +7,9 @@
     ]
 ) }}
 
--- fact_review: grain = satu baris per ORDER yang punya ulasan (98.673).
--- Kebijakan untuk order dengan > 1 ulasan (547 order): ambil ulasan DENGAN review_answer_timestamp TERBARU;
--- seri → review_creation_date terbaru → review_id terkecil (deterministik). review_count menyimpan jumlah asli.
+-- fact_review: grain = satu baris per order yang punya ulasan (98.673).
+-- Kebijakan untuk order dengan > 1 ulasan (547 order): ambil ulasan dengan review_answer_timestamp terbaru;
+-- jika seri, pakai review_creation_date terbaru, lalu review_id terkecil (deterministik). review_count menyimpan jumlah asli.
 -- Alternatif yang ditolak: rata-rata skor semua ulasan (menyembunyikan perubahan pendapat pelanggan dan
 -- membuat skor tidak lagi bilangan bulat 1–5).
 SELECT DISTINCT ON (order_id)

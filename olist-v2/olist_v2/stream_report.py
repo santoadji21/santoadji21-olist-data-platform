@@ -1,4 +1,4 @@
-"""T3 — Laporan: angka producer (kunci jawaban) vs consumer, dan status terkini vs raw.orders."""
+"""T3, laporan: angka producer (kunci jawaban) vs consumer, dan status terkini vs raw.orders."""
 from __future__ import annotations
 
 import json

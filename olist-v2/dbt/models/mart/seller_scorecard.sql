@@ -1,11 +1,11 @@
 -- Porting dari T0–T6 sql/mart/30_seller_scorecard.sql. PK dipasang lewat post_hook.
 {{ config(post_hook=["alter table {{ this }} add primary key (seller_id)"]) }}
 
--- Q3 — scorecard seller. Satu baris per seller yang punya item.
--- Atribusi: order dihitung untuk SETIAP seller yang ada di order itu (order multi-seller terhitung ke tiap seller).
--- JUMLAH ORDER MINIMAL: seller dengan < 30 order tidak "dinilai" (is_rated = false): dengan 2 order dan 1 terlambat,
+-- Q3: scorecard seller. Satu baris per seller yang punya item.
+-- Atribusi: order dihitung untuk setiap seller yang ada di order itu (order multi-seller terhitung ke tiap seller).
+-- Jumlah order minimal: seller dengan < 30 order tidak "dinilai" (is_rated = false): dengan 2 order dan 1 terlambat,
 -- "50 % terlambat" tidak bermakna. 30 order → 634 dari 3.095 seller dinilai, tetapi mencakup sebagian besar order.
--- AMBANG TINDAKAN (hanya untuk seller yang dinilai): late_rate >= 15 % (≈ 2× rata-rata platform),
+-- Ambang tindakan (hanya untuk seller yang dinilai): late_rate >= 15 % (≈ 2× rata-rata platform),
 -- canceled_rate >= 5 %, atau rata-rata skor <= 3,5 (rata-rata platform ≈ 4,1).
 WITH so AS (   -- satu baris per (seller, order)
     SELECT i.seller_id, i.order_id, sum(i.price) AS price

@@ -6,7 +6,7 @@
   * Manifest per tabel DI BUCKET (olist/_manifest/<tabel>.json): sumber, riwayat versi (sha256, md5, ukuran byte,
     jumlah baris, waktu ingest, kunci objek, ETag), dan `latest`. Ditulis TERAKHIR.
   * Checksum: sha256 menentukan `unchanged` (md5 lemah terhadap tabrakan); md5 disimpan juga dan dibandingkan dengan
-    ETag S3 — hanya bermakna untuk upload tunggal (ETag multipart berbentuk "<hash>-<n>" dan tidak sama dengan md5).
+    ETag S3 hanya bermakna untuk upload tunggal (ETag multipart berbentuk "<hash>-<n>" dan tidak sama dengan md5).
   * Status: uploaded | unchanged | new_version.
 """
 from __future__ import annotations

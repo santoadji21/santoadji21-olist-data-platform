@@ -1,4 +1,4 @@
-"""T6 — EVALUATION_EVIDENCE.md dibangkitkan dari outputs/*.json (`make report`). Tidak ada angka yang diketik tangan:
+"""T6: EVALUATION_EVIDENCE.md dibangkitkan dari outputs/*.json (`make report`). Tidak ada angka yang diketik tangan:
 semua besaran dibaca dari file hasil tiap tahap; yang diketik hanya narasi keputusan/limitation yang tidak memuat angka.
 """
 from __future__ import annotations

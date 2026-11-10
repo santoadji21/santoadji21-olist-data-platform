@@ -1,6 +1,6 @@
-"""T5 — laporan mart dan ekspor gold. Mart sendiri dibangun dbt (`make dbt-build`); modul ini:
+"""T5: laporan mart dan ekspor gold. Mart sendiri dibangun dbt (`make dbt-build`); modul ini:
 
-  * menjalankan 17 pemeriksaan mart (dbt/tests/mart_checks.sql, referensi `ref()` diganti nama skema) — harus 0 semua
+  * menjalankan 17 pemeriksaan mart (dbt/tests/mart_checks.sql, referensi `ref()` diganti nama skema), harus 0 semua
   * mengekspor tiap mart ke bucket gold (Parquet + CSV)
   * menulis outputs/marts_report.md + marts.json dari olist_v2.questions: query dan insight yang SAMA dengan dashboard Metabase
 """

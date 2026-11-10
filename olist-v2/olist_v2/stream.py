@@ -1,4 +1,4 @@
-"""T3 — Logika murni streaming (tanpa Kafka/Postgres): event, peringkat status, validasi, gangguan.
+"""T3: Logika murni streaming (tanpa Kafka/Postgres): event, peringkat status, validasi, gangguan.
 
 Keputusan desain yang dijaga di sini:
   * event_id deterministik = "<order_id>:<status>" → duplikat dikenali tanpa state tambahan, dan dua replay
@@ -44,7 +44,7 @@ def order_events(order: dict) -> list[dict]:
     Aturan: pakai riwayat yang punya waktu nyata; untuk status non-terminal, hentikan pada status akhir order;
     pastikan event status akhir selalu ada (waktu diisi = waktu terakhir yang diketahui, `ts_imputed=True`).
     Order `delivered` dengan tanggal tiba lebih awal dari tanggal kurir menghasilkan event yang urutan
-    waktunya terbalik — out-of-order alami yang harus ditangani consumer.
+    waktunya terbalik. Ini out-of-order alami yang harus ditangani consumer.
     """
     final = order["order_status"]
     final_rank = RANK[final]

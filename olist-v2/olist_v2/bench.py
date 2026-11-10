@@ -1,4 +1,4 @@
-"""Benchmark silver: Spark (local[2]) vs DuckDB (2 thread) pada pekerjaan YANG SAMA — baca CSV teks, cast tipe, evaluasi aturan hard/soft
+"""Benchmark silver: Spark (local[2]) vs DuckDB (2 thread) pada pekerjaan yang sama: baca CSV teks, cast tipe, evaluasi aturan hard/soft
 dari kontrak ODCS, FK ke induk, tulis Parquet bersih + karantina. Keduanya membaca dan menulis DISK LOKAL (tanpa MinIO) agar yang diukur adalah mesinnya.
 
   python -m olist_v2.bench run --engine spark|duckdb --scale N [--out hasil.json]   # satu proses = satu pengukuran
@@ -96,7 +96,7 @@ def run_spark(raw_dir: Path, out: Path) -> dict:
 
 # ---------------------------------------------------------------- DuckDB
 def _typed_exprs(m: Model) -> tuple[list[str], list[str]]:
-    """(ekspresi kolom bertipe, ekspresi alasan gagal) dari tipe kontrak — padanan SQL dari silver.typed_frame."""
+    """(ekspresi kolom bertipe, ekspresi alasan gagal) dari tipe kontrak, padanan SQL dari silver.typed_frame."""
     cols, reasons = [], []
     for c in m.columns:
         s = f'"{c.name}"'

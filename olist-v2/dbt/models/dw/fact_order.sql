@@ -11,8 +11,8 @@
     ]
 ) }}
 
--- fact_order: grain = satu baris per ORDER (header), semua 99.441 order termasuk tanpa item / tanpa pembayaran.
--- is_late: NULL (bukan false) bila order tidak/belum terkirim atau tanggal tiba kosong; dibandingkan per TANGGAL.
+-- fact_order: grain = satu baris per order (header), semua 99.441 order termasuk tanpa item / tanpa pembayaran.
+-- is_late: NULL (bukan false) bila order tidak/belum terkirim atau tanggal tiba kosong; dibandingkan per tanggal.
 WITH items AS (
     SELECT order_id, count(*) AS item_count, sum(price) AS items_value, sum(freight_value) AS freight_value
     FROM {{ ref('stg_order_items') }} GROUP BY order_id

@@ -1,10 +1,10 @@
 -- Porting dari T0–T6 sql/mart/10_sales_monthly.sql. PK dipasang lewat post_hook.
 {{ config(post_hook=["alter table {{ this }} add primary key (year_month, category, customer_state)"]) }}
 
--- Q1 — penjualan bulanan: bulan beli × kategori (Inggris) × negara bagian pelanggan.
--- DEFINISI PENDAPATAN: Σ price item pada order dengan status BUKAN 'canceled'/'unavailable'
+-- Q1: penjualan bulanan: bulan beli × kategori (Inggris) × negara bagian pelanggan.
+-- Definisi pendapatan: Σ price item pada order dengan status selain 'canceled' dan 'unavailable'
 -- (order yang tidak pernah terkirim bukan pendapatan). Ongkir (freight) dipisah, bukan bagian dari pendapatan.
--- Bukan payment_value: itu termasuk bunga cicilan/voucher dan order tanpa item (lihat mart.reconciliation).
+-- Pendapatan tidak memakai payment_value, karena nilai itu termasuk bunga cicilan/voucher dan order tanpa item (lihat mart.reconciliation).
 SELECT d.year_month,
        d.is_complete_month,
        p.category_en                     AS category,

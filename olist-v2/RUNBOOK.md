@@ -1,6 +1,6 @@
-# RUNBOOK — olist-v2
+# RUNBOOK olist-v2
 
-Format: **gejala → penyebab paling mungkin → cek → pulihkan**. Semua perintah dari folder `olist-v2/`. Daftar target: `make help`.
+Setiap entri berurutan: gejala, penyebab paling mungkin, cara memeriksa, lalu cara memulihkan. Semua perintah dijalankan dari folder `olist-v2/`. Daftar target: `make help`.
 
 | # | Gejala | Lompat |
 |---|---|---|
@@ -12,15 +12,15 @@ Format: **gejala → penyebab paling mungkin → cek → pulihkan**. Semua perin
 | 6 | Producer selesai tanpa error tetapi event kurang | [6](#6) |
 | 7 | Consumer mati di tengah jalan | [7](#7) |
 | 8 | Log task Airflow terpotong | [8](#8) |
-| 9 | Container saling bertabrakan dengan proyek T0–T6 | [9](#9) |
+| 9 | Container bertabrakan dengan proyek T0–T6 (implementasi pertama) | [9](#9) |
 | 10 | Spark `spark_silver` mati (SIGKILL / tanpa S3A) | [10](#10) |
 | 11 | Dashboard Metabase kosong atau kartu error | [11](#11) |
 
 <a id="1"></a>
 ## 1. `silver` berhenti: "kolom hilang: …"
-- **Penyebab:** CSV sumber kehilangan kolom yang ada di kontrak (`contracts/olist_raw.odcs.yaml`). Silver sengaja berhenti SEBELUM menulis silver atau menyentuh Postgres.
+- **Penyebab:** CSV sumber kehilangan kolom yang ada di kontrak (`contracts/olist_raw.odcs.yaml`). Silver sengaja berhenti sebelum menulis silver atau menyentuh Postgres.
 - **Cek:** `outputs/dq_report.md`; pesan menyebut nama kolom dan berkas. `make minio-ls` → versi bronze terbaru.
-- **Pulihkan:** perbaiki/unduh ulang sumber (`make download`), `make bronze` (versi baru; versi rusak tetap di manifest), lalu `make silver gate load`.
+- **Pulihkan:** perbaiki atau unduh ulang sumber (`make download`), `make bronze` (versi baru; versi rusak tetap di manifest), lalu `make silver gate load`.
 - **Bukti:** failure test (a), `outputs/failure_tests.md`.
 
 <a id="2"></a>
@@ -34,7 +34,7 @@ Format: **gejala → penyebab paling mungkin → cek → pulihkan**. Semua perin
 ## 3. `contract_gate` merah
 - **Penyebab:** pemeriksaan ODCS berstatus `failed`/`error` (bukan peringatan soft atau "tipe belum didukung").
 - **Cek:** `outputs/contract_gate.md` (alasan per pemeriksaan); log task menampilkan alasan gagalnya. Pesan `'s3' backend is not installed` → image Airflow lama: `make build-core && make up`.
-- **Pulihkan:** perbaiki data atau aturan, ulangi `make silver gate`. Peringatan soft dan 52 pemeriksaan tipe pada Parquet BUKAN kegagalan (keterbatasan datacontract-cli).
+- **Pulihkan:** perbaiki data atau aturan, ulangi `make silver gate`. Peringatan soft dan 52 pemeriksaan tipe pada Parquet tergolong keterbatasan datacontract-cli dan tidak dihitung sebagai kegagalan.
 
 <a id="4"></a>
 ## 4. `dbt_build` gagal: `Connection refused` ke `postgres:15432`
@@ -45,7 +45,7 @@ Format: **gejala → penyebab paling mungkin → cek → pulihkan**. Semua perin
 <a id="5"></a>
 ## 5. Event unik di Postgres ≠ event unik producer
 - **Cek:** `make stream-report` (✅/❌ per besaran). Penyebab umum: run lama masih tersisa (tabel/topik tidak direset), atau producer dijalankan dengan seed/limit berbeda.
-- **Pulihkan:** `make stream-reset` lalu `make stream`. Duplikat bukan penyebab: `event_id` = PK, duplikat diabaikan (failure test (b)).
+- **Pulihkan:** `make stream-reset` lalu `make stream`. Duplikat tidak mungkin menjadi penyebab, karena `event_id` adalah PK dan duplikat diabaikan (failure test (b)).
 
 <a id="6"></a>
 ## 6. Producer sukses tetapi event kurang
@@ -66,13 +66,13 @@ Format: **gejala → penyebab paling mungkin → cek → pulihkan**. Semua perin
 - **Pulihkan:** pastikan `docker-compose.yml` masih memakai `./airflow/logs:/opt/airflow/logs`, lalu `make up`.
 
 <a id="9"></a>
-## 9. Tabrakan dengan proyek T0–T6 (container/volume `olist-*`)
+## 9. Tabrakan dengan proyek T0–T6 (container dan volume `olist-*`)
 - **Penyebab:** variabel shell `COMPOSE_PROJECT_NAME=olist`, `MINIO_*`, `POSTGRES_*` mengalahkan `.env`/`name:` compose.
 - **Cek:** `env | grep -E 'COMPOSE|MINIO_|POSTGRES_'`.
-- **Pulihkan:** selalu lewat `make` (memakai `-p olist-v2` dan variabel `V2_*`). Jangan menjalankan `docker compose` tanpa `-p olist-v2`.
+- **Pulihkan:** jalankan selalu lewat `make` (memakai `-p olist-v2` dan variabel `V2_*`). Jangan menjalankan `docker compose` tanpa `-p olist-v2`.
 
 <a id="10"></a>
-## 10. `spark_silver` mati (SIGKILL / "No FileSystem for scheme s3a")
+## 10. `spark_silver` mati (SIGKILL atau "No FileSystem for scheme s3a")
 - **Penyebab:** image Airflow lama (tanpa jar S3A) atau memori scheduler kurang (Spark driver jalan di scheduler).
 - **Cek:** `docker stats --no-stream | grep scheduler` (batas 3 GB), `docker compose -p olist-v2 exec airflow-scheduler ls /home/airflow/.local/lib/python3.11/site-packages/pyspark/jars | grep -E 'hadoop-aws|aws-java'`.
 - **Pulihkan:** `make build-core && make up`; beri Docker Desktop RAM cukup (≥ 7,8 GB).

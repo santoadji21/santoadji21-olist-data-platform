@@ -1,6 +1,6 @@
-# Langkah 9 — Verifikasi dan bukti (T6)
+# Langkah 9: Verifikasi dan bukti (T6)
 
-**Status: selesai.** Platform bisa **ditunjukkan** benar, bukan hanya diklaim.
+Status: selesai. Kebenaran platform ditunjukkan lewat bukti, tidak hanya diklaim.
 
 | Bukti | Perintah | Hasil |
 |---|---|---|
@@ -24,6 +24,6 @@
 Perusak sungguhan: proses dimatikan lewat exit code, broker lewat `docker stop`, sumber lewat salinan sementara (data asli tidak diubah). Dijalankan dari laptop (`olist_v2/failures.py`); tahap pipeline lewat `docker compose exec`.
 
 ## Batas 15 menit dan 10 perintah (T6)
-`make all YES=1` (reset = `down -v`, lalu 10 perintah): **161,7 detik (2,7 menit)**, semua exit 0 (`outputs/run_all.json`). Syarat tugas: ≤ 15 menit dan ≤ 10 perintah.
+`make all YES=1` (reset berupa `down -v`, lalu 10 perintah) memakan 161,7 detik (2,7 menit), dan semua perintah exit 0 (`outputs/run_all.json`). Syarat tugas: ≤ 15 menit dan ≤ 10 perintah.
 
-Batasan yang jujur: image kustom sudah terbangun (tahap `up` 34 s tanpa build) dan CSV di `data/raw` dipertahankan (tahap `download` 2,4 s, bukan unduhan Kaggle). Build image dari nol dan unduhan penuh menambah waktu; keduanya belum diukur dan dijalankan sekali saja (`make reset-all` lalu `make build`).
+Batasan pengukuran: image kustom sudah terbangun (tahap `up` 34 s tanpa build) dan CSV di `data/raw` dipertahankan (tahap `download` 2,4 s, bukan unduhan Kaggle). Build image dari nol dan unduhan penuh menambah waktu; keduanya belum diukur dan dijalankan sekali saja (`make reset-all` lalu `make build`).

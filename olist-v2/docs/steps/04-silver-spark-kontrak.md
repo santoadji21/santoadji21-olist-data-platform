@@ -1,31 +1,31 @@
-# Langkah 4 — Silver: Spark dan gate kontrak ODCS
+# Langkah 4: Silver, Spark dan gate kontrak ODCS
 
-**Status: selesai dan terbukti end-to-end, termasuk lewat Airflow.** Spark 3.5.4 `local[2]` di scheduler: ±25 detik, 9 tabel `PASS`, 0 karantina; pelanggaran soft, flag, tipe, dan kode pos cocok dengan T0–T6. Gate kontrak (`datacontract test` ke silver di MinIO) = `warning`: 189 pemeriksaan, 129 lolos, 0 gagal, 8 soft, 52 pemeriksaan tipe Parquet *belum didukung* datacontract-cli 1.2.4 (keterbatasan alat; tipe ditutup oleh pemetaan Spark dan uji DuckDB). `load_raw`: 9 tabel ±5 detik, idempoten (99.441 order, 112.650 item). Benchmark mesin: [langkah 10](10-benchmark.md). Tujuan: data bertipe sesuai kontrak, dengan aturan kualitas hard dan soft, baris bermasalah dikarantina, dan kontrak ODCS menjadi **gate** di DAG.
+Status: selesai dan terbukti end-to-end, termasuk lewat Airflow. Spark 3.5.4 `local[2]` di scheduler: ±25 detik, 9 tabel `PASS`, 0 karantina; pelanggaran soft, flag, tipe, dan kode pos cocok dengan T0–T6. Gate kontrak (`datacontract test` ke silver di MinIO) = `warning`: 189 pemeriksaan, 129 lolos, 0 gagal, 8 soft, 52 pemeriksaan tipe Parquet *belum didukung* datacontract-cli 1.2.4 (keterbatasan alat; tipe ditutup oleh pemetaan Spark dan uji DuckDB). `load_raw`: 9 tabel ±5 detik, idempoten (99.441 order, 112.650 item). Benchmark mesin: [langkah 10](10-benchmark.md). Tujuan langkah ini: data bertipe sesuai kontrak, aturan kualitas hard dan soft berjalan, baris bermasalah dikarantina, dan kontrak ODCS menjadi gate di DAG.
 
 ## Pembagian peran
 | Alat | Tugas |
 |---|---|
 | Spark | baca `s3a://bronze/…`, ubah ke tipe kontrak, tulis Parquet ke `s3a://silver/…` dan baris bermasalah ke karantina |
-| datacontract (venv Airflow) | `datacontract test` terhadap kontrak ODCS = **gate**: gagal → DAG berhenti |
+| datacontract (venv Airflow) | `datacontract test` terhadap kontrak ODCS berfungsi sebagai gate: bila gagal, DAG berhenti |
 | Postgres | menerima `raw.*` dari silver (langkah `load_raw`) |
 
 ## Kontrak ODCS
 Mulai dari `contracts/olist_raw.odcs.yaml` milik T0–T6 (sudah lint-valid, 8 warning soft yang cocok dengan profil). Aturan hard = `severity: error`, soft = `warning`. Satu klausa `WHERE` yang sama dipakai di kontrak, Spark SQL, dan dbt test supaya tidak ada tiga versi aturan.
 
-## Keputusan: Spark MODE LOKAL dulu (`local[2]` di dalam task Airflow)
-Supaya logika silver dan gate hijau tanpa cluster (RAM 7,8 GB). Pindah ke cluster = mengganti `SPARK_MASTER_URL`. Kodenya: `olist_v2/silver.py` (transformasi murni Spark + I/O S3), `olist_v2/rules.py` (logika murni), aturan dan ambang dari kontrak ODCS.
+## Keputusan: Spark mode lokal dulu (`local[2]` di dalam task Airflow)
+Mode ini dipilih supaya logika silver dan gate hijau tanpa cluster (RAM 7,8 GB). Pindah ke cluster cukup dengan mengganti `SPARK_MASTER_URL`. Kodenya: `olist_v2/silver.py` (transformasi murni Spark + I/O S3), `olist_v2/rules.py` (logika murni), aturan dan ambang dari kontrak ODCS.
 
 ## Pilihan yang masih terbuka untuk nanti
 Image Airflow tidak punya Java, jadi cara Airflow menjalankan Spark harus dipilih:
-1. **`spark-submit` client mode dari Airflow** (yang saat ini ditulis di Dockerfile: JRE + pyspark 3.5): driver di container Airflow, executor di `spark-worker`. Butuh `spark.driver.host` yang bisa dijangkau worker dan versi pyspark = 3.5.3.
-2. **Spark Connect**: klien ringan tanpa Java, server di container Spark. Lebih ringan untuk laptop 7,8 GB, fiturnya terbatas pada DataFrame/SQL.
-3. **Spark lokal di dalam task** (tanpa cluster): paling sederhana, tapi tidak lagi "cluster".
+1. `spark-submit` client mode dari Airflow (yang saat ini ditulis di Dockerfile: JRE + pyspark 3.5): driver di container Airflow, executor di `spark-worker`. Butuh `spark.driver.host` yang bisa dijangkau worker dan versi pyspark = 3.5.3.
+2. Spark Connect: klien ringan tanpa Java, server di container Spark. Lebih ringan untuk laptop 7,8 GB, tetapi fiturnya terbatas pada DataFrame dan SQL.
+3. Spark lokal di dalam task (tanpa cluster): paling sederhana, tetapi tidak lagi berupa cluster.
 
-Catatan jujur: data 126 MB terlalu kecil untuk membutuhkan Spark (di T0–T6, DuckDB mengerjakan 1 juta baris geolokasi dalam hitungan detik). Nilai langkah ini adalah belajar dan **membandingkan durasi Spark vs DuckDB**.
+Data 126 MB sebenarnya terlalu kecil untuk membutuhkan Spark (di T0–T6, DuckDB mengerjakan 1 juta baris geolokasi dalam hitungan detik). Nilai langkah ini ada pada belajar dan membandingkan durasi Spark dengan DuckDB.
 
 ## Kriteria selesai
 - 9 tabel silver bertipe (timestamp, numeric, kode pos teks 5 digit), baris silver + karantina = baris sumber.
-- Kolom hilang di sumber menghentikan DAG **sebelum** menyentuh Postgres, dengan pesan yang menyebut kolomnya.
+- Kolom hilang di sumber menghentikan DAG sebelum menyentuh Postgres, dengan pesan yang menyebut kolomnya.
 - `datacontract test` lolos (hanya warning soft) dan menjadi task `contract_gate` di DAG.
 
 ## Risiko

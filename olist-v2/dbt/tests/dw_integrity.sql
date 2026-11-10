@@ -1,4 +1,4 @@
--- Porting dari T0–T6 sql/checks/dw_integrity.sql (28 pemeriksaan). Test dbt LULUS bila query ini mengembalikan 0 baris,
+-- Porting dari T0–T6 sql/checks/dw_integrity.sql (28 pemeriksaan). Test dbt lulus bila query ini mengembalikan 0 baris,
 -- yaitu bila tidak ada pemeriksaan dengan bad_rows <> 0.
 select * from (
 SELECT 'fk_dim_customer_geo' AS check_name, count(*) AS bad_rows FROM {{ ref('dim_customer') }} c LEFT JOIN {{ ref('dim_geo') }} g USING (geo_key) WHERE g.geo_key IS NULL
@@ -20,7 +20,7 @@ UNION ALL SELECT 'grain_fact_payment_vs_raw', abs((SELECT count(*) FROM {{ ref('
 UNION ALL SELECT 'grain_fact_review_vs_orders_with_review', abs((SELECT count(*) FROM {{ ref('fact_review') }}) - (SELECT count(DISTINCT order_id) FROM {{ source('raw', 'order_reviews') }}))
 UNION ALL SELECT 'grain_dim_geo_vs_distinct_zip', abs((SELECT count(*) - 1 FROM {{ ref('dim_geo') }}) - (SELECT count(DISTINCT geolocation_zip_code_prefix) FROM {{ source('raw', 'geolocation') }} WHERE NOT is_outside_brazil))
 UNION ALL SELECT 'grain_dim_product_vs_raw', abs((SELECT count(*) FROM {{ ref('dim_product') }}) - (SELECT count(*) FROM {{ source('raw', 'products') }}))
--- isi: uang tidak bocor / tidak berlipat
+-- isi: uang tidak bocor dan tidak berlipat
 UNION ALL SELECT 'sum_item_price_matches_raw', (abs((SELECT sum(price) FROM {{ ref('fact_order_item') }}) - (SELECT sum(price) FROM {{ source('raw', 'order_items') }})) > 0.005)::int
 UNION ALL SELECT 'sum_payment_matches_raw', (abs((SELECT sum(payment_value) FROM {{ ref('fact_payment') }}) - (SELECT sum(payment_value) FROM {{ source('raw', 'order_payments') }})) > 0.005)::int
 UNION ALL SELECT 'fact_order_item_count_matches_header', count(*) FROM {{ ref('fact_order') }} o WHERE o.item_count <> (SELECT count(*) FROM {{ ref('fact_order_item') }} i WHERE i.order_id = o.order_id)

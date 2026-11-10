@@ -50,7 +50,7 @@ def test_csv_bytes_null_is_unquoted_empty_and_column_order_follows_the_table():
     lines = load.to_csv_bytes(table(ROWS), MODEL).decode().splitlines()
     first = next(csv.reader([lines[0]]))
     assert first[:3] == ["a", "01003", "10.50"] and first[3].startswith("2017-01-01 10:00:00") and first[5] == "false"
-    assert ",,,," in lines[1] and lines[1].endswith("true")          # NULL = kosong TAK dikutip (bukan string kosong)
+    assert ",,,," in lines[1] and lines[1].endswith("true")          # NULL = kosong tanpa kutip (bukan string kosong)
 
 
 def test_missing_column_in_silver_is_a_source_error():

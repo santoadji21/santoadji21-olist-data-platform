@@ -1,7 +1,7 @@
 -- T3: tabel stream.* (idempoten: aman dijalankan berulang).
 CREATE SCHEMA IF NOT EXISTS stream;
 
--- Log event: satu baris per event UNIK. PK event_id = "<order_id>:<status>" → duplikat otomatis diabaikan.
+-- Log event: satu baris per event unik. PK event_id = "<order_id>:<status>" → duplikat otomatis diabaikan.
 CREATE TABLE IF NOT EXISTS stream.order_events (
     event_id        text PRIMARY KEY,
     order_id        text        NOT NULL,

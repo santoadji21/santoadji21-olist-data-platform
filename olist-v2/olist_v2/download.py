@@ -1,7 +1,7 @@
 """Unduh dataset Olist dari Kaggle ke data/raw (di dalam olist-v2; tidak mengambil apa pun dari repo lain).
 
   * Idempoten: bila 9 file sudah ada dan jumlah barisnya cocok kontrak, tidak mengunduh ulang (status `present`).
-  * Aman: ekstraksi hanya untuk nama file yang dikenal (tanpa path), ke folder sementara, lalu dipindah — unduhan
+  * Aman: ekstraksi hanya untuk nama file yang dikenal (tanpa path), ke folder sementara, lalu dipindah, sehingga unduhan
     yang gagal tidak meninggalkan data/raw setengah terisi.
   * Terverifikasi: jumlah baris tiap file dibandingkan dengan kontrak ODCS (parser CSV). Versi dataset yang berbeda
     menghentikan pipeline sebelum bronze (tugas: "jangan lanjut dengan data yang berbeda").

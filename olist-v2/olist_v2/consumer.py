@@ -1,4 +1,4 @@
-"""T3 — Consumer: validasi → DLQ / log event / status terkini, semuanya dalam satu transaksi per batch.
+"""T3, consumer: validasi → DLQ / log event / status terkini, semuanya dalam satu transaksi per batch.
 
 Urutan commit (inti jaminan): (1) simpan ke Postgres + commit transaksi, (2) kirim DLQ ke topic + flush,
 (3) baru commit offset Kafka. Mati di antara (1) dan (3) → pesan dikirim ulang saat restart → event sudah ada

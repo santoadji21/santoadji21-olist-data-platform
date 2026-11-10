@@ -1,8 +1,8 @@
 -- Porting dari T0–T6 sql/mart/20_delivery_monthly.sql. PK dipasang lewat post_hook.
 {{ config(post_hook=["alter table {{ this }} add primary key (year_month, customer_state)"]) }}
 
--- Q2 — performa pengiriman: bulan beli × negara bagian pelanggan.
--- PENYEBUT JUJUR: late_rate = terlambat / order dengan is_late IS NOT NULL (delivered + tanggal tiba terisi).
+-- Q2: performa pengiriman: bulan beli × negara bagian pelanggan.
+-- Penyebut yang jujur: late_rate = terlambat / order dengan is_late IS NOT NULL (delivered + tanggal tiba terisi).
 -- Order yang belum/tidak terkirim tidak ikut dihitung "tepat waktu".
 SELECT d.year_month,
        d.is_complete_month,

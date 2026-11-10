@@ -5,7 +5,7 @@
     ]
 ) }}
 
--- dim_product: typo kolom sumber diperbaiki di sini (lenght → length). Kategori Inggris dengan fallback:
+-- dim_product: typo kolom sumber diperbaiki di sini (lenght menjadi length). Kategori Inggris dengan fallback:
 -- null → 'unknown'; tanpa terjemahan → nama Portugis apa adanya (13 produk, mis. pc_gamer).
 SELECT p.product_id,
        p.product_category_name                                                   AS category_pt,

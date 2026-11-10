@@ -7,8 +7,8 @@
     ]
 ) }}
 
--- dim_customer: satu baris per ORANG (customer_unique_id), bukan per order (customer_id).
--- Atribut yang berubah antar order (zip, kota): ambil yang TERBARU (SCD tipe 1).
+-- dim_customer: satu baris per orang (customer_unique_id), bukan per order (customer_id).
+-- Atribut yang berubah antar order (zip, kota): ambil yang terbaru (SCD tipe 1).
 -- Yang hilang: riwayat pindah alamat; pelanggan dinilai di lokasi pembelian terakhirnya.
 WITH ranked AS (
     SELECT c.customer_unique_id, c.customer_zip_code_prefix, c.customer_city, c.customer_state,

@@ -1,4 +1,4 @@
-"""DAG olist_v2_pipeline. Diperluas bertahap: sekarang `download_kaggle` → `ingest_bronze` → `spark_silver` → `contract_gate` → `load_raw` → `dbt_build` → `marts_report`; stream, evidence menyusul.
+"""DAG olist_v2_pipeline. Urutan task: `download_kaggle` → `ingest_bronze` → `spark_silver` → `contract_gate` → `load_raw` → `dbt_build` → `marts_report`. Stream belum menjadi task DAG (jalan lewat `make stream`).
 Airflow hanya merangkai: logikanya ada di paket `olist_v2` (bisa dijalankan tanpa Airflow: `make bronze`)."""
 from datetime import datetime, timedelta
 

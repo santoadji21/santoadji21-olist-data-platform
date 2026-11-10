@@ -1,6 +1,6 @@
 -- Porting 17 pemeriksaan mart T5. Lulus bila tidak ada baris bad_rows <> 0.
 select * from (
--- Setiap baris = satu pemeriksaan mart; bad_rows HARUS 0. Menelusuri tiap mart kembali ke fakta di dw.
+-- Setiap baris = satu pemeriksaan mart; bad_rows harus 0. Menelusuri tiap mart kembali ke fakta di dw.
 SELECT 'sales_revenue_equals_fact_items' AS check_name,
        (abs((SELECT sum(revenue) FROM {{ ref('sales_monthly') }})
           - (SELECT sum(price) FROM {{ ref('fact_order_item') }} WHERE order_status NOT IN ('canceled','unavailable'))) > 0.005)::int AS bad_rows

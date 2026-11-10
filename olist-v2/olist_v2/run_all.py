@@ -1,8 +1,8 @@
-"""T6 — satu pintu dari nol sampai dashboard, dengan waktu tiap tahap (batas tugas: ≤ 15 menit dan ≤ 10 perintah).
+"""T6: satu pintu dari nol sampai dashboard, dengan waktu tiap tahap (batas tugas: ≤ 15 menit dan ≤ 10 perintah).
 
   make all            # warm: stack dibiarkan, hanya jalankan 10 perintah
   make all YES=1      # fresh: `make reset` (down -v, CSV tetap) lalu 10 perintah
-Hasil: outputs/run_all.json — dibaca oleh olist_v2.evidence.
+Hasil: outputs/run_all.json, dibaca oleh olist_v2.evidence.
 """
 from __future__ import annotations
 

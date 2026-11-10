@@ -1,13 +1,13 @@
-# olist-v2 — dokumentasi
+# Dokumentasi olist-v2
 
-Eksplorasi platform data: **Airflow + MinIO + Spark + dbt + Metabase + datacontract (ODCS) + Kafka** di atas PostgreSQL.
-Dokumen ini ditulis untuk kamu sebagai pembangunnya: apa yang sudah ada, urutan langkah berikutnya, dan cara memeriksanya.
+Eksplorasi platform data yang dirangkai dari Airflow, MinIO, Spark, dbt, Metabase, datacontract (ODCS), dan Kafka, dengan PostgreSQL sebagai warehouse.
+Dokumen ini ditulis untuk pembangunnya dan memuat apa yang sudah ada, urutan langkah berikutnya, serta cara memeriksanya.
 
-> **Posisi v2:** eksplorasi pribadi (tidak dinilai). **Ketentuan T0–T6 dipertahankan persis** (tata letak MinIO, manifest dengan checksum dan waktu update, gate, grain, angka cek, dst.) di [ALIGNMENT.md](ALIGNMENT.md); **alatnya boleh berbeda dan dinaikkan ke production-grade** di [PRODUCTION-GRADE.md](PRODUCTION-GRADE.md).
+> Posisi v2: eksplorasi pribadi yang tidak dinilai. Ketentuan tahap T0–T6 pada tugas besar (T0 kontrak dan profil, T1 bronze, T2 silver dan raw, T3 stream, T4 star schema, T5 mart dan dashboard, T6 bukti) tetap dipertahankan persis, yaitu tata letak MinIO, manifest dengan checksum dan waktu update, gate, grain, dan angka cek. Rinciannya ada di [ALIGNMENT.md](ALIGNMENT.md). Alatnya boleh berbeda dan dinaikkan ke kelas production-grade, seperti diuraikan di [PRODUCTION-GRADE.md](PRODUCTION-GRADE.md).
 
 ## Diagram (HTML interaktif + pratinjau)
 
-Buka berkas `.html` di browser: ada pan/zoom, mode terang/gelap, pelacakan relasi, dan ekspor. PNG hanya pratinjau untuk Markdown.
+Buka berkas `.html` di browser. Fiturnya meliputi pan dan zoom, mode terang dan gelap, pelacakan relasi, serta ekspor. PNG hanya pratinjau untuk Markdown.
 
 | Diagram | HTML | Pratinjau | Menjawab |
 |---|---|---|---|
@@ -16,7 +16,7 @@ Buka berkas `.html` di browser: ada pan/zoom, mode terang/gelap, pelacakan relas
 | DAG `olist_v2_pipeline` | [olist-v2.workflow.html](diagrams/olist-v2.workflow.html) | ![dag](diagrams/olist-v2.workflow.png) | tujuh task Airflow, penyimpanan yang ditulis, dan jalur gagal |
 | Siapa menjalankan apa (`make all`) | [olist-v2.run.html](diagrams/olist-v2.run.html) | ![run](diagrams/olist-v2.run.png) | perintah `make` mana menjalankan modul mana, di laptop atau container |
 
-Sumbernya JSON di [diagrams/](diagrams/) (`*.json`); HTML dibangkitkan dari JSON itu, jadi **ubah JSON-nya, jangan HTML-nya**. Membangun ulang (pakai `deliver`, bukan `render`, supaya diperiksa):
+Sumbernya JSON di [diagrams/](diagrams/) (`*.json`) dan HTML dibangkitkan darinya, sehingga yang diubah adalah JSON-nya, bukan HTML-nya. Untuk membangun ulang, pakai `deliver` (bukan `render`) supaya hasilnya ikut diperiksa:
 
 ```bash
 A=~/.claude/skills/archify/bin/archify.mjs
@@ -46,33 +46,33 @@ node $A deliver sequence     docs/diagrams/olist-v2.run.json          docs/diagr
 
 DAG `olist_v2_pipeline` memanggil fungsi yang sama dengan target `make` di atas (`download` sampai `marts`), bukan salinan lain.
 
-Catatan visual jujur (pemeriksaan containment 1440–2048 px lolos; tinjauan visual manual hanya pada tangkapan 1440×900 terang): di diagram aliran data, garis `export` ke gold berbagi jalur dengan panah `mart` sebelum berbelok; di diagram `run`, label legenda menyentuh bingkai segmen terakhir; di diagram DAG, panah `fail` ke `stop` berjalan di tepi bawah lane. Semuanya valid dan tidak menimpa node, tetapi bukan jalur terpendek. Diagram `run` memuat 10 dari 14 langkah: `make up` (compose) dan langkah verifikasi tidak digambar agar teks tetap terbaca.
+Catatan visual: pemeriksaan containment pada 1440–2048 px lolos, tetapi tinjauan visual manual baru dilakukan pada tangkapan terang 1440×900. Pada diagram aliran data, garis `export` ke gold berbagi jalur dengan panah `mart` sebelum berbelok. Pada diagram `run`, label legenda menyentuh bingkai segmen terakhir. Pada diagram DAG, panah `fail` ke `stop` berjalan di tepi bawah lane. Ketiganya valid dan tidak menimpa node, tetapi bukan jalur terpendek. Diagram `run` memuat 10 dari 14 langkah: `make up` (compose) dan langkah verifikasi tidak digambar agar teks tetap terbaca.
 
 ## Langkah demi langkah
 
-Status: **ada** = sudah dibuat dan diperiksa · **ditulis** = file ada, belum dijalankan · **rencana** = belum ditulis.
+Status: *ada* berarti sudah dibuat dan diperiksa, *ditulis* berarti berkas ada tetapi belum dijalankan, dan *rencana* berarti belum ditulis.
 
 | # | Langkah | Status | Berkas |
 |---|---|---|---|
-| 1 | [Isolasi dan persiapan](steps/01-isolasi-dan-persiapan.md) | **ada** | branch, `.env`, venv dbt |
-| 2 | [Stack inti](steps/02-stack-inti.md) | **ada** | compose, Postgres, MinIO, Airflow |
-| 3 | [Bronze: unduh Kaggle + ingest ke MinIO](steps/03-bronze-ingest.md) | **ada** | `olist_v2/download.py`, `bronze.py` |
-| 4 | [Silver, gate, dan load raw](steps/04-silver-spark-kontrak.md) | **ada** | `silver.py`, `gate.py`, `load.py` |
-| 5 | [Warehouse: dbt](steps/05-warehouse-dbt.md) | **ada** (65/65) | `dbt/` |
-| 6 | [Mart dan dashboard (Metabase)](steps/06-dashboard-metabase.md) | **ada** | `dbt/models/mart/`, `questions.py`, `metabase.py`, `marts.py` |
-| 7 | [Stream: Kafka](steps/07-stream-kafka.md) | **ada** (replay penuh 35 s) | `stream_cli.py`, `producer.py`, `consumer.py` |
-| 8 | [Orkestrasi: DAG ujung ke ujung](steps/08-orkestrasi-dag.md) | **ada** (stream belum di DAG) | `airflow/dags/` |
-| 9 | [Verifikasi dan bukti (T6)](steps/09-verifikasi.md) | **ada** (6/6 kasus) | `failures.py`, `smoke.py`, `evidence.py`, `RUNBOOK.md` |
-| 10 | [Benchmark silver: Spark vs DuckDB](steps/10-benchmark.md) | **ada** | `bench.py` |
+| 1 | [Isolasi dan persiapan](steps/01-isolasi-dan-persiapan.md) | ada | branch, `.env`, venv dbt |
+| 2 | [Stack inti](steps/02-stack-inti.md) | ada | compose, Postgres, MinIO, Airflow |
+| 3 | [Bronze: unduh Kaggle + ingest ke MinIO](steps/03-bronze-ingest.md) | ada | `olist_v2/download.py`, `bronze.py` |
+| 4 | [Silver, gate, dan load raw](steps/04-silver-spark-kontrak.md) | ada | `silver.py`, `gate.py`, `load.py` |
+| 5 | [Warehouse: dbt](steps/05-warehouse-dbt.md) | ada (65/65) | `dbt/` |
+| 6 | [Mart dan dashboard (Metabase)](steps/06-dashboard-metabase.md) | ada | `dbt/models/mart/`, `questions.py`, `metabase.py`, `marts.py` |
+| 7 | [Stream: Kafka](steps/07-stream-kafka.md) | ada (replay penuh 35 s) | `stream_cli.py`, `producer.py`, `consumer.py` |
+| 8 | [Orkestrasi: DAG ujung ke ujung](steps/08-orkestrasi-dag.md) | ada (stream belum di DAG) | `airflow/dags/` |
+| 9 | [Verifikasi dan bukti (T6)](steps/09-verifikasi.md) | ada (6/6 kasus) | `failures.py`, `smoke.py`, `evidence.py`, `RUNBOOK.md` |
+| 10 | [Benchmark silver: Spark vs DuckDB](steps/10-benchmark.md) | ada | `bench.py` |
 
-Belum: Iceberg di silver, observability/lineage, uji beban (k6) untuk Metabase, dan pengukuran `make all` dari nol yang termasuk build image dan unduhan Kaggle (tanpa keduanya sudah 161,7 detik).
+Yang belum dikerjakan: Iceberg di silver, observability dan lineage, uji beban (k6) untuk Metabase, serta pengukuran `make all` dari nol yang menyertakan build image dan unduhan Kaggle (tanpa keduanya sudah 161,7 detik).
 
 ## Port (dari host)
 
 | Layanan | Port | Profil |
 |---|---|---|
 | Airflow | 18080 | inti |
-| MinIO API / web console | 19000 / **19001** | inti |
+| MinIO API / web console | 19000 / 19001 | inti |
 | PostgreSQL | 15432 | inti |
 | Spark master UI / RPC / worker UI | 18090 / 17077 / 18091 | `spark` |
 | Kafka / Kafka UI | 19092 / 18081 | `stream` |

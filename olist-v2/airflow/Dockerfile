@@ -21,7 +21,7 @@ RUN J=$(python -c "import pyspark,os;print(os.path.join(os.path.dirname(pyspark.
  && curl -fsSL -o "$J/hadoop-aws-${HADOOP_AWS}.jar" "https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/${HADOOP_AWS}/hadoop-aws-${HADOOP_AWS}.jar" \
  && curl -fsSL -o "$J/aws-java-sdk-bundle-${AWS_SDK}.jar" "https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${AWS_SDK}/aws-java-sdk-bundle-${AWS_SDK}.jar"
 
-# 2) dbt dan datacontract-cli di virtualenv SENDIRI: pin dependensinya sering bentrok dengan Airflow
+# 2) dbt dan datacontract-cli di virtualenv tersendiri: pin dependensinya sering bentrok dengan Airflow
 RUN python -m venv /opt/airflow/venvs/dbt \
  && /opt/airflow/venvs/dbt/bin/pip install --no-cache-dir -r /tmp/req/requirements-dbt.txt
 RUN python -m venv /opt/airflow/venvs/datacontract \

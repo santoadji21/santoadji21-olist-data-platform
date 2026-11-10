@@ -1,8 +1,8 @@
-"""T3 — Producer: raw.orders → event per perubahan status → Kafka, dengan gangguan terkontrol.
+"""T3, producer: raw.orders → event per perubahan status → Kafka, dengan gangguan terkontrol.
 
 `KafkaProducer.send()` hanya menaruh pesan di buffer dan mengembalikan future. Kalau broker mati cukup lama,
 future itu gagal diam-diam. Karena itu tiap future diberi errback yang menghitung kegagalan, `flush()` dipanggil,
-dan run dinyatakan GAGAL (exception) bila ada pesan yang tidak terkirim — bukan sukses palsu.
+dan run dinyatakan GAGAL (exception) bila ada pesan yang tidak terkirim, bukan sukses palsu.
 """
 from __future__ import annotations
 

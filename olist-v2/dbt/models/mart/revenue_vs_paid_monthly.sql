@@ -2,7 +2,7 @@
 {{ config(post_hook=["alter table {{ this }} add primary key (year_month)"]) }}
 
 -- Q1 (bagian "cocok dengan uang yang dibayar?"): nilai pesanan vs terbayar per bulan,
--- hanya order yang punya item DAN pembayaran (perbandingan sebanding).
+-- hanya order yang punya item dan pembayaran (perbandingan sebanding).
 SELECT d.year_month,
        d.is_complete_month,
        count(*)                                         AS orders_compared,

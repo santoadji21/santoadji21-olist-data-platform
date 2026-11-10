@@ -1,10 +1,10 @@
 -- Porting dari T0–T6 sql/mart/40_customer_rfm.sql. PK dipasang lewat post_hook.
 {{ config(post_hook=["alter table {{ this }} add primary key (customer_unique_id)"]) }}
 
--- Q4 — RFM per ORANG (customer_unique_id). Titik acuan recency = tanggal beli terakhir di data (bukan hari ini).
+-- Q4: RFM per orang (customer_unique_id). Titik acuan recency = tanggal beli terakhir di data (bukan hari ini).
 -- Hanya order bernilai: status bukan canceled/unavailable dan punya item. Monetary = Σ price (definisi pendapatan Q1).
 -- R dan M: kuintil (ntile 5; seri dipecah deterministik oleh customer_unique_id). 5 = paling baru / paling besar.
--- F BUKAN kuintil mentah: ±96 % orang hanya belanja sekali, jadi ntile(5) memecah ribuan nilai yang sama (F = 1)
+-- F bukan kuintil mentah: ±96 % orang hanya belanja sekali, jadi ntile(5) memecah ribuan nilai yang sama (F = 1)
 -- ke lima skor secara acak. F memakai pita tetap: 1 order → 1, 2 → 2, 3 → 3, 4 → 4, ≥ 5 → 5.
 WITH ref AS (SELECT max(purchase_ts)::date AS ref_date FROM {{ ref('fact_order') }}),
 base AS (

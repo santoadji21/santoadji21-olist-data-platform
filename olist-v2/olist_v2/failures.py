@@ -1,7 +1,7 @@
-"""T6 — Failure injection otomatis terhadap stack v2 yang HIDUP. Tiap kasus = fungsi yang MENGEMBALIKAN hasil (dict).
+"""T6: Failure injection otomatis terhadap stack v2 yang HIDUP. Tiap kasus = fungsi yang MENGEMBALIKAN hasil (dict).
 
 Dijalankan dari laptop (venv): Postgres/MinIO/Kafka dibaca lewat port host; tahap pipeline (bronze, silver, gate, load, stream, dbt)
-dijalankan di container scheduler lewat `docker compose exec` — proses sungguhan, exit code sungguhan. Broker Kafka dihentikan
+dijalankan di container scheduler lewat `docker compose exec`, sebagai proses sungguhan dengan exit code sungguhan. Broker Kafka dihentikan
 lewat `docker stop`. Berkas sumber dirusak lewat salinan sementara di data/raw (data asli tidak pernah diubah).
 
 Hasil: {id, name, broken, symptom, verdict ∈ TERTANGKAP|LOLOS|ERROR, mechanism, recovery, recovered, evidence, seconds}.

@@ -15,7 +15,7 @@
     ]
 ) }}
 
--- fact_order_item: grain = satu baris per UNIT barang, PK (order_id, order_item_id). Harus 112.650 baris.
+-- fact_order_item: grain = satu baris per unit barang, PK (order_id, order_item_id). Harus 112.650 baris.
 -- order_status / purchase_date_key / state didenormalisasi seperlunya agar mart tidak selalu join 4 tabel.
 SELECT i.order_id, i.order_item_id, i.product_id, i.seller_id,
        i.shipping_limit_date, i.price, i.freight_value,
