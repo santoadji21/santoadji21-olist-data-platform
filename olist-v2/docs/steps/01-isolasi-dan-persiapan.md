@@ -3,7 +3,7 @@
 Status: ada. Tujuan langkah ini adalah memastikan eksplorasi tidak mengganggu tugas yang dinilai (tahap T0–T6 pada tugas besar) maupun proyek lain di mesin ini.
 
 ## Yang sudah dikerjakan
-- Branch `explore-v2` dipotong dari tag `final` (`cf8b911`). Tag `cp1`–`cp3` dan `final` tidak bergerak selama branch ini berjalan; jangan `git tag -f` dan jangan merge ke `main` sebelum penilaian selesai.
+- Branch `explore-v2` dipotong dari tag `final` (`cf8b911`). Tag `cp1`–`cp3` dan `final` tidak bergerak selama branch ini berjalan, dan sebaiknya tidak digeser dengan `git tag -f`. Branch ini sudah digabung ke `main` lewat PR #1 dan #2; tag penilaian tetap menunjuk ke commit semula.
 - Semua berkas berada di `olist-v2/`, dan tidak ada satu pun berkas di root repo yang disentuh.
 - Variabel `.env` berawalan `V2_` (`V2_PG_PASSWORD`, `V2_MINIO_ROOT_USER`, …).
 - `make` memakai `docker compose -p olist-v2`, dan volume serta network diberi nama eksplisit (`olist-v2-pg-data`, `olist_v2_net`, …).

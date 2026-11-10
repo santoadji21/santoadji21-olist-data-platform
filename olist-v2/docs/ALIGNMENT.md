@@ -61,7 +61,7 @@ Setiap tahap punya satu pintu perintah. Kontrak dan skema berasal dari satu stru
 - RAM Docker 7,8 GB: nyalakan lewat profil dan ukur dengan `docker stats`.
 - Batas 15 menit dari `down -v`: build tiga image kustom (Airflow dengan Java, Spark, Jupyter) bisa memakan waktu, sehingga pengukuran harus menyertakan build.
 - Unit test tanpa Docker: aturan kualitas dirancang agar tidak membutuhkan Spark untuk diuji.
-- Versi yang di-pin belum terverifikasi: `dbt-core 1.8.9`, `dbt-postgres 1.8.2`, tag image Spark, konektor S3A.
+- Versi yang di-pin sudah terbukti berjalan: `dbt-core 1.8.9` dan `dbt-postgres 1.8.2` (langkah 5), serta tag image Spark `3.5.3` (ada di registry). Konektor S3A berjalan pada silver lewat `local[2]` (langkah 4); jalurnya lewat cluster Spark belum dicoba.
 
 ## 4. Naik kelas ke production-grade
 Rincian dan prioritasnya ada di [PRODUCTION-GRADE.md](PRODUCTION-GRADE.md).

@@ -9,7 +9,7 @@ Status: selesai. Kebenaran platform ditunjukkan lewat bukti, tidak hanya diklaim
 | Satu pintu dari nol | `make all YES=1` | 10 perintah, waktu per tahap → `outputs/run_all.json` |
 | Laporan bukti | `make report` | `EVALUATION_EVIDENCE.md` dari `outputs/*.json`, tanpa angka ketikan tangan |
 | Runbook | [RUNBOOK.md](../../RUNBOOK.md) | 11 gejala: penyebab, cek, pemulihan |
-| Unit test tanpa Docker | `make test` | 79 lulus, 1 dilewati (Spark tidak ada di venv) |
+| Unit test tanpa Docker | `make test` | 80 tes: 66 lulus dan 14 dilewati bila stack mati (tes yang butuh Postgres hidup, serta tes Spark karena pyspark tidak ada di venv). Dengan stack hidup, hasil tercatat 79 lulus dan 1 dilewati (angka lama, belum diulang) |
 
 ## Kasus failure injection
 | # | Kasus | Hasil |
@@ -26,4 +26,4 @@ Perusak sungguhan: proses dimatikan lewat exit code, broker lewat `docker stop`,
 ## Batas 15 menit dan 10 perintah (T6)
 `make all YES=1` (reset berupa `down -v`, lalu 10 perintah) memakan 161,7 detik (2,7 menit), dan semua perintah exit 0 (`outputs/run_all.json`). Syarat tugas: ≤ 15 menit dan ≤ 10 perintah.
 
-Batasan pengukuran: image kustom sudah terbangun (tahap `up` 34 s tanpa build) dan CSV di `data/raw` dipertahankan (tahap `download` 2,4 s, bukan unduhan Kaggle). Build image dari nol dan unduhan penuh menambah waktu; keduanya belum diukur dan dijalankan sekali saja (`make reset-all` lalu `make build`).
+Batasan pengukuran: image kustom sudah terbangun (tahap `up` 34 s tanpa build) dan CSV di `data/raw` dipertahankan (tahap `download` 2,4 s, bukan unduhan Kaggle). Build image dari nol dan unduhan penuh menambah waktu, dan keduanya belum pernah diukur. Untuk mengukurnya, jalankan `make reset-all` lalu `make build`.

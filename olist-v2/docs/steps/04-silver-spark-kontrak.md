@@ -15,11 +15,13 @@ Mulai dari `contracts/olist_raw.odcs.yaml` milik T0–T6 (sudah lint-valid, 8 wa
 ## Keputusan: Spark mode lokal dulu (`local[2]` di dalam task Airflow)
 Mode ini dipilih supaya logika silver dan gate hijau tanpa cluster (RAM 7,8 GB). Pindah ke cluster cukup dengan mengganti `SPARK_MASTER_URL`. Kodenya: `olist_v2/silver.py` (transformasi murni Spark + I/O S3), `olist_v2/rules.py` (logika murni), aturan dan ambang dari kontrak ODCS.
 
-## Pilihan yang masih terbuka untuk nanti
-Image Airflow tidak punya Java, jadi cara Airflow menjalankan Spark harus dipilih:
-1. `spark-submit` client mode dari Airflow (yang saat ini ditulis di Dockerfile: JRE + pyspark 3.5): driver di container Airflow, executor di `spark-worker`. Butuh `spark.driver.host` yang bisa dijangkau worker dan versi pyspark = 3.5.3.
+## Pilihan untuk menjalankan Spark dari Airflow
+Image Airflow memasang Java (`default-jre-headless`) dan pyspark klien (`>=3.5.3,<3.6`), sehingga tiga pilihan berikut terbuka:
+1. `spark-submit` client mode: driver di container Airflow, executor di `spark-worker`. Butuh `spark.driver.host` yang bisa dijangkau worker, dan versi pyspark klien harus satu minor dengan cluster (3.5.3).
 2. Spark Connect: klien ringan tanpa Java, server di container Spark. Lebih ringan untuk laptop 7,8 GB, tetapi fiturnya terbatas pada DataFrame dan SQL.
-3. Spark lokal di dalam task (tanpa cluster): paling sederhana, tetapi tidak lagi berupa cluster.
+3. Spark lokal di dalam task, tanpa cluster. Paling sederhana, tetapi tidak lagi berupa cluster.
+
+Yang dipilih saat ini adalah nomor 3 (`local[2]`, lihat keputusan di atas). Nomor 1 dan 2 belum dicoba.
 
 Data 126 MB sebenarnya terlalu kecil untuk membutuhkan Spark (di T0–T6, DuckDB mengerjakan 1 juta baris geolokasi dalam hitungan detik). Nilai langkah ini ada pada belajar dan membandingkan durasi Spark dengan DuckDB.
 
@@ -29,4 +31,4 @@ Data 126 MB sebenarnya terlalu kecil untuk membutuhkan Spark (di T0–T6, DuckDB
 - `datacontract test` lolos (hanya warning soft) dan menjadi task `contract_gate` di DAG.
 
 ## Risiko
-S3A butuh pasangan `hadoop-aws 3.3.4` + `aws-java-sdk-bundle 1.12.262` (sudah di `spark/Dockerfile`); tag image `apache/spark:3.5.3-scala2.12-java17-python3-ubuntu` belum diverifikasi.
+S3A butuh pasangan `hadoop-aws 3.3.4` + `aws-java-sdk-bundle 1.12.262` (sudah di `spark/Dockerfile`); tag image `apache/spark:3.5.3-scala2.12-java17-python3-ubuntu` sudah diperiksa ada di registry (`docker manifest inspect`).

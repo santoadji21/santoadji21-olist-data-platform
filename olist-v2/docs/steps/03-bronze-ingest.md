@@ -11,7 +11,7 @@ Kaggle (olistbr/brazilian-ecommerce) ──download_kaggle──▶ olist-v2/dat
 - Perintah: `make download` (mandiri) lalu `make bronze`; di Airflow: DAG `olist_v2_pipeline` = `download_kaggle` → `ingest_bronze`.
 - `data/raw/` (±126 MB) di-ignore oleh `.gitignore` milik v2 sendiri.
 
-Status: ditulis; 13 test lolos tanpa Docker; belum dijalankan terhadap MinIO. Kode: `olist_v2/bronze.py`, daftar tabel dibaca dari kontrak ODCS (`olist_v2/contract.py`, `contracts/olist_raw.odcs.yaml`, salinan dari T0–T6), DAG `olist_v2_pipeline` (task `ingest_bronze`), perintah mandiri `make bronze` (jalan di container scheduler), `make test` (venv lokal). Tujuan: file sumber tersimpan apa adanya di MinIO dengan bukti isi (sha256), dan ingest aman diulang.
+Status: selesai dan sudah berjalan terhadap MinIO sebagai bagian dari DAG `olist_v2_pipeline` (lihat langkah 4 dan 8); 13 test bronze lolos tanpa Docker. Kode: `olist_v2/bronze.py`, daftar tabel dibaca dari kontrak ODCS (`olist_v2/contract.py`, `contracts/olist_raw.odcs.yaml`, salinan dari T0–T6), DAG `olist_v2_pipeline` (task `ingest_bronze`), perintah mandiri `make bronze` (jalan di container scheduler), `make test` (venv lokal). Tujuan: file sumber tersimpan apa adanya di MinIO dengan bukti isi (sha256), dan ingest aman diulang.
 
 ## Desain (dibawa dari T1)
 - Task Airflow `ingest_bronze` (Python, `boto3` dari provider Amazon yang sudah ada di image) membaca `/opt/airflow/data/raw` (`olist-v2/data/raw`, diisi `download_kaggle`).
@@ -25,9 +25,9 @@ Status: ditulis; 13 test lolos tanpa Docker; belum dijalankan terhadap MinIO. Ko
 2. 9 manifest ada di `bronze`; `make minio-ls` menampilkan objek di bawah `olist/<tabel>/…`.
 3. Mengubah satu byte pada salinan CSV menghasilkan `new_version`, objek lama tetap ada.
 
-## Keputusan terbuka
-- Kode ingest: disalin dari T0–T6 atau ditulis ulang? `olist/bronze.py` di repo induk sudah teruji (6 test). Menyalinnya ke `olist-v2/airflow/dags/lib/` menghemat waktu, tetapi menghasilkan dua salinan. Sarannya, salin dulu lalu tandai sumbernya di komentar.
-- Kafka sebagai sumber bronze (event order) menyusul di langkah 7; bronze batch dulu.
+## Keputusan yang sudah diambil
+- Kode ingest disalin dari T0–T6 ke paket `olist_v2/bronze.py`, bukan ke `airflow/dags/lib/`, supaya bisa diuji dan dijalankan tanpa Airflow (`make bronze`). Sumbernya ditandai di komentar kepala berkas.
+- Kafka tidak menjadi sumber bronze. Event order dipakai oleh jalur stream (langkah 7), sedangkan bronze tetap batch dari CSV.
 
 ## Jebakan dari T1
 Ukuran byte yang sama belum menjamin isinya sama. Manifest harus disimpan di bucket, bukan secara lokal, dan objek jangan dinamai hanya dengan tanggal.
